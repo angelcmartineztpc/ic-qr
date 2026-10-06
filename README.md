@@ -10,7 +10,7 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 |---|---|---|
 | 1 | Arquitectura | ✓ aprobada (2026-10-06) |
 | 2 | Scaffolding, infraestructura y guardas | ✓ |
-| 3 | Modelo de dominio y validación | pendiente |
+| 3 | Modelo de dominio y validación | ✓ |
 | 4 | Núcleo vectorial: QR, texto, escena, SVG y PDF | pendiente |
 | 5–12 | QR y storage, builder y formulario, Excel, editor visual, exportación, descarga, testing, pulido | pendiente |
 
@@ -127,3 +127,19 @@ curl -o /dev/null -w '%{http_code}\n' localhost:3000/   # 401
 curl -I -u diseno:una-clave-larga localhost:3000/       # 200 + cabeceras CSP
 NODE_ENV=production bun run start                       # se niega a arrancar y lista los problemas
 ```
+
+## Cómo probar la Fase 3
+
+```bash
+bun run test:unit          # 170+ tests del dominio, sin navegador ni servidor
+bun run test:coverage      # ≥ 90 % en lib/records, lib/layout y lib/document
+```
+
+Qué cubre (todo en `src/lib`, `src/schemas`, `src/types`, `src/templates`):
+
+- **Regla crítica del QR** (`lib/records/qr-state.ts`): con Link del QR nunca se genera; un QR generado se reutiliza; si cambia el Link del menú queda *stale* y bloquea la exportación hasta decidir, con confirmación ligada que caduca.
+- **Validación** (`lib/validation`): campos de texto libre; obligatorios Área, Mesa y Link del menú; URLs seguras (bloquea `javascript:`, `data:`, `file:`…); mensajes exactos del spec («Fila 18: Falta Link del menú»).
+- **Duplicados** (`lib/records/duplicates.ts`): clave configurable y estrategias Mantener / Eliminar / Revisar; nada se borra en silencio.
+- **Plantillas** (`src/templates`): TropicalTable con Gotham, `restaurant-default` y `custom-template` (guía en su README).
+- **Empaquetado** (`lib/document/sheet.ts`): A4 por defecto → 3 × 5 = 15 piezas por página, 17 páginas para 248.
+- **Editor** (`lib/layout`): límites de 50 × 50 mm, redimensionar, imantar y presets del QR.

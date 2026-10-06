@@ -23,6 +23,11 @@ const eslintConfig = defineConfig([
         { "ts-ignore": true, "ts-nocheck": true, "ts-expect-error": "allow-with-description" },
       ],
       "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "inline-type-imports" }],
+      // `const { omitida: _omitida, ...resto } = obj` es la forma de quitar propiedades sin mutar.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { ignoreRestSiblings: true, argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" },
+      ],
       "no-restricted-syntax": [
         "error",
         { selector: "TSAsExpression > TSAnyKeyword", message: "No uses `as any`." },
