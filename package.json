@@ -14,9 +14,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "fonts:setup": "tsx scripts/setup-fonts.ts",
-    "hash-password": "tsx scripts/hash-password.ts",
-    "check:sheetjs": "tsx scripts/check-sheetjs.ts"
+    "fonts:setup": "tsx scripts/setup-fonts.mts",
+    "hash-password": "tsx scripts/hash-password.mts",
+    "check:sheetjs": "tsx scripts/check-sheetjs.mts",
+    "render:sample": "tsx --conditions=react-server scripts/render-sample.mts"
   },
   "engines": {
     "node": ">=22.12"

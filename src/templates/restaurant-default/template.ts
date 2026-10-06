@@ -12,8 +12,8 @@ export const restaurantDefault = {
   fontDir: GOTHAM_DIR,
   fonts: GOTHAM_FILES,
   defaultLayout: {
-    content: { x: 3, y: 3, width: 44, height: 22 },
-    qr: { x: 14, y: 26, width: 22, height: 22 },
+    content: { x: 3, y: 3, width: 44, height: 20 },
+    qr: { x: 13, y: 24, width: 24, height: 24 },
   },
   content: {
     verticalAlign: "start",

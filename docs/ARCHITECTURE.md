@@ -2872,3 +2872,17 @@ Consecuencias:
 - **Pendiente con el área legal o de compras:** confirmar que la licencia de Gotham de la empresa cubre el uso en servidor (generar PDF y contornos para producción) y, si alguna vez se quisiera, el uso web.
 - Pesos usados por la plantilla TropicalTable: Book, Medium, Bold y Black (sustituyen a 500/600/700/800). El presupuesto vertical de §E.11 se vuelve a medir con Gotham en la Fase 4.
 
+### Notas de implementación de la Fase 4 (2026-10-06)
+
+Detalles que surgieron al construir y que prevalecen sobre el texto anterior:
+
+- **Corrección de errores H y zona de silencio.** La librería `qr` exige `border ≥ 1`: se pide 1 y se recorta el anillo para obtener la matriz sin zona de silencio. El hash dorado del SVG canónico (`a82f64cf…48d8` para `https://menu.example.com/tropical`) es idéntico en Node y en Bun.
+- **Contorno del QR.** Se traza el borde de los módulos (no un rectángulo por módulo): un único path compuesto, con las aristas compartidas anuladas. Verificado módulo a módulo con *nonzero* y *even-odd* en 300 matrices aleatorias, y decodificado con dos lectores independientes (`qr/decode` y `jsqr`).
+- **Juego de caracteres de Gotham.** Gotham 3.301 no trae 28 caracteres de los rangos previstos (`¤ ¦ ¬`, soft hyphen, y varias letras de Latin Extended-A como Ĉ Ĥ Ĩ Ŧ). `lib/document/charset.ts` los excluye y un test contrasta el conjunto admitido con la fuente real. Todo el español (`á é í ó ú ñ ü ¿ ¡`), `–`, `—`, comillas y `€` están cubiertos.
+- **Sin paridad navegador/servidor de la escena.** Por la decisión R2 (Gotham no se envía al navegador), la escena se calcula siempre en el servidor y el cliente solo recibe contornos. El test de paridad previsto no aplica.
+- **Páginas personalizadas.** Un tamaño personalizado se usa tal como lo escribe el usuario (ancho × alto); solo la orientación `auto` prueba también la página girada. A4 y Carta mantienen «vertical = lado largo en vertical».
+- **IDs del SVG únicos.** Capas `background`, `artwork`, `qr`, `text`, `cutline`; nodos `tile-background`, `qr-background`, `qr-code`, `text-<id>`, `cutline-outline`.
+- **Scripts como `.mts`.** El proyecto no es ESM, así que los scripts con `await` de nivel superior usan la extensión `.mts`. Los que necesitan módulos `server-only` se ejecutan con `tsx --conditions=react-server`.
+- **pdfkit en Docker.** pdfkit solo entra en la salida *standalone* cuando algún Route Handler lo importa (sus fuentes estándar se cargan con `require`, así que se rastrean). Se verifica en la imagen en la Fase 9, cuando exista `/api/export`.
+- **Hoja de calibración** (`lib/document/calibration.ts`): 16 piezas (QR v4–v9 normales e invertidos, y texto de 4.5 a 6 pt) para validar los umbrales en el material real.
+

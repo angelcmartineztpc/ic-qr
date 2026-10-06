@@ -39,6 +39,14 @@ describe("packGrid — tabla de §E.7", () => {
     expect([grid.cols, grid.rows]).toEqual([4, 4]);
   });
 
+  it("tamaño personalizado: se respeta ancho × alto tal como se escribió; 'auto' prueba también el giro", () => {
+    const landscape = packGrid({ tile: TILE, options: options({ pageSize: { kind: "custom", widthMm: 150, heightMm: 100 }, margins: margins(0), gapMm: 0 }) });
+    expect(landscape.pageMm).toEqual({ width: 150, height: 100 });
+    expect([landscape.orientation, landscape.cols, landscape.rows]).toEqual(["landscape", 3, 2]);
+    const rotated = packGrid({ tile: TILE, options: options({ pageSize: { kind: "custom", widthMm: 100, heightMm: 150 }, orientation: "auto", margins: margins(0), gapMm: 0 }) });
+    expect(rotated.perPage).toBe(6);
+  });
+
   it("personalizado 60 × 60 con margen 10 → TILE_DOES_NOT_FIT", () => {
     const run = () => packGrid({ tile: TILE, options: options({ pageSize: { kind: "custom", widthMm: 60, heightMm: 60 } }) });
     expect(run).toThrow(SheetLayoutError);

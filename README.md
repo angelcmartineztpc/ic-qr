@@ -11,7 +11,7 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 1 | Arquitectura | ✓ aprobada (2026-10-06) |
 | 2 | Scaffolding, infraestructura y guardas | ✓ |
 | 3 | Modelo de dominio y validación | ✓ |
-| 4 | Núcleo vectorial: QR, texto, escena, SVG y PDF | pendiente |
+| 4 | Núcleo vectorial: QR, texto, escena, SVG y PDF | ✓ (falta la verificación manual en Illustrator: [docs/ILLUSTRATOR.md](docs/ILLUSTRATOR.md)) |
 | 5–12 | QR y storage, builder y formulario, Excel, editor visual, exportación, descarga, testing, pulido | pendiente |
 
 ## Requisitos
@@ -49,6 +49,7 @@ Los nombres son iguales con Bun y con npm:
 | `bun run test:e2e` | `npm run test:e2e` | Playwright (escritorio y móvil 390 × 844) |
 | `bun run hash-password` | `npm run hash-password` | Genera `BASIC_AUTH_PASSWORD_SHA256` |
 | `bun run check:sheetjs` | `npm run check:sheetjs` | Avisa si hay una versión nueva de SheetJS en su CDN |
+| `bun run render:sample` | `npm run render:sample` | Genera PDF y SVG de muestra y la hoja de calibración en `out/` |
 
 > **Atención:** `bun test` ejecuta el runner propio de Bun, no Vitest. Usa siempre `bun run test`.
 
@@ -143,3 +144,17 @@ Qué cubre (todo en `src/lib`, `src/schemas`, `src/types`, `src/templates`):
 - **Plantillas** (`src/templates`): TropicalTable con Gotham, `restaurant-default` y `custom-template` (guía en su README).
 - **Empaquetado** (`lib/document/sheet.ts`): A4 por defecto → 3 × 5 = 15 piezas por página, 17 páginas para 248.
 - **Editor** (`lib/layout`): límites de 50 × 50 mm, redimensionar, imantar y presets del QR.
+
+## Cómo probar la Fase 4
+
+```bash
+bun run fonts:setup        # Gotham (una vez)
+bun run test               # incluye PDF real con Gotham; sin Gotham esos tests se saltan
+bun run render:sample      # archivos en out/ para abrir en Illustrator
+```
+
+Después sigue la guía [docs/ILLUSTRATOR.md](docs/ILLUSTRATOR.md): abre los archivos de `out/` y ejecuta `scripts/illustrator-check.jsx` dentro de Illustrator. Qué se verifica por código:
+
+- **PDF vectorial:** 0 imágenes (ni objetos ni operadores de pintura), MediaBox A4 exacta (595.2756 × 841.8898 pt), cada pieza de 141.732 pt (50 mm), QR como un único path `f*`, texto en contornos (0 fuentes) o vivo (Gotham incrustada con ToUnicode y texto extraíble).
+- **SVG:** `width="50mm" height="50mm" viewBox="0 0 500 500"`, XML bien formado, ids únicos, una capa por grupo y ninguna imagen, estilo ni script; el texto del usuario nunca inyecta elementos.
+- **Rendimiento:** 1000 piezas (67 hojas) en menos de 10 s.

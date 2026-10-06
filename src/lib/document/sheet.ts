@@ -86,16 +86,21 @@ export function packGrid(input: SheetInput): SheetLayout {
     };
   }
 
-  // Vertical = lado largo en vertical (también en tamaño personalizado).
+  // A4 y Carta: vertical = lado largo en vertical. Un tamaño personalizado se usa tal como
+  // lo escribió el usuario (ancho × alto); solo 'auto' prueba también la página girada.
   const base = pageSizeMm(options.pageSize);
-  const portrait = { width: Math.min(base.width, base.height), height: Math.max(base.width, base.height) };
+  const custom = options.pageSize.kind === "custom";
+  const portrait = custom ? base : { width: Math.min(base.width, base.height), height: Math.max(base.width, base.height) };
   const landscape = { width: portrait.height, height: portrait.width };
+  const asEntered = (page: { width: number; height: number }) => (page.width > page.height ? "landscape" : "portrait");
   const candidates =
-    options.orientation === "portrait"
-      ? [gridFor(portrait, "portrait", input)]
-      : options.orientation === "landscape"
-        ? [gridFor(landscape, "landscape", input)]
-        : [gridFor(portrait, "portrait", input), gridFor(landscape, "landscape", input)];
+    options.orientation === "auto"
+      ? [gridFor(portrait, asEntered(portrait), input), gridFor(landscape, asEntered(landscape), input)]
+      : custom
+        ? [gridFor(portrait, asEntered(portrait), input)]
+        : options.orientation === "portrait"
+          ? [gridFor(portrait, "portrait", input)]
+          : [gridFor(landscape, "landscape", input)];
 
   // 'auto': máximo de piezas por página; empate → vertical.
   const best = candidates.reduce<SheetLayout | null>((acc, grid) => (grid && (!acc || grid.perPage > acc.perPage) ? grid : acc), null);
