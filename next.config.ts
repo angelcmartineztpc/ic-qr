@@ -48,9 +48,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
-      { source: "/api/:path*", headers: [{ key: "Cross-Origin-Resource-Policy", value: "same-origin" }] },
-      // /api/storage/** sirve archivos inmutables con su propio Cache-Control.
-      { source: "/api/:path((?!storage/).*)", headers: [{ key: "Cache-Control", value: "no-store" }] },
+      // /api/storage/** sirve archivos públicos e inmutables con sus propias cabeceras (CORP, Cache-Control).
+      { source: "/api/:path((?!storage/).*)", headers: [{ key: "Cross-Origin-Resource-Policy", value: "same-origin" }, { key: "Cache-Control", value: "no-store" }] },
     ];
   },
 };

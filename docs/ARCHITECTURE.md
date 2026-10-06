@@ -2886,3 +2886,15 @@ Detalles que surgieron al construir y que prevalecen sobre el texto anterior:
 - **pdfkit en Docker.** pdfkit solo entra en la salida *standalone* cuando algún Route Handler lo importa (sus fuentes estándar se cargan con `require`, así que se rastrean). Se verifica en la imagen en la Fase 9, cuando exista `/api/export`.
 - **Hoja de calibración** (`lib/document/calibration.ts`): 16 piezas (QR v4–v9 normales e invertidos, y texto de 4.5 a 6 pt) para validar los umbrales en el material real.
 
+### Notas de implementación de la Fase 5 (2026-10-06)
+
+- **Códigos de error de QR nuevos:** `storage-conflict` (hay un archivo distinto del esperado en la clave: no se reutiliza ni se sobrescribe) y `quota-exceeded` (límite de QR nuevos por hora; los existentes se siguen reutilizando). Los fallos son siempre por pieza y nunca provocan una generación de respaldo.
+- **Guardas diferidas.** `withApiGuards(handler, () => opciones)` y `getLimits()` se inicializan en la primera petición. Con la inicialización al importar, `next build` evaluaba el entorno de producción y fallaba. Las opciones se pasan como función por la misma razón.
+- **Storage local.** Los metadatos van en un archivo `.meta.json` junto al objeto, escrito *antes* que el objeto (enlace atómico `link` + `EEXIST`): un lector nunca ve un objeto sin sus metadatos. 20 subidas simultáneas dan 1 `created` (verificado con disco real).
+- **Storage S3.** Verificado con el SDK real de AWS contra un servidor HTTP local que imita el protocolo (incluido el `412` del PUT condicional y el modo Supabase sin PUT condicional). El comportamiento contra R2 y Supabase reales sigue NO VERIFICADO (Fase 11, opcional por entorno).
+- **Descarga segura (`safeFetch`).** https y puerto 443, política `public` o `allowlist`, **todas** las IP resueltas deben ser públicas (incluidas IPv4 mapeadas, NAT64 y 6to4), IP fijada en la conexión TLS (el certificado se valida contra el nombre), redirecciones manuales ≤3 revalidadas, 5 s y 512 KiB. Verificado contra Internet real y contra una redirección real hacia `169.254.169.254`.
+- **Saneado de SVG externo.** Lista blanca estricta (`svg`, `g`, `path`, `rect`, `polygon`); cualquier otro elemento, atributo de evento, `href`, `url()`, DOCTYPE o entidad **rechaza** el archivo (`invalid-svg`) en lugar de ignorarlo en silencio. Un QR dibujado con trazos se marca `strokeBased` (aviso para CAM). Generadores de terceros con elementos fuera de la lista (`style`, `use`, `circle`…) se rechazan: plan B documentado en la Fase 5 del plan.
+- **Verificación.** El tipo se decide por los bytes (SVG / imagen / PDF / HTML). Se rasteriza **solo nuestro SVG re-emitido** (≤1024², `limitInputPixels`, 3 s) y se decodifica con `qr/decode`. Una imagen PNG/JPG/WebP da `raster-only`; una página web da `not-an-image` preguntando si es un enlace de destino.
+- **Catálogo.** `StorageBackedCatalog` no guarda fechas (el storage no las expone): `createdAt`/`updatedAt` son la hora de la consulta hasta que exista la tabla `qr_codes`.
+- **Pendiente para la Fase 9:** pdfkit en la imagen Docker (se rastrea cuando exista `/api/export`).
+

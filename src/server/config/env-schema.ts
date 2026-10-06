@@ -53,7 +53,10 @@ export const EnvSchema = z
     STORAGE_SECRET_KEY: optionalSecret,
     STORAGE_FORCE_PATH_STYLE: bool(false),
     STORAGE_PUBLIC_BASE_URL: z.string().default("http://localhost:3000/api/storage"),
-    STORAGE_KEY_PREFIX: z.string().default(""),
+    STORAGE_KEY_PREFIX: z
+      .string()
+      .regex(/^(?:[a-z0-9-]+\/?)?$/, { error: "Un solo segmento en minúsculas, números y guiones (p. ej. prod/)" })
+      .default(""),
     STORAGE_CONDITIONAL_PUT: z.enum(["auto", "true", "false"]).default("auto"),
     STORAGE_MAX_CONCURRENCY: int(16, 1),
     STORAGE_LOCAL_DIR: z.string().default("./.data/storage"),

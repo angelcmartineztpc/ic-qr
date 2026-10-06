@@ -29,6 +29,10 @@ export const QrErrorCodeSchema = z.enum([
   "encode-failed",
   "asset-changed",
   "identity-mismatch",
+  /** Hay un archivo distinto del esperado en la clave del QR (no se reutiliza ni se sobrescribe). */
+  "storage-conflict",
+  /** Se alcanzó el máximo de QR nuevos por hora (los ya existentes se siguen reutilizando). */
+  "quota-exceeded",
 ]);
 
 export const GeneratedStorageKeySchema = z.string().regex(/^(?:[a-z0-9-]+\/)?qr\/v\d+\/[0-9a-f]{64}\.svg$/);

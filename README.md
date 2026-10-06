@@ -12,7 +12,8 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 2 | Scaffolding, infraestructura y guardas | ✓ |
 | 3 | Modelo de dominio y validación | ✓ |
 | 4 | Núcleo vectorial: QR, texto, escena, SVG y PDF | ✓ (falta la verificación manual en Illustrator: [docs/ILLUSTRATOR.md](docs/ILLUSTRATOR.md)) |
-| 5–12 | QR y storage, builder y formulario, Excel, editor visual, exportación, descarga, testing, pulido | pendiente |
+| 5 | QR y storage (regla crítica de extremo a extremo en el servidor) | ✓ |
+| 6–12 | Builder y formulario, Excel, editor visual, exportación, descarga, testing, pulido | pendiente |
 
 ## Requisitos
 
@@ -158,3 +159,23 @@ Después sigue la guía [docs/ILLUSTRATOR.md](docs/ILLUSTRATOR.md): abre los arc
 - **PDF vectorial:** 0 imágenes (ni objetos ni operadores de pintura), MediaBox A4 exacta (595.2756 × 841.8898 pt), cada pieza de 141.732 pt (50 mm), QR como un único path `f*`, texto en contornos (0 fuentes) o vivo (Gotham incrustada con ToUnicode y texto extraíble).
 - **SVG:** `width="50mm" height="50mm" viewBox="0 0 500 500"`, XML bien formado, ids únicos, una capa por grupo y ninguna imagen, estilo ni script; el texto del usuario nunca inyecta elementos.
 - **Rendimiento:** 1000 piezas (67 hojas) en menos de 10 s.
+
+## Cómo probar la Fase 5
+
+```bash
+bun run test               # 490+ tests; incluye storage real, SDK de AWS y rutas
+```
+
+Con el servidor en marcha (`bun run build && PORT=3000 … bun run start`, ver «Cómo probar la Fase 2» para las variables) y `STORAGE_PROVIDER=local`:
+
+```bash
+A='-u diseno:una-clave-larga'; J='-H Content-Type:application/json -H Sec-Fetch-Site:same-origin'
+# Sin Link del QR → se genera una sola vez y devuelve la URL pública
+curl $A $J -X POST localhost:3000/api/qr/resolve -d '{"items":[{"recordId":"r1","menuUrl":"https://menu.example.com/tropical","expectedRevision":0}]}'
+# Repetir → "reused"; nada nuevo en el storage
+# Con Link del QR → nunca se genera ("failed", código unsafe-url)
+# Verificar un QR existente (SVG): "existing-ok" y su contenido decodificado
+curl $A $J -X POST localhost:3000/api/qr/resolve -d '{"verify":[{"recordId":"r2","qrUrl":"https://qr.cliente.com/m1.svg","menuUrl":"https://menu.example.com/tropical"}]}'
+```
+
+Los QR generados se guardan como `qr/v1/{sha256}.svg` (el mismo link siempre da el mismo archivo). Con S3, R2 o Supabase configura `STORAGE_*` en `.env` (ver `.env.example`); la ruta `/api/storage/*` solo existe con el proveedor `local`.

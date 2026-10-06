@@ -25,3 +25,9 @@ export function qrStorageKey(contentHash: string, prefix = ""): string {
   const normalized = prefix === "" ? "" : prefix.endsWith("/") ? prefix : `${prefix}/`;
   return `${normalized}qr/${QR_KEY_VERSION}/${contentHash}.svg`;
 }
+
+/** Instantánea de la geometría saneada de un QR externo: [prefijo/]qr/ext/v1/{assetSha256}.json */
+export function externalSnapshotKey(assetSha256: string, prefix = ""): string {
+  const normalized = prefix === "" ? "" : prefix.endsWith("/") ? prefix : `${prefix}/`;
+  return `${normalized}qr/ext/${QR_KEY_VERSION}/${assetSha256}.json`;
+}

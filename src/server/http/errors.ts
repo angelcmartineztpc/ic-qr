@@ -1,6 +1,7 @@
 /** Códigos de error de la API (las respuestas de error siempre son AppErrorPayload). */
 export type ApiErrorCode =
   | "BAD_REQUEST"
+  | "NOT_FOUND"
   | "VALIDATION_FAILED"
   | "UNAUTHORIZED"
   | "FORBIDDEN_ORIGIN"
