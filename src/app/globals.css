@@ -1,0 +1,34 @@
+/*
+ * Orden de capas: las utilidades de Tailwind ganan sobre los estilos de MUI,
+ * que Emotion emite dentro de @layer mui (AppRouterCacheProvider enableCssLayer).
+ */
+@layer theme, base, mui, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+/* Sin el preflight de Tailwind: CssBaseline de MUI hace el reset (evita dos resets). */
+
+/*
+ * Tokens: el tema MUI (cssVariables: true) es la única fuente. Tailwind solo
+ * los referencia, para que layout y componentes compartan valores.
+ * Breakpoints iguales a los de MUI (xs <600, sm 600, md 900, lg 1200, xl 1536).
+ */
+@theme inline {
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 900px;
+  --breakpoint-lg: 1200px;
+  --breakpoint-xl: 1536px;
+
+  /* --spacing se queda en 4px (Tailwind): MUI spacing(1) = 8px = utilidad "2". */
+  --font-sans: var(--font-ui), system-ui, sans-serif;
+
+  --color-background: var(--mui-palette-background-default);
+  --color-surface: var(--mui-palette-background-paper);
+  --color-foreground: var(--mui-palette-text-primary);
+  --color-muted: var(--mui-palette-text-secondary);
+  --color-divider: var(--mui-palette-divider);
+  --color-primary: var(--mui-palette-primary-main);
+  --color-error: var(--mui-palette-error-main);
+  --color-warning: var(--mui-palette-warning-main);
+  --color-success: var(--mui-palette-success-main);
+}

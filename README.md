@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QR Production Generator
 
-## Getting Started
+Herramienta interna para crear piezas físicas de metal de **50 × 50 mm** con datos de restaurante, mesa y un **QR vectorial**, y exportarlas como **PDF vectorial compatible con Adobe Illustrator** (y SVG por pieza).
 
-First, run the development server:
+La arquitectura completa, las decisiones y el plan por fases están en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Ese documento es normativo; su sección final, «Registro de decisiones», prevalece sobre el resto.
+
+## Estado
+
+| Fase | Contenido | Estado |
+|---|---|---|
+| 1 | Arquitectura | ✓ aprobada (2026-10-06) |
+| 2 | Scaffolding, infraestructura y guardas | ✓ |
+| 3 | Modelo de dominio y validación | pendiente |
+| 4 | Núcleo vectorial: QR, texto, escena, SVG y PDF | pendiente |
+| 5–12 | QR y storage, builder y formulario, Excel, editor visual, exportación, descarga, testing, pulido | pendiente |
+
+## Requisitos
+
+- **Node.js ≥ 22.12** (producción: Node 24)
+- **Bun 1.4.2** (gestor de paquetes recomendado). npm también funciona.
+- **Gotham** instalada en la máquina (tipografía de las piezas; ver «Fuentes»).
+
+## Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local      # valores de desarrollo; sin secretos reales
+bun install                     # o: npm install
+bun run fonts:setup             # copia Gotham a assets/fonts/gotham (o: npm run fonts:setup)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Fuentes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Gotham tiene **licencia comercial** (Hoefler & Co.), así que sus archivos **no se versionan**. `bun run fonts:setup` los copia desde `~/Library/Fonts`. Para usar otra carpeta, define `FONTS_SOURCE_DIR=/ruta`. El script verifica el sha256 contra [`assets/fonts/gotham/manifest.json`](assets/fonts/gotham/manifest.json).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+La interfaz usa Roboto (OFL, incluida en `src/app/_fonts`). Gotham nunca se envía al navegador: las vistas previas reciben el texto ya convertido en contornos desde el servidor.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+Los nombres son iguales con Bun y con npm:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Bun | npm | Qué hace |
+|---|---|---|
+| `bun run dev` | `npm run dev` | Servidor de desarrollo en http://localhost:3000 |
+| `bun run build` | `npm run build` | Build de producción (`output: standalone`) |
+| `bun run start` | `npm start` | Servir el build standalone (`node .next/standalone/server.js`, siempre en modo producción) |
+| `bun run lint` | `npm run lint` | ESLint (calidad + capas de la arquitectura) |
+| `bun run typecheck` | `npm run typecheck` | `next typegen` + `tsc --noEmit` |
+| `bun run test` | `npm test` | Vitest: proyectos `unit`, `dom` e `integration` |
+| `bun run test:e2e` | `npm run test:e2e` | Playwright (escritorio y móvil 390 × 844) |
+| `bun run hash-password` | `npm run hash-password` | Genera `BASIC_AUTH_PASSWORD_SHA256` |
+| `bun run check:sheetjs` | `npm run check:sheetjs` | Avisa si hay una versión nueva de SheetJS en su CDN |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> **Atención:** `bun test` ejecuta el runner propio de Bun, no Vitest. Usa siempre `bun run test`.
 
-## Deploy on Vercel
+**Lockfile:** `bun.lock` es el único lockfile versionado. Con npm, `npm install` genera un `package-lock.json` local que está en `.gitignore`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Playwright:** la primera vez hay que descargar los navegadores con `npx playwright install chromium`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Variables de entorno
+
+Todas están documentadas en [`.env.example`](.env.example). Las más importantes:
+
+| Variable | Desarrollo | Producción |
+|---|---|---|
+| `AUTH_MODE` | `none` | `basic` o `proxy` (con `none` el servidor **no arranca**) |
+| `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD_SHA256` | — | usuario y SHA-256 de la contraseña (`bun run hash-password`) |
+| `APP_ORIGINS`, `APP_ALLOWED_HOSTS` | localhost por defecto | **obligatorias** (CSRF y anti DNS-rebinding) |
+| `STORAGE_PROVIDER` | `local` | `s3` (AWS S3, Cloudflare R2, Supabase, MinIO) |
+| `STORAGE_PUBLIC_BASE_URL` | `http://localhost:3000/api/storage` | dominio público del bucket |
+
+Al arrancar, la configuración se valida con Zod (`src/server/config/env-schema.ts`). Si falta algo o es inseguro, el proceso termina mostrando **todos** los problemas a la vez. Los secretos admiten la variante `*_FILE` (Docker/Kubernetes secrets).
+
+## Docker
+
+```bash
+bun run fonts:setup                                  # Gotham debe estar en el contexto de build
+docker build -t qr-production-generator .
+docker run --rm -p 3000:3000 --read-only --tmpfs /tmp \
+  -v qr-data:/app/.data --memory=1g -e NODE_OPTIONS=--max-old-space-size=700 \
+  --env-file .env.production qr-production-generator
+```
+
+Bun se usa solo para instalar dependencias; el build y el runtime corren en **Node 24** (`node:24-trixie-slim`, fijada por digest). Next.js solo documenta Node como runtime, y en la imagen `oven/bun`, `node` es un alias de Bun. La imagen corre como usuario `node`, expone `HEALTHCHECK` sobre `/api/health` y solo `/app/.data` es escribible.
+
+## Estructura
+
+```
+src/
+  app/          páginas (Server Components) y Route Handlers (api/)
+  components/   UI (MUI + Tailwind), islas cliente
+  lib/          núcleo isomórfico (dominio, QR, escena, SVG) — sin servidor ni React
+  server/       solo Node: entorno, guardas HTTP, storage, Excel, PDF
+  schemas/      Zod      types/  tipos de dominio      templates/  plantillas de pieza
+assets/fonts/   Gotham (no versionada) + manifest
+scripts/        utilidades (fuentes, contraseña, SheetJS)
+tests/          integración, e2e, helpers
+docs/           ARCHITECTURE.md
+```
+
+Las reglas de capas (por ejemplo, que `components` y `lib` no puedan importar `server`) se imponen con ESLint.
+
+## Seguridad (resumen)
+
+Todo Route Handler se declara con `withApiGuards` (`src/server/http`), que comprueba en este orden:
+
+1. Host permitido.
+2. Autenticación.
+3. `Content-Type` exacto y mismo origen (CSRF).
+4. Rate limit.
+5. Concurrencia (semáforo).
+6. Tamaño del cuerpo.
+
+Las páginas se autentican en `src/proxy.ts`. Las cabeceras de seguridad (CSP, `X-Frame-Options`, etc.) se definen en `next.config.ts`. Detalle completo en `docs/ARCHITECTURE.md` §S8.
+
+## Cómo probar la Fase 2
+
+```bash
+bun run lint && bun run typecheck && bun run test && bun run build
+
+# Servidor de producción con autenticación basic
+H=$(printf 'una-clave-larga' | shasum -a 256 | cut -d' ' -f1)
+NODE_ENV=production AUTH_MODE=basic BASIC_AUTH_USER=diseno BASIC_AUTH_PASSWORD_SHA256=$H \
+  APP_ORIGINS=http://localhost:3000 APP_ALLOWED_HOSTS=localhost:3000 ALLOW_LOCAL_STORAGE_IN_PROD=true \
+  PORT=3000 bun run start
+curl -i localhost:3000/api/health                       # 200 {"ok":true}
+curl -o /dev/null -w '%{http_code}\n' localhost:3000/   # 401
+curl -I -u diseno:una-clave-larga localhost:3000/       # 200 + cabeceras CSP
+NODE_ENV=production bun run start                       # se niega a arrancar y lista los problemas
+```

@@ -1,0 +1,23 @@
+{
+  "family": "Gotham",
+  "version": "3.301",
+  "license": "Comercial (Hoefler & Co.). No versionar los archivos .otf; confirmar que la licencia cubre el uso en servidor.",
+  "files": {
+    "Gotham-Book.otf": {
+      "weight": 400,
+      "sha256": "39a0be6269a3b75d80eee6bb7e63e6797d6808514417287d9c2dca9780b48b67"
+    },
+    "Gotham-Medium.otf": {
+      "weight": 500,
+      "sha256": "c583cf3a8e3887d7ae88a8a91aff3772782f8dbb87c13a97817fb23d54c7635c"
+    },
+    "Gotham-Bold.otf": {
+      "weight": 700,
+      "sha256": "a71a3ed61473b7ddc93f1779fba3414ae2738f16e20516f37d902948479baf7c"
+    },
+    "Gotham-Black.otf": {
+      "weight": 800,
+      "sha256": "73103eafef8bf6779ad8cb9c6c0e1a48511320ee92c4b8d13f20d765a8b8885c"
+    }
+  }
+}
