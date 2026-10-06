@@ -34,6 +34,7 @@ export interface Limits {
   import: RateLimiter;
   export: RateLimiter;
   asset: RateLimiter;
+  preview: RateLimiter;
   importSlots: Semaphore;
   exportSlots: Semaphore;
 }
@@ -49,6 +50,7 @@ export function getLimits(): Limits {
       import: perMinute(env.RATE_LIMIT_IMPORT_PER_MIN),
       export: perMinute(env.RATE_LIMIT_EXPORT_PER_MIN),
       asset: perMinute(env.RATE_LIMIT_ASSET_PER_MIN),
+      preview: perMinute(env.RATE_LIMIT_PREVIEW_PER_MIN),
       importSlots: new Semaphore(env.IMPORT_MAX_CONCURRENCY),
       exportSlots: new Semaphore(env.EXPORT_MAX_CONCURRENCY),
     };

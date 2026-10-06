@@ -98,4 +98,9 @@ export class NodeFontRegistry implements FontRegistry {
   }
 }
 
-export const resolveFontsDir = (configured: string): string => resolve(process.cwd(), configured);
+/**
+ * Carpeta de fuentes (assets/fonts). La ruta se resuelve en ejecución a propósito:
+ * `outputFileTracingIncludes` (next.config.ts) ya copia assets/fonts a la imagen, y
+ * `turbopackIgnore` evita que Turbopack trace TODO el proyecto por este acceso dinámico.
+ */
+export const resolveFontsDir = (configured: string): string => resolve(/* turbopackIgnore: true */ process.cwd(), configured);

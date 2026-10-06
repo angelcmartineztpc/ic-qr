@@ -2,6 +2,7 @@
 export type ApiErrorCode =
   | "BAD_REQUEST"
   | "NOT_FOUND"
+  | "FONTS_MISSING"
   | "VALIDATION_FAILED"
   | "UNAUTHORIZED"
   | "FORBIDDEN_ORIGIN"

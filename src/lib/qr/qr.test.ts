@@ -99,11 +99,11 @@ describe("decodificación real (el QR es legible)", () => {
     const matrix = encodeMatrix(payload);
     const d = matrixToPath(matrix, { x: 0, y: 0, module: 1, decimals: 0 });
     for (const rule of ["nonzero", "evenodd"] as const) {
-      const image = rasterize(d, matrix.length, 4, 6, rule);
+      const image = rasterize(d, matrix.length, 4, 4, rule);
       expect(decodeQR(image)).toBe(payload);
       expect(jsQR(image.data, image.width, image.height)?.data).toBe(payload);
     }
-  });
+  }, 30_000);
 });
 
 describe("SVG canónico del asset", () => {

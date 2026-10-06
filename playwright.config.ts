@@ -22,6 +22,9 @@ export default defineConfig({
       APP_ALLOWED_HOSTS: `localhost:${port}`,
       ALLOW_UNAUTHENTICATED: "true",
       ALLOW_LOCAL_STORAGE_IN_PROD: "true",
+      STORAGE_LOCAL_DIR: ".data/e2e-storage",
+      STORAGE_PUBLIC_BASE_URL: `http://localhost:${port}/api/storage`,
+      LOG_LEVEL: "warn",
     },
   },
 });

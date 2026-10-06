@@ -89,6 +89,7 @@ export const EnvSchema = z
     RATE_LIMIT_IMPORT_PER_MIN: int(10, 1),
     RATE_LIMIT_EXPORT_PER_MIN: int(6, 1),
     RATE_LIMIT_ASSET_PER_MIN: int(300, 1),
+    RATE_LIMIT_PREVIEW_PER_MIN: int(600, 1),
 
     // Variables de proxy de salida: solo se leen para la regla de arranque.
     HTTP_PROXY: z.string().optional(),
