@@ -12,7 +12,9 @@ import type { QrResolution } from "@/types";
 import { draft, existingSource, generatedSource, LATER, MENU, NOW } from "../../../tests/helpers/records";
 import { createBuilderActions } from "./builder-actions";
 
-function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchResolve?: ResolveFetcher } = {}) {
+const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="50mm" height="50mm" viewBox="0 0 500 500"><g id="qr"><path id="qr-code" d="M0 0Z"/></g></svg>';
+
+function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchResolve?: ResolveFetcher; fetchTiles?: ConstructorParameters<typeof TilePreviewClient>[0]; backups?: Record<string, unknown> } = {}) {
   const project = createProjectStore(createEmptyProject(NOW, { id: "p" }));
   const session = createSessionStore({ hydrated: true });
   const notifications: NotifyOptions[] = [];
@@ -32,7 +34,14 @@ function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchR
     });
 
   const actions = createBuilderActions({
-    runtime: { project, session, inflight: new QrInflight(), fetchResolve, tiles: new TilePreviewClient(async () => ({ tiles: {} })) },
+    runtime: {
+      project,
+      session,
+      inflight: new QrInflight(),
+      fetchResolve,
+      tiles: new TilePreviewClient(options.fetchTiles ?? (async (r) => ({ tiles: Object.fromEntries(r.tiles.map((tile) => [tile.key, { svg: SVG, warnings: [] }])) })), { batchMs: 1 }),
+      readBackup: async (key) => options.backups?.[key],
+    },
     notify: (n) => notifications.push(n),
     confirm: async (o) => (confirms.push(o), options.confirm ? options.confirm(o) : { confirmed: true, checked: false }),
     now: () => LATER,
@@ -367,5 +376,96 @@ describe("cancelar la generación", () => {
     await flush();
     expect(last(t.notifications)).toMatchObject({ message: "Generación de QR cancelada", severity: "info" });
     expect(t.ui().qrProgress.running).toBe(false);
+  });
+});
+
+describe("descargas sueltas", () => {
+  it("«Descargar SVG de esta pieza»: el SVG del servidor (contornos), con nombre de mesa y área", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft({ mesa: "VIP/A", area: "Terraza Norte" }));
+    await flush();
+    expect(await t.actions.downloadPieceSvg(id)).toBe(true);
+    expect(t.downloads).toHaveLength(1);
+    expect(t.downloads[0]?.name).toBe("VIP_A-Terraza Norte.svg");
+    expect(t.downloads[0]?.blob.type).toBe("image/svg+xml");
+    expect(await t.downloads[0]?.blob.text()).toBe(SVG);
+    expect(last(t.notifications)).toMatchObject({ severity: "success", message: "SVG descargado: VIP_A-Terraza Norte.svg" });
+  });
+
+  it("NO ofrece el SVG de una pieza con el QR pendiente, con error o desactualizado sin confirmar", async () => {
+    const pending = setup({ fetchResolve: async () => ({ results: [], created: 0, reused: 0, failed: 0 }) });
+    const { id } = await pending.actions.add(draft());
+    await flush();
+    expect(await pending.actions.downloadPieceSvg(id)).toBe(false);
+    expect(pending.downloads).toHaveLength(0);
+    expect(last(pending.notifications)).toMatchObject({ severity: "warning" });
+
+    const stale = setup();
+    const piece = await stale.actions.add(draft());
+    await flush();
+    await stale.actions.save(piece.id, draft({ menuUrl: "https://menu.example.com/nuevo" }));
+    expect(await stale.actions.downloadPieceSvg(piece.id)).toBe(false);
+    stale.actions.keepStale(piece.id); // confirmado: ahora sí
+    expect(await stale.actions.downloadPieceSvg(piece.id)).toBe(true);
+  });
+
+  it("avisa si la pieza se descarga con avisos de composición, y reporta un fallo del servidor", async () => {
+    const warned = setup({ fetchTiles: async (r) => ({ tiles: Object.fromEntries(r.tiles.map((tile) => [tile.key, { svg: SVG, warnings: [{ code: "TEXT_OVERFLOW" }] }])) }) });
+    const { id } = await warned.actions.add(draft());
+    await flush();
+    await warned.actions.downloadPieceSvg(id);
+    expect(last(warned.notifications)).toMatchObject({ severity: "warning", message: expect.stringContaining("1 aviso") });
+
+    const broken = setup({ fetchTiles: async () => Promise.reject(new Error("Faltan las fuentes Gotham en el servidor")) });
+    const piece = await broken.actions.add(draft());
+    await flush();
+    expect(await broken.actions.downloadPieceSvg(piece.id)).toBe(false);
+    expect(broken.downloads).toHaveLength(0);
+    expect(last(broken.notifications)).toMatchObject({ severity: "error", message: expect.stringContaining("Faltan las fuentes Gotham") });
+  });
+
+  it("una pieza inexistente no hace nada", async () => {
+    const t = setup();
+    expect(await t.actions.downloadPieceSvg("nope")).toBe(false);
+    expect(t.notifications).toHaveLength(0);
+  });
+
+  it("los registros en cuarentena se pueden descargar", () => {
+    const t = setup();
+    t.actions.downloadQuarantine();
+    expect(t.downloads).toHaveLength(0); // nada que descargar
+    t.project.setState({ project: { ...t.state(), quarantine: [{ raw: { id: "roto", area: 5 }, reason: "area: Invalid input", at: NOW }] } });
+    t.actions.downloadQuarantine();
+    expect(t.downloads[0]?.name).toBe("registros-ilegibles.json");
+  });
+
+  it("la copia de seguridad se descarga; si ya no está, se avisa", async () => {
+    const t = setup({ backups: { "backup-1": { cualquier: "cosa" } } });
+    expect(await t.actions.downloadBackup("backup-1")).toBe(true);
+    expect(t.downloads[0]?.name).toBe("copia-backup-1.json");
+    expect(JSON.parse(await (t.downloads[0] as { blob: Blob }).blob.text())).toEqual({ cualquier: "cosa" });
+    expect(await t.actions.downloadBackup("otra")).toBe(false);
+    expect(last(t.notifications)).toMatchObject({ severity: "error" });
+  });
+});
+
+describe("descartar la cuarentena", () => {
+  const withQuarantine = (t: ReturnType<typeof setup>) => t.project.setState({ project: { ...t.state(), quarantine: [{ raw: { id: "roto" }, reason: "ilegible", at: NOW }] } });
+
+  it("pide confirmación; cancelar conserva los registros", async () => {
+    const t = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    withQuarantine(t);
+    expect(await t.actions.discardQuarantine()).toBe(false);
+    expect(last(t.confirms)).toMatchObject({ title: "¿Descartar 1 registro ilegible?", destructive: true });
+    expect(t.state().quarantine).toHaveLength(1);
+  });
+
+  it("confirmado, los elimina y lo avisa", async () => {
+    const t = setup();
+    withQuarantine(t);
+    expect(await t.actions.discardQuarantine()).toBe(true);
+    expect(t.state().quarantine).toEqual([]);
+    expect(last(t.notifications)?.message).toBe("1 registro ilegible descartado");
+    expect(await t.actions.discardQuarantine()).toBe(false); // ya no hay nada
   });
 });

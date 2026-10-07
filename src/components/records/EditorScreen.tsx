@@ -100,6 +100,7 @@ export function EditorScreen() {
     onDuplicate: (id: string) => void actions.duplicate(id),
     onMove: (id: string) => setMoving(id),
     onDelete: (id: string) => void actions.remove([id]),
+    onDownloadSvg: (id: string) => void actions.downloadPieceSvg(id),
   };
   const moveRecord = moving ? recordsById[moving] : undefined;
   const moveIndex = moving ? order.indexOf(moving) : -1;

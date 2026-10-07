@@ -4,8 +4,10 @@
  * (spec §22, §37, §38: nada silencioso y confirmación antes de perder datos).
  */
 import { resolveQrs, type ResolveQrSummary } from "@/lib/app/resolve-qrs";
+import { tileInputOf } from "@/lib/app/tile-preview-client";
+import { sanitizeFileName } from "@/lib/export/file-name";
 import { findExistingDuplicate } from "@/lib/records/duplicates";
-import { resolveQrDecision, qrBlocker } from "@/lib/records/qr-state";
+import { isExportable, resolveQrDecision, qrBlocker } from "@/lib/records/qr-state";
 import type { SortKey } from "@/lib/records/order";
 import { PROJECT_FILE_MAX_BYTES } from "@/schemas/project";
 import { projectFileName, parseProjectFile, serializeProjectFile } from "@/lib/state/project-file";
@@ -14,6 +16,7 @@ import {
   addRecord,
   changeTemplate,
   clearQrError,
+  clearQuarantine,
   createEmptyProject,
   deleteRecords,
   duplicateRecordIn,
@@ -36,7 +39,7 @@ import type { ConfirmOptions, ConfirmResult } from "@/components/ui/ConfirmDialo
 import type { NotifyOptions } from "@/components/ui/NotificationsProvider";
 
 export interface ActionDeps {
-  runtime: Pick<Runtime, "project" | "session" | "inflight" | "fetchResolve" | "tiles">;
+  runtime: Pick<Runtime, "project" | "session" | "inflight" | "fetchResolve" | "tiles" | "readBackup">;
   notify(options: NotifyOptions): void;
   confirm(options: ConfirmOptions): Promise<ConfirmResult>;
   now(): string;
@@ -267,6 +270,68 @@ export function createBuilderActions(deps: ActionDeps) {
       runtime.inflight.invalidate(id);
       update((p) => updateRecord(p, id, { area: record.area, estacion: record.estacion, mesa: record.mesa, subgrupo: record.subgrupo, concepto: record.concepto, menuUrl: record.menuUrl }, now()));
       await resolve([id]);
+      return true;
+    },
+
+    // ----- descargas sueltas -----
+    /**
+     * «Descargar SVG de esta pieza» (spec §17). El SVG sale del servidor, con el texto en
+     * contornos de Gotham (la fuente nunca llega al navegador, decisión R2): es el mismo que
+     * muestra la vista previa. Solo se ofrece para piezas exportables: el SVG de una pieza
+     * con QR pendiente, con error o sin confirmar no debe llegar a fabricación por descuido.
+     */
+    async downloadPieceSvg(id: RecordId): Promise<boolean> {
+      const record = project().recordsById[id];
+      if (!record) return false;
+      if (!isExportable(record)) {
+        notify({ message: `Resuelve el QR y los errores de ${label(record)} antes de descargar su SVG`, severity: "warning", group: "export" });
+        return false;
+      }
+      const p = project();
+      try {
+        const tile = await runtime.tiles.request({ templateId: p.templateId, templateOverrides: p.templateOverrides, layout: p.layout, detail: "full" }, tileInputOf(record));
+        const name = `${sanitizeFileName(`${record.mesa}-${record.area}`) || "pieza"}.svg`;
+        deps.download(name, new Blob([tile.svg], { type: "image/svg+xml" }));
+        notify(
+          tile.warnings.length > 0
+            ? { message: `SVG descargado (${name}) con ${plural(tile.warnings.length, "aviso", "avisos")} de composición: revisa la pieza`, severity: "warning", group: "export" }
+            : { message: `SVG descargado: ${name}`, severity: "success", group: "export" },
+        );
+        return true;
+      } catch (error) {
+        notify({ message: `No se pudo generar el SVG: ${error instanceof Error ? error.message : "error desconocido"}`, severity: "error", group: "export" });
+        return false;
+      }
+    },
+
+    /** Registros que no se pudieron leer al abrir: se conservan y se pueden descargar (nunca se pierden en silencio). */
+    downloadQuarantine(): void {
+      const entries = project().quarantine;
+      if (entries.length === 0) return;
+      deps.download("registros-ilegibles.json", new Blob([JSON.stringify({ format: "qr-production-quarantine", exportedAt: now(), entries }, null, 2)], { type: "application/json" }));
+      notify({ message: `Descargado${entries.length === 1 ? "" : "s"} ${plural(entries.length, "registro ilegible", "registros ilegibles")}`, severity: "info", group: "persistence" });
+    },
+
+    /** Descartar la cuarentena: acción explícita y con confirmación (se pierde su contenido). */
+    async discardQuarantine(): Promise<boolean> {
+      const count = project().quarantine.length;
+      if (count === 0) return false;
+      const ok = await confirm({ title: `¿Descartar ${plural(count, "registro ilegible", "registros ilegibles")}?`, message: "Se eliminarán del proyecto. Descárgalos antes si quieres conservarlos.", confirmLabel: "Descartar", destructive: true });
+      if (!ok) return false;
+      update(clearQuarantine);
+      notify({ message: `${plural(count, "registro ilegible descartado", "registros ilegibles descartados")}`, severity: "info", group: "persistence" });
+      return true;
+    },
+
+    /** Copia de seguridad del proyecto guardado que no se pudo leer. */
+    async downloadBackup(key: string): Promise<boolean> {
+      const raw = await runtime.readBackup(key).catch(() => undefined);
+      if (raw === undefined) {
+        notify({ message: "No se encontró la copia de seguridad en este navegador", severity: "error", group: "persistence" });
+        return false;
+      }
+      deps.download(`copia-${sanitizeFileName(key)}.json`, new Blob([JSON.stringify(raw)], { type: "application/json" }));
+      notify({ message: "Copia de seguridad descargada", severity: "success", group: "persistence" });
       return true;
     },
 

@@ -24,6 +24,8 @@ export interface Runtime {
   /** Guarda ya (antes de salir) y devuelve cuando terminó. */
   flush(): Promise<void>;
   takeOver(): Promise<void>;
+  /** Copia de seguridad que se hizo al no poder leer el proyecto guardado (para ofrecerla en descarga). */
+  readBackup(key: string): Promise<unknown>;
 }
 
 const RuntimeContext = createContext<Runtime | null>(null);
@@ -41,6 +43,7 @@ export interface StoreProviderProps {
 export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fetchTiles, initialProject }: StoreProviderProps) {
   const flushRef = useRef<() => Promise<void>>(async () => undefined);
   const takeOverRef = useRef<() => Promise<void>>(async () => undefined);
+  const readBackupRef = useRef<(key: string) => Promise<unknown>>(async () => undefined);
 
   // Una sola vez por montaje: el runtime (stores, QR en curso, caché de piezas) es estable.
   const [rt] = useState<Runtime>(() => ({
@@ -51,6 +54,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     fetchResolve: resolver ?? fetchResolve,
     flush: () => flushRef.current(),
     takeOver: () => takeOverRef.current(),
+    readBackup: (key) => readBackupRef.current(key),
   }));
 
   useEffect(() => {
@@ -63,7 +67,26 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     });
     flushRef.current = () => saver.flush();
 
-    const lock = createWriterLock((writer) => patchSession(rt.session, { writer }), writerLocks ?? undefined);
+    readBackupRef.current = (key) => store.get(key);
+
+    /**
+     * Al pasar de solo lectura a escritora (tomar el control) el proyecto en memoria puede estar
+     * viejo: la otra pestaña pudo guardar mientras tanto. Se recarga lo guardado ANTES de poder
+     * editar, o esta pestaña pisaría esos cambios. La pestaña anterior hace su último guardado
+     * al perder el bloqueo; la breve espera deja que termine.
+     */
+    const refreshFromStorage = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      if (disposed) return;
+      const outcome = await loadProject(store, new Date().toISOString());
+      if (!disposed && outcome.kind === "loaded") rt.project.setState({ project: outcome.project });
+    };
+    const lock = createWriterLock((writer) => {
+      const previous = rt.session.getState().writer;
+      patchSession(rt.session, { writer });
+      if (writer === "read-only") void saver.flush(); // último guardado de lo pendiente antes de ceder
+      if (writer === "owner" && previous === "read-only" && rt.session.getState().hydrated) void refreshFromStorage();
+    }, writerLocks ?? undefined);
     takeOverRef.current = () => lock.takeOver();
     patchSession(rt.session, { lockSupported: lock.supported });
 

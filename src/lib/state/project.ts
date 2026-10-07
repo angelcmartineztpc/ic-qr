@@ -166,6 +166,11 @@ export function changeTemplate(state: ProjectState, template: Template): Project
   return touch({ ...state, templateId: template.id, layout: result.layout, templateOverrides: result.templateOverrides });
 }
 
+/** Descarta los registros ilegibles apartados (el usuario ya los descargó o no los necesita). */
+export function clearQuarantine(state: ProjectState): ProjectState {
+  return state.quarantine.length === 0 ? state : touch({ ...state, quarantine: [] });
+}
+
 export function setProjectName(state: ProjectState, name: string): ProjectState {
   return state.name === name ? state : touch({ ...state, name: name.slice(0, 200) });
 }

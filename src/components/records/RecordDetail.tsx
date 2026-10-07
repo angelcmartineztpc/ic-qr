@@ -1,6 +1,7 @@
 "use client";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import EditIcon from "@mui/icons-material/Edit";
@@ -110,6 +111,9 @@ export function RecordDetail({ record, position, total, readOnly, actions, onEdi
           </Button>
           <Button variant="outlined" startIcon={<DriveFileMoveIcon />} onClick={onMove} disabled={readOnly}>
             Mover a…
+          </Button>
+          <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => void actions.downloadPieceSvg(record.id)}>
+            Descargar SVG
           </Button>
           <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => void actions.remove([record.id])} disabled={readOnly}>
             Eliminar

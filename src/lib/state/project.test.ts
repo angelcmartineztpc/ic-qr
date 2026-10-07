@@ -6,7 +6,7 @@ import type { QrResolution } from "@/types";
 
 import { draft, generatedSource, LATER, MENU, NOW } from "../../../tests/helpers/records";
 import { isPermutation } from "@/lib/records/order";
-import { acknowledge, addRecord, applyResolutions, changeTemplate, clearQrError, createEmptyProject, deleteRecords, duplicateRecordIn, isDirty, markQrFailure, markSaved, moveRecord, orderedRecords, regenerate, restoreRecords, setProjectName, sortRecords, updateRecord } from "./project";
+import { acknowledge, addRecord, applyResolutions, changeTemplate, clearQrError, clearQuarantine, createEmptyProject, deleteRecords, duplicateRecordIn, isDirty, markQrFailure, markSaved, moveRecord, orderedRecords, regenerate, restoreRecords, setProjectName, sortRecords, updateRecord } from "./project";
 
 const empty = () => createEmptyProject(NOW, { id: "p1" });
 const withThree = () => {
@@ -182,5 +182,15 @@ describe("plantilla y nombre", () => {
     const s = setProjectName(empty(), "x".repeat(300));
     expect(s.name).toHaveLength(200);
     expect(setProjectName(s, s.name)).toBe(s);
+  });
+});
+
+describe("cuarentena", () => {
+  it("descartarla vacía la lista y cuenta como cambio; si ya está vacía no cambia nada", () => {
+    const s = { ...withThree(), quarantine: [{ raw: { id: "x" }, reason: "ilegible", at: NOW }] };
+    const cleared = clearQuarantine(s);
+    expect(cleared.quarantine).toEqual([]);
+    expect(cleared.revision).toBe(s.revision + 1);
+    expect(clearQuarantine(cleared)).toBe(cleared);
   });
 });

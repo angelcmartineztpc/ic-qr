@@ -1,11 +1,11 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { addRecord, createEmptyProject, markSaved } from "@/lib/state/project";
+import { addRecord, applyResolutions, createEmptyProject, markSaved } from "@/lib/state/project";
 import { saveProject } from "@/lib/state/persistence";
 
-import { draft, NOW } from "../../../tests/helpers/records";
+import { draft, generatedSource, NOW } from "../../../tests/helpers/records";
 import { heldLocks, memoryKv, renderApp } from "../../../tests/helpers/render-app";
 import { EditorScreen } from "./EditorScreen";
 
@@ -218,5 +218,86 @@ describe("persistencia y avisos (spec §37, §38)", () => {
     renderApp(<EditorScreen />, { kv: memoryKv({ project: { ...project, recordsById: { ...project.recordsById, roto: { id: "roto", area: 5 } }, order: ["r1", "roto"] } }) });
     expect(await screen.findByText(/1 registro no se pudo leer/)).toBeTruthy();
     expect(screen.getByTestId("counter-all").textContent).toBe("Total: 1");
+  });
+});
+
+describe("descargas y avisos con acciones (§S6)", () => {
+  const downloads: Array<{ name: string; blob: Blob }> = [];
+  beforeEach(() => {
+    downloads.length = 0;
+    const blobs = new Map<string, Blob>();
+    vi.spyOn(URL, "createObjectURL").mockImplementation((blob) => {
+      const url = `blob:test/${blobs.size}`;
+      blobs.set(url, blob as Blob);
+      return url;
+    });
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      downloads.push({ name: this.download, blob: blobs.get(this.href) as Blob });
+    });
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  /** Una pieza con QR generado y vigente: exportable. */
+  function withGeneratedQr() {
+    const base = addRecord(createEmptyProject(NOW, { id: "p" }), draft({ mesa: "M1", menuUrl: MENU }), NOW, { id: "r1" }).state;
+    const resolution = { recordId: "r1", outcome: "generated" as const, qrUrl: `https://cdn.example.com/qr/v1/${"a".repeat(64)}.svg`, qr: generatedSource(MENU) };
+    return applyResolutions(base, [resolution], new Map([["r1", { menuUrl: MENU }]]), NOW).state;
+  }
+
+  it("«Descargar SVG» de una pieza con el QR pendiente avisa en lugar de descargar", async () => {
+    const user = userEvent.setup();
+    renderApp(<EditorScreen />, { initialProject: seeded(1) });
+    await user.click(await screen.findByRole("button", { name: "Descargar SVG" }));
+    expect(await screen.findByText(/Resuelve el QR y los errores de M1 · Tropical antes de descargar su SVG/)).toBeTruthy();
+    expect(downloads).toHaveLength(0);
+  });
+
+  it("«Descargar SVG» de una pieza lista descarga el SVG dibujado por el servidor, con su nombre", async () => {
+    const user = userEvent.setup();
+    renderApp(<EditorScreen />, { initialProject: withGeneratedQr() });
+    await user.click(await screen.findByRole("button", { name: "Descargar SVG" }));
+    await waitFor(() => expect(downloads).toHaveLength(1));
+    expect(downloads[0]?.name).toBe("M1-Tropical.svg");
+    expect(await (downloads[0] as { blob: Blob }).blob.text()).toContain("<title>M1</title>"); // el SVG que devolvió el servidor
+    expect(await screen.findByText("SVG descargado: M1-Tropical.svg")).toBeTruthy();
+  });
+
+  it("también desde el menú de la tarjeta", async () => {
+    const user = userEvent.setup();
+    renderApp(<EditorScreen />, { initialProject: withGeneratedQr() });
+    await user.click(await screen.findByRole("button", { name: "Más acciones de M1 · Tropical" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Descargar SVG" }));
+    await waitFor(() => expect(downloads[0]?.name).toBe("M1-Tropical.svg"));
+  });
+
+  it("la cuarentena ofrece Ver, Descargar y Descartar", async () => {
+    const user = userEvent.setup();
+    const project = seeded(1);
+    renderApp(<EditorScreen />, { kv: memoryKv({ project: { ...project, recordsById: { ...project.recordsById, roto: { id: "roto", area: 5 } }, order: ["r1", "roto"] } }) });
+    expect(await screen.findByText(/1 registro no se pudo leer/)).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Ver" }));
+    const dialog = await screen.findByRole("dialog", { name: /Registros que no se pudieron leer \(1\)/ });
+    expect(within(dialog).getByText(/"area": 5/)).toBeTruthy();
+    await user.click(within(dialog).getByRole("button", { name: "Cerrar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    await user.click(screen.getByRole("button", { name: "Descargar" }));
+    await waitFor(() => expect(downloads[0]?.name).toBe("registros-ilegibles.json"));
+    expect(JSON.parse(await (downloads[0] as { blob: Blob }).blob.text())).toMatchObject({ format: "qr-production-quarantine", entries: [{ raw: { id: "roto" } }] });
+
+    await user.click(screen.getByRole("button", { name: "Descartar" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Descartar" }));
+    await waitFor(() => expect(screen.queryByText(/no se pudo leer/)).toBeNull());
+  });
+
+  it("si el proyecto guardado no se pudo leer, se ofrece descargar la copia de seguridad", async () => {
+    const user = userEvent.setup();
+    renderApp(<EditorScreen />, { kv: memoryKv({ project: { cualquier: "cosa" } }) });
+    await screen.findByText(/No se pudo leer el proyecto guardado/);
+    await user.click(screen.getByRole("button", { name: "Descargar copia" }));
+    await waitFor(() => expect(downloads[0]?.name).toMatch(/^copia-backup-.*\.json$/));
+    expect(JSON.parse(await (downloads[0] as { blob: Blob }).blob.text())).toEqual({ cualquier: "cosa" });
   });
 });

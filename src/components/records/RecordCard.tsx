@@ -1,6 +1,7 @@
 "use client";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import EditIcon from "@mui/icons-material/Edit";
@@ -27,6 +28,7 @@ export interface RecordCardHandlers {
   onDuplicate(id: string): void;
   onMove(id: string): void;
   onDelete(id: string): void;
+  onDownloadSvg(id: string): void;
 }
 
 export interface RecordCardProps extends RecordCardHandlers {
@@ -42,7 +44,7 @@ export interface RecordCardProps extends RecordCardHandlers {
 }
 
 /** Tarjeta de una pieza: vista previa, datos clave, estado del QR y acciones. */
-export const RecordCard = memo(function RecordCard({ record, position, selected, customized, readOnly, leading, onSelect, onEdit, onDuplicate, onMove, onDelete }: RecordCardProps) {
+export const RecordCard = memo(function RecordCard({ record, position, selected, customized, readOnly, leading, onSelect, onEdit, onDuplicate, onMove, onDelete, onDownloadSvg }: RecordCardProps) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const menuId = useId();
   const title = [record.mesa, record.area].filter(Boolean).join(" · ") || "Sin nombre";
@@ -97,6 +99,12 @@ export const RecordCard = memo(function RecordCard({ record, position, selected,
             <DriveFileMoveIcon fontSize="small" />
           </ListItemIcon>
           Mover a…
+        </MenuItem>
+        <MenuItem onClick={run(onDownloadSvg)}>
+          <ListItemIcon>
+            <DownloadIcon fontSize="small" />
+          </ListItemIcon>
+          Descargar SVG
         </MenuItem>
         <MenuItem onClick={run(onDelete)} disabled={readOnly}>
           <ListItemIcon>
