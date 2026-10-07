@@ -1,8 +1,10 @@
 import "server-only";
 
+import { csvToSheet, CsvRejection } from "@/lib/excel/csv";
 import { chooseSheet } from "@/lib/excel/headers";
 import { buildImportResult } from "@/lib/excel/import-pipeline";
 import { fileIssue } from "@/lib/excel/file-issues";
+import type { RawSheet } from "@/lib/excel/types";
 import type { ColumnMapping, FieldKey, ImportResponse } from "@/types";
 
 import { guardXlsx, ImportRejection, type GuardLimits } from "./upload-guard";
@@ -15,6 +17,7 @@ export interface ImportOptions {
   sheet?: string | undefined;
   /** Importar solo las primeras N filas (acción explícita tras TOO_MANY_ROWS). */
   truncateTo?: number | undefined;
+  defaultMenuUrl?: string | undefined;
   maxRows: number;
   limits: GuardLimits;
   isQrHostAllowed?: ((host: string) => boolean) | undefined;
@@ -40,30 +43,40 @@ function applyOverride(detected: ColumnMapping[], overrides: Record<string, Fiel
     .sort((a, b) => a.column.length - b.column.length || a.column.localeCompare(b.column));
 }
 
-/** Importación completa de un .xlsx: guard → worker → cabeceras → filas. Nunca lanza por un archivo malo; devuelve ok:false con el motivo. */
+const isZip = (b: Uint8Array) => b[0] === 0x50 && b[1] === 0x4b;
+const isOle = (b: Uint8Array) => b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0;
+
+/** Importación de un .xlsx o un .csv: lo que no sea ninguno de los dos se rechaza con el motivo. Nunca lanza por un archivo malo. */
 export async function importExcel(bytes: Uint8Array, options: ImportOptions): Promise<ImportResponse> {
   let reader: ReturnType<typeof openWorkbook> | undefined;
   try {
+    const finish = (sheet: RawSheet, headerRowIndex: number, mapping: ColumnMapping[]): ImportResponse => {
+      const result = buildImportResult({ fileName: options.fileName, sheet, headerRowIndex, mapping, maxRows: options.maxRows, truncateTo: options.truncateTo, defaultMenuUrl: options.defaultMenuUrl, isQrHostAllowed: options.isQrHostAllowed });
+      return result.ok ? { ok: true, result: result.result } : { ok: false, issues: result.issues };
+    };
+    const overridden = (choice: { mapping: ColumnMapping[]; rowIndex: number; sheet: RawSheet }) => {
+      if (!options.columns) return choice.mapping;
+      const headers = (choice.sheet.rows[choice.rowIndex] ?? []).map((c) => (c ? String(c.w ?? c.v ?? "") : ""));
+      return applyOverride(choice.mapping, options.columns, headers);
+    };
+
+    if (!isZip(bytes) && !isOle(bytes)) {
+      // CSV: la misma tubería, sin worker (es texto plano y el tamaño ya está acotado).
+      const sheet = csvToSheet(bytes, { maxRows: SCAN_ROWS + options.maxRows + 2, maxCells: options.limits.maxCells, maxColumns: 50 });
+      const choice = chooseSheet([sheet]);
+      return choice ? finish(sheet, choice.rowIndex, overridden(choice)) : { ok: false, issues: [fileIssue("NO_SHEET_WITH_HEADERS")] };
+    }
+
     const guarded = guardXlsx(bytes, options.limits);
     reader = openWorkbook(guarded.zip, options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs });
-
     const sheets = await reader.scan(SCAN_ROWS);
     const choice = chooseSheet(sheets, options.sheet);
     if (!choice) return { ok: false, issues: [fileIssue("NO_SHEET_WITH_HEADERS")] };
-
-    let mapping = choice.mapping;
-    if (options.columns) {
-      const headerCells = choice.sheet.rows[choice.rowIndex] ?? [];
-      const headers = headerCells.map((c) => (c ? String(c.w ?? c.v ?? "") : ""));
-      mapping = applyOverride(mapping, options.columns, headers);
-    }
-
     const sheet = await reader.read(choice.sheet.name, choice.rowIndex + 1 + options.maxRows + 1);
-    // La pasada 2 puede devolver menos filas iniciales vacías: la cabecera se vuelve a localizar por posición.
-    const result = buildImportResult({ fileName: options.fileName, sheet, headerRowIndex: choice.rowIndex, mapping, maxRows: options.maxRows, truncateTo: options.truncateTo, isQrHostAllowed: options.isQrHostAllowed });
-    return result.ok ? { ok: true, result: result.result } : { ok: false, issues: result.issues };
+    return finish(sheet, choice.rowIndex, overridden(choice));
   } catch (error) {
     if (error instanceof ImportRejection) return { ok: false, issues: [error.toIssue()] };
+    if (error instanceof CsvRejection) return { ok: false, issues: [new ImportRejection(error.code).toIssue()] };
     throw error;
   } finally {
     reader?.close();

@@ -3,8 +3,8 @@ import type { ImportIssue, ImportIssueCode } from "@/types";
 /** Mensajes de rechazo del archivo entero (§S1.2-3). `label` es lo corto; `message` lo que se muestra con detalle. */
 const FILE_TEXT: Partial<Record<ImportIssueCode, { label: string; message: string }>> = {
   FILE_TOO_LARGE: { label: "Archivo demasiado grande", message: "El archivo supera el tamaño máximo permitido" },
-  UNSUPPORTED_MEDIA_TYPE: { label: "Tipo de archivo no admitido", message: "Solo se admiten archivos .xlsx" },
-  NOT_A_ZIP: { label: "No es un archivo .xlsx", message: "El archivo no es un libro de Excel .xlsx (CSV, HTML u otro formato renombrado)" },
+  UNSUPPORTED_MEDIA_TYPE: { label: "Tipo de archivo no admitido", message: "Solo se admiten archivos .xlsx y .csv" },
+  NOT_A_ZIP: { label: "Formato no compatible", message: "El archivo no es un .xlsx ni un .csv de texto (puede ser un PDF, una imagen u otro formato renombrado). Guárdalo como .xlsx o .csv" },
   ZIP_CORRUPT: { label: "Archivo dañado", message: "El archivo .xlsx está dañado o tiene una estructura que no podemos leer con seguridad" },
   LEGACY_XLS_OR_ENCRYPTED: { label: "Formato .xls antiguo o con contraseña", message: "Formato .xls antiguo o archivo protegido con contraseña. Guárdalo como .xlsx sin contraseña e inténtalo de nuevo" },
   MACRO_ENABLED: { label: "Libro con macros", message: "El libro tiene macros (.xlsm). Guárdalo como .xlsx normal e inténtalo de nuevo" },
@@ -16,7 +16,7 @@ const FILE_TEXT: Partial<Record<ImportIssueCode, { label: string; message: strin
   ZIP_TOO_MANY_ENTRIES: { label: "Demasiados componentes", message: "El archivo contiene demasiados componentes internos" },
   TOO_MANY_CELLS: { label: "Demasiadas celdas", message: "El libro tiene demasiadas celdas. Quita columnas o filas que no necesites" },
   PARSE_TIMEOUT: { label: "Lectura demasiado lenta", message: "Leer el archivo tardó demasiado y se canceló. Prueba con un archivo más pequeño" },
-  NO_SHEET_WITH_HEADERS: { label: "No se encontró la tabla", message: "No encontramos una hoja con columnas reconocibles (Área, Mesa, Link del menú…). Revisa que la primera fila tenga los títulos" },
+  NO_SHEET_WITH_HEADERS: { label: "No se encontró la tabla", message: "No encontramos una hoja o tabla con columnas reconocibles (Área, Mesa, Link del menú…). Revisa que la primera fila tenga los títulos" },
   TOO_MANY_ROWS: { label: "Demasiadas filas", message: "El archivo tiene más filas de las permitidas" },
   TOO_MANY_COLUMNS: { label: "Demasiadas columnas", message: "La hoja tiene más columnas de las permitidas" },
 };

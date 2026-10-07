@@ -1,7 +1,7 @@
 import { ApiError } from "@/lib/app/api-client";
 import { checkFileBeforeUpload, ImportRejectedError, uploadExcel, type UploadOptions } from "@/lib/app/import-client";
 import { buildErrorReport } from "@/lib/excel/error-report";
-import { needsColumnMapping } from "@/lib/excel/import-pipeline";
+import { resultNeedsMapping } from "@/lib/excel/import-pipeline";
 import { planImport, planSize, reviewImport, validRows, type ImportPlan, type ReviewModel } from "@/lib/excel/review";
 import { defaultReviewDecisions } from "@/lib/records/duplicates";
 import { importRecords, isDirty, orderedRecords, setDuplicateKey, type ImportItem } from "@/lib/state/project";
@@ -64,11 +64,13 @@ export function createImportActions(deps: ImportDeps) {
     controller?.abort();
     controller = new AbortController();
     runtime.importSource.file = file;
+    const defaultMenuUrl = runtime.importSource.defaultMenuUrl.trim();
+    if (defaultMenuUrl !== "") options = { ...options, defaultMenuUrl };
     patchImport({ status: "uploading", error: null });
     try {
       const result = await upload(file, options, controller.signal);
       patchImport({ status: "review", result, error: null, outcome: null, decisions: {} });
-      if (!needsColumnMapping(result.mapping)) void runtime.lastImport.save({ result, outcome: null });
+      if (!resultNeedsMapping(result)) void runtime.lastImport.save({ result, outcome: null });
       return true;
     } catch (error) {
       if ((error as { name?: string }).name === "AbortError") return false;
@@ -93,14 +95,16 @@ export function createImportActions(deps: ImportDeps) {
     currentPlan,
 
     /** Empieza una importación nueva con un archivo elegido o soltado. */
-    async start(file: File): Promise<boolean> {
+    /** `defaultMenuUrl`: Link del menú para las filas que no lo traen (opcional). */
+    async start(file: File, defaultMenuUrl = ""): Promise<boolean> {
+      runtime.importSource.defaultMenuUrl = defaultMenuUrl;
       const problem = checkFileBeforeUpload(file);
       if (problem) {
         patchImport({ status: "error", error: { message: problem, issues: [], canTruncate: false } });
         return false;
       }
       const pending = session().import;
-      if (pending.status === "review" && pending.result && !needsColumnMapping(pending.result.mapping)) {
+      if (pending.status === "review" && pending.result && !resultNeedsMapping(pending.result)) {
         const ok = (await deps.confirm({ title: "Ya tienes una importación sin confirmar.", message: "Se reemplazará por el archivo nuevo.", confirmLabel: "Usar el archivo nuevo", destructive: true })).confirmed;
         if (!ok) return false;
       }
@@ -156,7 +160,7 @@ export function createImportActions(deps: ImportDeps) {
     async confirm(): Promise<boolean> {
       const current = currentPlan();
       const importState = session().import;
-      if (!current || importState.status !== "review" || needsColumnMapping(current.result.mapping)) return false;
+      if (!current || importState.status !== "review" || resultNeedsMapping(current.result)) return false;
       const { result, plan } = current;
       if (planSize(plan) === 0) {
         notify({ message: "No hay piezas para importar con esta selección", severity: "info", group: "import" });
@@ -215,6 +219,7 @@ export function createImportActions(deps: ImportDeps) {
       }
       controller?.abort();
       runtime.importSource.file = null;
+      runtime.importSource.defaultMenuUrl = "";
       patchSession(runtime.session, { import: initialImport() });
       await runtime.lastImport.clear();
       return true;

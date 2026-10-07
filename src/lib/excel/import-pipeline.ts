@@ -30,6 +30,8 @@ export interface PipelineInput {
   /** El usuario aceptó importar solo las primeras N filas. */
   truncateTo?: number | undefined;
   duplicateKey?: DuplicateKeyConfig;
+  /** Link del menú para las filas cuya celda viene vacía. */
+  defaultMenuUrl?: string | undefined;
   /** Política de hosts para «Link del QR»: devuelve false si el host no está permitido. */
   isQrHostAllowed?: ((host: string) => boolean) | undefined;
 }
@@ -78,20 +80,25 @@ export function fillMerges(sheet: RawSheet, headerRowIndex: number): { rows: Arr
 
 const columnIndex = (letter: string) => [...letter].reduce((n, ch) => n * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
 
-export function missingRequiredColumns(mapping: readonly ColumnMapping[]): FieldKey[] {
+/** Con un Link del menú común, la columna del menú deja de ser obligatoria. */
+export function missingRequiredColumns(mapping: readonly ColumnMapping[], hasDefaultMenu = false): FieldKey[] {
   const mapped = new Set(mapping.flatMap((m) => (m.field ? [m.field] : [])));
-  return REQUIRED_FIELDS.filter((field) => !mapped.has(field));
+  return REQUIRED_FIELDS.filter((field) => !mapped.has(field) && !(hasDefaultMenu && field === "menuUrl"));
 }
 
 /** ¿Hace falta que la persona confirme el mapeo de columnas antes de importar? */
-export const needsColumnMapping = (mapping: readonly ColumnMapping[]): boolean =>
-  missingRequiredColumns(mapping).length > 0 || mapping.some((m) => m.match === "ambiguous");
+export const needsColumnMapping = (mapping: readonly ColumnMapping[], hasDefaultMenu = false): boolean =>
+  missingRequiredColumns(mapping, hasDefaultMenu).length > 0 || mapping.some((m) => m.match === "ambiguous");
 
-export function columnIssues(mapping: readonly ColumnMapping[]): ImportIssue[] {
+/** Lo mismo, sobre un resultado ya calculado (el servidor ya tuvo en cuenta el link común). */
+export const resultNeedsMapping = (result: Pick<ImportResult, "missingColumns" | "mapping">): boolean =>
+  result.missingColumns.length > 0 || result.mapping.some((m) => m.match === "ambiguous");
+
+export function columnIssues(mapping: readonly ColumnMapping[], hasDefaultMenu = false): ImportIssue[] {
   const issues: ImportIssue[] = [];
   const mapped = new Set(mapping.flatMap((m) => (m.field ? [m.field] : [])));
   for (const field of FIELD_KEYS) {
-    if (mapped.has(field)) continue;
+    if (mapped.has(field) || (hasDefaultMenu && field === "menuUrl")) continue;
     issues.push({ row: null, field, value: null, label: `Falta la columna ${FIELD_LABELS[field]}`, message: REQUIRED.has(field) ? `No se encontró la columna ${FIELD_LABELS[field]}, que es obligatoria` : `No se encontró la columna ${FIELD_LABELS[field]}; las piezas quedarán con ese dato vacío`, severity: REQUIRED.has(field) ? "error" : "warning", code: "MISSING_COLUMN" });
   }
   for (const m of mapping) {
@@ -109,12 +116,12 @@ export function buildImportResult(input: PipelineInput): PipelineOutput {
   const config = input.duplicateKey ?? DEFAULT_DUPLICATE_KEY;
   if (mapping.length > MAX_COLUMNS) return { ok: false, issues: [fileIssue("TOO_MANY_COLUMNS")] };
 
-  const base = { fileName: input.fileName, sheetName: sheet.name, headerRow: headerRowIndex + 1, mapping, missingColumns: missingRequiredColumns(mapping) };
+  const base = { fileName: input.fileName, sheetName: sheet.name, headerRow: headerRowIndex + 1, mapping, missingColumns: missingRequiredColumns(mapping, Boolean(input.defaultMenuUrl)) };
   const emptyStats = { valid: 0, withErrors: 0, duplicates: 0, emptyRowsSkipped: 0 };
-  const fileLevel = columnIssues(mapping);
+  const fileLevel = columnIssues(mapping, Boolean(input.defaultMenuUrl));
 
   // Sin las columnas obligatorias (o con columnas ambiguas) no se procesa nada: la persona decide el mapeo.
-  if (needsColumnMapping(mapping)) {
+  if (needsColumnMapping(mapping, Boolean(input.defaultMenuUrl))) {
     return { ok: true, result: { ...base, totalRows: 0, successful: [], rejected: [], errors: fileLevel.filter((i) => i.severity === "error"), warnings: fileLevel.filter((i) => i.severity !== "error"), duplicates: [], duplicateRows: [], stats: emptyStats } };
   }
 
@@ -140,6 +147,7 @@ export function buildImportResult(input: PipelineInput): PipelineOutput {
     warnings.push({ row: null, field: "file", value: String(dataRows.length), label: `Solo se importaron las primeras ${kept.length} filas`, message: `Elegiste importar solo las primeras ${kept.length} de ${dataRows.length} filas; el resto se ignoró`, severity: "warning", code: "ROWS_TRUNCATED_BY_USER" });
   }
 
+  let usedDefaultMenu = 0;
   const valid: ImportedRow[] = [];
   const rejected: RejectedRow[] = [];
   const errors: ImportIssue[] = [];
@@ -151,6 +159,10 @@ export function buildImportResult(input: PipelineInput): PipelineOutput {
       const coerced = coerceCell(cells[columnIndex(column)], { url: field === "menuUrl" || field === "qrUrl" });
       raw[field] = coerced.text;
       for (const note of coerced.notes) rowIssues.push(noteIssue(row, column, field, note));
+    }
+    if (input.defaultMenuUrl && normalizeText(raw.menuUrl ?? "") === "") {
+      raw.menuUrl = input.defaultMenuUrl;
+      usedDefaultMenu++;
     }
     const extra: Record<string, string> = {};
     for (const m of extraColumns) {
@@ -183,6 +195,10 @@ export function buildImportResult(input: PipelineInput): PipelineOutput {
       errors.push(...rowIssues.filter((i) => i.severity === "error"));
     }
     warnings.push(...rowIssues.filter((i) => i.severity !== "error"));
+  }
+
+  if (usedDefaultMenu > 0) {
+    warnings.push({ row: null, field: "menuUrl", value: truncate200(input.defaultMenuUrl ?? ""), label: `Link del menú común usado en ${usedDefaultMenu} filas`, message: `${usedDefaultMenu} filas no traían Link del menú y se les puso el link común que indicaste`, severity: "info", code: "DEFAULT_MENU_URL_USED" });
   }
 
   // Duplicados dentro del archivo: la primera aparición es la original.

@@ -9,7 +9,7 @@ import type { FieldKey } from "@/types";
 const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 /**
- * POST /api/import/excel — cuerpo binario .xlsx (no multipart: así no hay
+ * POST /api/import/excel — cuerpo binario .xlsx o .csv (no multipart: así no hay
  * `formData()` sin límite). El archivo nunca se guarda: se lee en memoria.
  *  X-File-Name: encodeURIComponent(nombre) · X-Column-Mapping: base64url(JSON) · X-Import-Truncate: N
  */
@@ -43,6 +43,16 @@ export const POST = withApiGuards(
       truncateTo = n;
     }
 
+    let defaultMenuUrl: string | undefined;
+    const defaultHeader = headers.get("x-default-menu-url");
+    if (defaultHeader !== null && defaultHeader !== "") {
+      try {
+        defaultMenuUrl = decodeURIComponent(defaultHeader).slice(0, 2048);
+      } catch {
+        throw new HttpError(400, "VALIDATION_FAILED", "X-Default-Menu-Url no es válido");
+      }
+    }
+
     const policy = hostPolicyFromEnv(env);
     const allowed = policy.mode === "allowlist" ? policy.hosts : null;
     const bytes = await ctx.readBody();
@@ -53,6 +63,7 @@ export const POST = withApiGuards(
       columns,
       sheet,
       truncateTo,
+      defaultMenuUrl,
       maxRows: env.IMPORT_MAX_ROWS,
       limits: { maxEntries: 2000, maxEntryInflated: env.IMPORT_MAX_ENTRY_INFLATED, maxTotalInflated: env.IMPORT_MAX_TOTAL_INFLATED, maxCells: env.IMPORT_MAX_CELLS, maxRatio: 200 },
       isQrHostAllowed: allowed ? (host) => allowed.some((h) => (h.startsWith(".") ? host.endsWith(h) : host === h)) : undefined,
@@ -61,7 +72,7 @@ export const POST = withApiGuards(
     return Response.json(response, { status: fileIssueStatus(response.issues[0]?.code ?? "NOT_XLSX") });
   },
   () => ({
-    contentTypes: [XLSX_MIME, "application/octet-stream"],
+    contentTypes: [XLSX_MIME, "application/octet-stream", "text/csv", "application/vnd.ms-excel"],
     rateLimit: getLimits().import,
     semaphore: getLimits().importSlots,
     maxBody: getEnv().IMPORT_MAX_BYTES,

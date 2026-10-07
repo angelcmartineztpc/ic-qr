@@ -177,7 +177,10 @@ describe("POST /api/import/excel — importación", () => {
 
 describe("POST /api/import/excel — archivos hostiles", () => {
   const hostile: Array<[string, () => Uint8Array, string]> = [
-    ["CSV renombrado", () => new TextEncoder().encode("Área,Mesa\nBar,1\n".repeat(30)), "NOT_A_ZIP"],
+    ["PDF renombrado", () => new TextEncoder().encode("%PDF-1.6\n%\u00e2\u00e3\u0000\u0001\u0002 binario".repeat(40)), "NOT_A_ZIP"],
+    ["imagen renombrada", () => Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...new Array(300).fill(0)]), "NOT_A_ZIP"],
+    ["texto que no es una tabla", () => new TextEncoder().encode("<html><body>hola</body></html>\n".repeat(30)), "NO_SHEET_WITH_HEADERS"],
+    ["JSON", () => new TextEncoder().encode('{"area":"Bar","mesa":"1"}\n'.repeat(20)), "NO_SHEET_WITH_HEADERS"],
     ["xls antiguo (OLE)", () => Uint8Array.from([0xd0, 0xcf, 0x11, 0xe0, ...new Array(600).fill(0)]), "LEGACY_XLS_OR_ENCRYPTED"],
     ["macros", () => buildZip([...minimalWorkbookEntries(SHEET_XML([["a"]])).map((e, i) => (i === 0 ? { ...e, data: new TextEncoder().encode(CONTENT_TYPES_OK.replace("sheet.main+xml", "sheet.macroEnabled.main+xml").replace("openxmlformats-officedocument.spreadsheetml", "ms-excel")) } : e))]), "MACRO_ENABLED"],
     ["bomba de descompresión", () => buildZip([...minimalWorkbookEntries(SHEET_XML([["a"]])).slice(0, 3), { name: "xl/worksheets/sheet1.xml", data: new Uint8Array(15 * 1024 * 1024) }]), "ZIP_BOMB"],
@@ -197,6 +200,51 @@ describe("POST /api/import/excel — archivos hostiles", () => {
   it("sin hoja con cabeceras reconocibles", async () => {
     const body = await reply(await upload(buildXlsx([{ name: "Hoja1", rows: [["a", "b", "c"], [1, 2, 3]] }])));
     expect(body.issues?.[0]?.code).toBe("NO_SHEET_WITH_HEADERS");
+  });
+});
+
+describe("POST /api/import/excel — CSV", () => {
+  const csv = (text: string, extra: Record<string, string> = {}) => upload(new TextEncoder().encode(text), { "content-type": "application/octet-stream", "x-file-name": "mesas.csv", ...extra });
+
+  it("importa un CSV con comas, con BOM y con columnas extra (hotel)", async () => {
+    const body = await reply(await csv("\uFEFFhotel,area,estacion,mesa,sub-grupo,concepto,link del menu\nLE BLANC,PLAYA,SAN JOSE,B1,,Alimentos,https://menu.example.com/a\nLE BLANC,PLAYA,SAN JOSE,B2,CANOPY,Alimentos,https://menu.example.com/a\n"));
+    expect(body.result?.stats).toMatchObject({ valid: 2, withErrors: 0 });
+    expect(body.result?.successful[0]).toMatchObject({ row: 2, draft: { area: "PLAYA", estacion: "SAN JOSE", mesa: "B1" }, extra: { hotel: "LE BLANC" } });
+    expect(body.result?.successful[1]?.draft.subgrupo).toBe("CANOPY");
+  });
+
+  it("detecta punto y coma y Windows-1252 (lo que guarda Excel en español) y encuentra la cabecera bajo un título", async () => {
+    const latin1 = Uint8Array.from(Buffer.from("REPORTE;;;\r\nÁrea;Estación;Mesa;Link del menú\r\nPLAYA;SAN JOSÉ;B1;https://menu.example.com/a\r\n", "latin1"));
+    const body = await reply(await upload(latin1, { "content-type": "text/csv", "x-file-name": "x.csv" }));
+    expect(body.result).toMatchObject({ headerRow: 2, stats: { valid: 1 } });
+    expect(body.result?.successful[0]?.draft).toMatchObject({ area: "PLAYA", estacion: "SAN JOSÉ" });
+  });
+
+  it("respeta comillas, comas y saltos de línea dentro de una celda", async () => {
+    const body = await reply(await csv('area,mesa,link del menu,concepto\n"Playa, norte",B1,https://menu.example.com/a,"línea 1\nlínea 2"\n'));
+    expect(body.result?.successful[0]?.draft).toMatchObject({ area: "Playa, norte", concepto: "línea 1 línea 2" });
+  });
+
+  it("con el Link del menú común (X-Default-Menu-Url) importa filas sin link y la columna deja de ser obligatoria", async () => {
+    const text = "area,estacion,mesa,concepto\nPLAYA,SAN JOSE,B1,Alimentos\nPLAYA,SAN JOSE,B2,Alimentos\n";
+    const without = await reply(await csv(text));
+    expect(without.result?.missingColumns).toEqual(["menuUrl"]);
+    const withDefault = await reply(await csv(text, { "x-default-menu-url": encodeURIComponent("https://menu.example.com/lblc") }));
+    expect(withDefault.result?.stats).toMatchObject({ valid: 2 });
+    expect(withDefault.result?.successful.every((r) => r.draft.menuUrl === "https://menu.example.com/lblc")).toBe(true);
+    expect(withDefault.result?.warnings.some((w) => w.code === "DEFAULT_MENU_URL_USED")).toBe(true);
+  });
+
+  it("un link común inválido deja las filas como error (no se inventa nada)", async () => {
+    const body = await reply(await csv("area,mesa,concepto\nPLAYA,B1,x\nPLAYA,B2,y\nPLAYA,B3,z\n", { "x-default-menu-url": "no-es-url" }));
+    expect(body.result?.stats).toMatchObject({ valid: 0, withErrors: 3 });
+  });
+
+  it("más filas que el máximo se rechaza igual que en .xlsx", async () => {
+    const rows = Array.from({ length: 60 }, (_, i) => `PLAYA,B${i},https://menu.example.com/${i}`).join("\n");
+    const response = await csv(`area,mesa,link del menu\n${rows}\n`);
+    expect(response.status).toBe(422);
+    expect((await reply(response)).issues?.[0]?.code).toBe("TOO_MANY_ROWS");
   });
 });
 

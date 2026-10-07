@@ -25,9 +25,9 @@ export const theme = createTheme({
     fontFamily: "var(--font-ui), system-ui, sans-serif",
     h4: { fontWeight: 700 },
     h5: { fontWeight: 700 },
-    h6: { fontWeight: 600 },
+    h6: { fontWeight: 700 },
     subtitle1: { fontWeight: 700 },
-    button: { textTransform: "none", fontWeight: 600 },
+    button: { textTransform: "none", fontWeight: 500 },
   },
   components: {
     MuiButton: { defaultProps: { disableElevation: true } },

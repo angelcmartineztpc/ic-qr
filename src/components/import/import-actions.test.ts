@@ -47,7 +47,7 @@ function setup(options: { upload?: (file: File, options?: unknown) => Promise<Im
     project,
     session,
     inflight: new QrInflight(),
-    importSource: { file: null as File | null },
+    importSource: { file: null as File | null, defaultMenuUrl: "" },
     lastImport: { save: async (v: LastImport) => void saved.push(v), clear: async () => void cleared++ },
   };
   const actions = createImportActions({
@@ -72,9 +72,9 @@ const sample = () =>
   ]);
 
 describe("archivo y errores", () => {
-  it("rechaza en el cliente lo que no es .xlsx sin llamar al servidor", async () => {
+  it("rechaza en el cliente lo que no es .xlsx ni .csv sin llamar al servidor", async () => {
     const t = setup({ upload: async () => { throw new Error("no debía llamarse"); } });
-    expect(await t.actions.start(file("datos.csv"))).toBe(false);
+    expect(await t.actions.start(file("datos.xls"))).toBe(false);
     expect(t.imp()).toMatchObject({ status: "error", error: { message: expect.stringContaining(".xlsx") } });
   });
 

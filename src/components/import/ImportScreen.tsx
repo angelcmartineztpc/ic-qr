@@ -9,11 +9,12 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import Switch from "@mui/material/Switch";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { needsColumnMapping } from "@/lib/excel/import-pipeline";
+import { resultNeedsMapping } from "@/lib/excel/import-pipeline";
 import { planImport, planSize, reviewImport } from "@/lib/excel/review";
 import { useProject, useSession } from "@/lib/state/StoreProvider";
 import type { DuplicateStrategy } from "@/types";
@@ -42,9 +43,10 @@ export function ImportScreen() {
   const [mappingClosedFor, setMappingClosedFor] = useState<unknown>(null);
   const [mappingForced, setMappingForced] = useState(false);
   const [keyOpen, setKeyOpen] = useState(false);
+  const [defaultMenu, setDefaultMenu] = useState("");
 
   const result = imp.result;
-  const mappingNeeded = result !== null && needsColumnMapping(result.mapping);
+  const mappingNeeded = result !== null && resultNeedsMapping(result);
   // El plan se recalcula con el proyecto actual: depende de las piezas, la clave de duplicados y las decisiones.
   const current = useMemo(() => {
     if (!result || mappingNeeded) return null;
@@ -79,7 +81,20 @@ export function ImportScreen() {
         </Alert>
       ) : null}
 
-      {imp.status === "idle" || imp.status === "error" ? <ExcelUploader disabled={readOnly || !hydrated} onFile={(file) => void actions.start(file)} /> : null}
+      {imp.status === "idle" || imp.status === "error" ? (
+        <>
+          <TextField
+            label="Link del menú para las filas que no lo traen (opcional)"
+            helperText="Si tu archivo no tiene la columna «Link del menú» o la trae vacía, se usa este link en esas filas."
+            placeholder="https://menu.ejemplo.com/hotel"
+            value={defaultMenu}
+            onChange={(e) => setDefaultMenu(e.target.value)}
+            type="url"
+            slotProps={{ htmlInput: { autoComplete: "off", inputMode: "url" } }}
+          />
+          <ExcelUploader disabled={readOnly || !hydrated} onFile={(file) => void actions.start(file, defaultMenu)} />
+        </>
+      ) : null}
 
       {result && mappingNeeded && imp.status === "review" ? (
         <Alert severity="warning" action={<Button color="inherit" size="small" onClick={() => setMappingForced(true)}>Elegir columnas</Button>} data-testid="mapping-needed">

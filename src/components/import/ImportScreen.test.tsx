@@ -53,12 +53,12 @@ describe("pantalla de importación", () => {
     expect(init.headers["Content-Type"]).toContain("spreadsheetml");
   });
 
-  it("rechaza en el navegador un archivo que no es .xlsx, sin llamar al servidor", async () => {
+  it("rechaza en el navegador un archivo que no es .xlsx ni .csv, sin llamar al servidor", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup({ applyAccept: false });
     renderApp(<ImportScreen />);
-    await user.upload(await screen.findByTestId("excel-input"), new File(["a,b"], "datos.csv", { type: "text/csv" }));
+    await user.upload(await screen.findByTestId("excel-input"), new File(["a,b"], "datos.xls", { type: "application/vnd.ms-excel" }));
     expect((await screen.findByTestId("import-error")).textContent).toContain(".xlsx");
     expect(fetchMock).not.toHaveBeenCalled();
   });

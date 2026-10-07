@@ -29,8 +29,8 @@ export interface Runtime {
   readBackup(key: string): Promise<unknown>;
   /** Último resultado de importación (IndexedDB, clave `last-import`). */
   lastImport: { save(value: LastImport): Promise<void>; clear(): Promise<void> };
-  /** Archivo Excel de la importación en curso: no es serializable, vive solo en memoria (para reenviarlo con otro mapeo). */
-  importSource: { file: File | null };
+  /** Archivo Excel de la importación en curso: no es serializable, vive solo en memoria (para reenviarlo con otro mapeo) y el Link del menú común elegido. */
+  importSource: { file: File | null; defaultMenuUrl: string };
 }
 
 const RuntimeContext = createContext<Runtime | null>(null);
@@ -62,7 +62,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     takeOver: () => takeOverRef.current(),
     readBackup: (key) => readBackupRef.current(key),
     lastImport: { save: (value) => lastImportRef.current.save(value), clear: () => lastImportRef.current.clear() },
-    importSource: { file: null },
+    importSource: { file: null, defaultMenuUrl: "" },
   }));
 
   useEffect(() => {

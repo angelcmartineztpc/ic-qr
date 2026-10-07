@@ -65,12 +65,12 @@ test.describe("Importar Excel (AC5–AC11, spec §4B)", () => {
     await expect(page.getByTestId("stat-valid")).toHaveText("Válidas: 3");
   });
 
-  test("un CSV renombrado a .xlsx lo rechaza el servidor; un .csv ni siquiera sale del navegador", async ({ page }) => {
+  test("un PDF renombrado a .xlsx lo rechaza el servidor; un .xls ni siquiera sale del navegador", async ({ page }) => {
     await page.goto("/import");
-    await upload(page, "datos.xlsx", Buffer.from("Área,Mesa,Link\nBar,1,https://x.com\n".repeat(30)));
-    await expect(page.getByTestId("import-error")).toContainText("no es un libro de Excel");
-    await page.getByTestId("excel-input").setInputFiles({ name: "datos.csv", mimeType: "text/csv", buffer: Buffer.from("a,b") });
-    await expect(page.getByTestId("import-error")).toContainText("Solo se admiten archivos .xlsx");
+    await upload(page, "datos.xlsx", Buffer.from("%PDF-1.6\n\u0000\u0001\u0002binario".repeat(40)));
+    await expect(page.getByTestId("import-error")).toContainText("no es un .xlsx ni un .csv de texto");
+    await page.getByTestId("excel-input").setInputFiles({ name: "datos.xls", mimeType: "application/vnd.ms-excel", buffer: Buffer.from("a,b") });
+    await expect(page.getByTestId("import-error")).toContainText("Solo se admiten archivos .xlsx y .csv");
   });
 
   test("duplicados: «Eliminar duplicados» importa la primera y deja la copia en el informe", async ({ page }) => {
