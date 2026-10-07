@@ -13,7 +13,8 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 3 | Modelo de dominio y validación | ✓ |
 | 4 | Núcleo vectorial: QR, texto, escena, SVG y PDF | ✓ (falta la verificación manual en Illustrator: [docs/ILLUSTRATOR.md](docs/ILLUSTRATOR.md)) |
 | 5 | QR y storage (regla crítica de extremo a extremo en el servidor) | ✓ |
-| 6–12 | Builder y formulario, Excel, editor visual, exportación, descarga, testing, pulido | pendiente |
+| 6 | Estado, document builder y formulario manual | ✓ |
+| 7–12 | Excel, editor visual, exportación, descarga, testing integral, pulido | pendiente (siguiente: **Fase 7, importación de Excel**) |
 
 ## Requisitos
 
@@ -179,3 +180,28 @@ curl $A $J -X POST localhost:3000/api/qr/resolve -d '{"verify":[{"recordId":"r2"
 ```
 
 Los QR generados se guardan como `qr/v1/{sha256}.svg` (el mismo link siempre da el mismo archivo). Con S3, R2 o Supabase configura `STORAGE_*` en `.env` (ver `.env.example`); la ruta `/api/storage/*` solo existe con el proveedor `local`.
+
+## Cómo probar la Fase 6
+
+```bash
+bun run test        # 660+ tests: estado, persistencia, acciones, QR en el cliente, interfaz (jsdom)
+bun run test:e2e    # Playwright en escritorio y móvil (390 × 844) contra el servidor de producción
+bun run dev         # y abre http://localhost:3000/editor
+```
+
+Qué se puede hacer en `/editor`:
+
+- **+ Agregar nuevo:** formulario con validación en vivo y vista previa de la pieza (Área, Estación, Mesa, Sub-grupo, Concepto, Link del menú y Link del QR; todos de texto libre). Sin Link del QR se genera uno al guardar; con Link del QR se verifica ese archivo y **no** se genera otro.
+- **Navegar y editar:** «Pieza N de M», rejilla paginada, búsqueda y filtros por contador (Con QR, Necesitan QR, Con errores).
+- **Duplicar, eliminar (siempre con confirmación y [Deshacer]) y reordenar:** arrastrando, con teclado, «Mover a…» u «Ordenar por…».
+- **Descargar SVG** de una pieza lista (50 × 50 mm, texto en contornos).
+- **Proyecto:** autoguardado en el navegador, guardar y abrir `.qrproj.json` (abrirlo no regenera ningún QR), una sola pestaña escritora (la otra queda en solo lectura con «Tomar el control»).
+
+La vista previa la dibuja el servidor con Gotham (`bun run fonts:setup` antes de `dev` o `start`); sin las fuentes responde 503 con un mensaje claro.
+
+## Spec Kit (desarrollo guiado por especificaciones)
+
+[Spec Kit](https://github.com/github/spec-kit) 1.1.1 está instalado en el repositorio para **Claude Code** (`.claude/skills/speckit-*`) y para **GitHub Copilot** (`.github/skills/speckit-*`); el default de la CLI sigue siendo Copilot (`specify integration use claude` lo cambia). La constitución del proyecto (`.specify/memory/constitution.md`) todavía es la plantilla: las reglas vigentes están en `docs/ARCHITECTURE.md`, que sigue siendo la fuente de verdad.
+
+En Claude Code, los skills son `/speckit-specify`, `/speckit-clarify`, `/speckit-plan`, `/speckit-tasks`, `/speckit-implement`, `/speckit-analyze`, `/speckit-checklist`, `/speckit-constitution`, `/speckit-converge` y `/speckit-taskstoissues`. Estado de la instalación: `specify integration status` (el aviso `unsafe-multi-install` es esperado: Copilot no está declarado compatible con otras integraciones).
+
