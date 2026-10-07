@@ -101,7 +101,7 @@ export const TemplateSchema = z
       background: ColorSchema.optional(),
       cornerRadiusMm: MmSchema.min(0).default(0),
     }),
-    /** Carpeta de assets/fonts donde están los archivos (p. ej. "gotham"). */
+    /** Carpeta de assets/fonts donde están los archivos (p. ej. "address-sans"). */
     fontDir: z.string().regex(/^[a-z0-9-]+$/),
     fonts: z.array(FontFileSchema).min(1),
     defaultLayout: LayoutSchema,
@@ -111,7 +111,7 @@ export const TemplateSchema = z
       items: z.array(TextElementSchema).min(1).max(20),
     }),
     qr: z.strictObject({
-      quietZoneModules: z.number().int().min(1).max(8).default(2),
+      quietZoneModules: z.number().int().min(0).max(8).default(2),
       foreground: ColorSchema.default("#000000"),
       background: ColorSchema.default("#FFFFFF"),
       invert: z.boolean().default(false),
@@ -169,7 +169,7 @@ export const TemplateOverridesSchema = z.strictObject({
     )
     .default({}),
   qr: z
-    .strictObject({ quietZoneModules: z.number().int().min(1).max(8).optional(), foreground: ColorSchema.optional() })
+    .strictObject({ quietZoneModules: z.number().int().min(0).max(8).optional(), foreground: ColorSchema.optional() })
     .default({}),
   tile: z.strictObject({ background: ColorSchema.optional() }).default({}),
 });

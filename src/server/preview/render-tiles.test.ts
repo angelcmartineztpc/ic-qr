@@ -5,7 +5,7 @@ import { getTemplate } from "@/templates";
 import type { PreviewRequest, PreviewTile } from "@/schemas/preview";
 import { TemplateOverridesSchema } from "@/schemas/template";
 
-import { HAS_GOTHAM, registry } from "../../../tests/helpers/gotham";
+import { HAS_PIECE_FONT, registry } from "../../../tests/helpers/piece-font";
 import { MemoryStorage } from "../../../tests/helpers/memory-storage";
 import { bytes, ownQrSvg } from "../../../tests/helpers/qr-svg";
 import { generatedSource, existingSource, MENU } from "../../../tests/helpers/records";
@@ -72,14 +72,14 @@ describe("previewQrGeometry — nunca genera ni sube nada", () => {
   });
 });
 
-describe.skipIf(!HAS_GOTHAM)("renderPreviewTiles (requiere Gotham: bun run fonts:setup)", () => {
+describe.skipIf(!HAS_PIECE_FONT)("renderPreviewTiles (requiere la fuente de las piezas: bun run fonts:setup)", () => {
   const deps = { fonts: registry, storage: new MemoryStorage() };
 
-  it("devuelve un SVG por pieza, en contornos, de 50 mm, bien formado y sin texto vivo", async () => {
+  it("devuelve un SVG por pieza, en contornos, de 70 mm, bien formado y sin texto vivo", async () => {
     const { tiles } = await renderPreviewTiles(request([tile(), tile({ key: "k2", recordId: "r2", mesa: "M2" })]), deps);
     expect(Object.keys(tiles)).toEqual(["k1", "k2"]);
     const svg = tiles["k1"]?.svg ?? "";
-    expect(svg).toMatch(/^<svg [^>]*width="50mm" height="50mm" viewBox="0 0 500 500"/);
+    expect(svg).toMatch(/^<svg [^>]*width="70mm" height="70mm" viewBox="0 0 700 700"/);
     expect(svg).not.toMatch(/<text|<image|<script|<style/);
     const errors: string[] = [];
     new DOMParser({ onError: (level, m) => (level === "warning" ? undefined : errors.push(m)) }).parseFromString(svg, "image/svg+xml");

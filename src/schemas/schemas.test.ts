@@ -48,34 +48,37 @@ describe("Layout", () => {
 });
 
 describe("plantillas", () => {
-  it("todas las plantillas registradas son válidas y usan Gotham", () => {
+  it("todas las plantillas registradas son válidas y usan la tipografía de las piezas", () => {
     const templates = listTemplates();
     expect(templates.map((t) => t.id)).toEqual(["tropical-table", "restaurant-default", "custom-template"]);
     for (const template of templates) {
-      expect(template.fonts.every((font) => font.family === "Gotham")).toBe(true);
-      expect(template.fontDir).toBe("gotham");
+      expect(template.fonts.every((font) => font.family === "Address Sans Pro Cd")).toBe(true);
+      expect(template.fontDir).toBe("address-sans");
     }
     expect(DEFAULT_TEMPLATE_ID).toBe("tropical-table");
   });
 
-  it("TropicalTable reproduce la referencia (spec §2): textos, pieza de 50 mm y QR abajo", () => {
+  it("TropicalTable reproduce la referencia QR_Tropical_1M_Alimentos.pdf: 70 mm, textos literales, marco y QR abajo", () => {
     const template = tropical();
-    expect(template.tile).toMatchObject({ width: 50, height: 50 });
+    expect(template.tile).toMatchObject({ width: 70, height: 70 });
     expect(template.content.items.map((i) => i.text)).toEqual([
       "{{area}}",
       "MESA – TABLE",
       "{{mesa}}",
-      "CONSULTA EL MENÚ Y ORDENA EN LÍNEA",
-      "LOOK AT THE MENU AND ORDER ONLINE",
+      "CONSULTA EL MENU Y ORDENA EN LÍNEA",
+      "LOOK AT THE MENU AN ORDER ON LINE",
     ]);
-    expect(template.defaultLayout.qr).toEqual({ x: 13, y: 24, width: 24, height: 24 });
+    expect(template.content.items.map((i) => i.sizePt)).toEqual([17, 11, 22, 13.2, 13.2]);
+    expect(template.shapes.map((shape) => shape.id)).toEqual(["frame"]);
+    expect(template.defaultLayout.qr).toEqual({ x: 22.606, y: 39.424, width: 24.788, height: 24.788 });
+    expect(template.qr.quietZoneModules).toBe(0);
   });
 
   it("rechaza campos desconocidos, fuentes no declaradas y cajas fuera de la pieza", () => {
     const base = structuredClone(tropical());
     expect(TemplateSchema.safeParse({ ...base, content: { ...base.content, items: [{ ...base.content.items[0], text: "{{precio}}" }] } }).success).toBe(false);
-    expect(TemplateSchema.safeParse({ ...base, defaultLayout: { ...base.defaultLayout, qr: { x: 30, y: 30, width: 24, height: 24 } } }).success).toBe(false);
-    const undeclared = { ...base, content: { ...base.content, items: [{ ...base.content.items[0], font: { family: "Gotham", weight: 300, style: "normal" } }] } };
+    expect(TemplateSchema.safeParse({ ...base, defaultLayout: { ...base.defaultLayout, qr: { x: 50, y: 50, width: 24, height: 24 } } }).success).toBe(false);
+    const undeclared = { ...base, content: { ...base.content, items: [{ ...base.content.items[0], font: { family: "Address Sans Pro Cd", weight: 300, style: "normal" } }] } };
     expect(TemplateSchema.safeParse(undeclared).success).toBe(false);
   });
 

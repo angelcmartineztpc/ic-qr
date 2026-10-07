@@ -1,6 +1,6 @@
 # Gotham
 
-Tipografía de las piezas (decisión R2 de `docs/ARCHITECTURE.md`).
+Tipografía de la **interfaz** (desde el 2026-10-07; las piezas usan `address-sans`).
 
 Los archivos `.otf` **no se versionan**: Gotham tiene licencia comercial de Hoefler & Co.
 Para instalarlos en tu copia local:

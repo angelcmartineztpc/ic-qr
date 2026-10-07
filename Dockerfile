@@ -6,7 +6,7 @@
 # Imágenes fijadas por digest (2026-10-06). Actualizar con:
 #   docker buildx imagetools inspect <imagen> --format '{{json .Manifest.Digest}}'
 #
-# Antes de construir: `bun run fonts:setup` (Gotham no está en git; viaja en el contexto).
+# Antes de construir: `bun run fonts:setup` (Gotham —interfaz— y Address Sans Pro Cd —piezas— no están en git; viajan en el contexto).
 
 FROM oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895 AS bun
 
@@ -23,8 +23,8 @@ FROM base AS builder
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN test -f assets/fonts/gotham/Gotham-Bold.otf \
-  || (echo "Faltan las fuentes Gotham: ejecuta 'bun run fonts:setup' antes de docker build" && exit 1)
+RUN test -f assets/fonts/gotham/Gotham-Bold.otf && test -f assets/fonts/address-sans/AddressSansPro-CdSemibold.otf \
+  || (echo "Faltan las fuentes (Gotham y Address Sans Pro Cd): ejecuta 'bun run fonts:setup' antes de docker build" && exit 1)
 # next build se ejecuta con el node del PATH (Node 24 real).
 RUN bun run build
 

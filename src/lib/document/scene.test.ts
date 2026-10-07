@@ -1,18 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { getTemplate } from "@/templates";
 import type { QrGeometry, Template } from "@/types";
 
+import { getTemplate } from "@/templates";
+import { legacyTile } from "../../../tests/helpers/legacy-tile";
 import { fakeFonts } from "../../../tests/helpers/fake-font";
 import { encodeMatrix } from "@/lib/qr/encode";
 import { outlineScene } from "./outline";
 import { buildScene, type SceneRecord } from "./scene";
 
-const tropical = (): Template => {
-  const t = getTemplate("tropical-table");
-  if (!t) throw new Error("falta tropical-table");
-  return t;
-};
+const tropical = (): Template => legacyTile();
 const record = (o: Partial<SceneRecord> = {}): SceneRecord => ({ id: "r1", area: "Tropical", estacion: "Bar", mesa: "M1", subgrupo: "", concepto: "", menuUrl: "https://menu.example.com/tropical", ...o });
 const geometry = (payload: string): QrGeometry => {
   const matrix = encodeMatrix(payload);

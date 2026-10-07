@@ -51,6 +51,9 @@ package-lock.json
 # Gotham: licencia comercial, no se versiona (scripts/setup-fonts.ts)
 /assets/fonts/gotham/*.otf
 /assets/fonts/gotham/*.ttf
+# Address Sans Pro Cd (piezas): licencia de Adobe Fonts, no se versiona
+/assets/fonts/address-sans/*.otf
+/assets/fonts/address-sans/*.ttf
 
 # Libros reales para probar la importación (pueden traer datos del cliente)
 /tests/fixtures/real/*.xlsx

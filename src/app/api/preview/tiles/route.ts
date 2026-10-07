@@ -20,7 +20,7 @@ export const POST = withApiGuards(
     } catch (error) {
       if (error instanceof PreviewError) throw new HttpError(400, "VALIDATION_FAILED", error.message);
       if (error instanceof Error && /Falta el archivo de fuente/.test(error.message)) {
-        throw new HttpError(503, "FONTS_MISSING", "Faltan las fuentes Gotham en el servidor (ejecuta `bun run fonts:setup`)");
+        throw new HttpError(503, "FONTS_MISSING", "Faltan las fuentes de las piezas en el servidor (ejecuta `bun run fonts:setup`)");
       }
       throw error;
     }

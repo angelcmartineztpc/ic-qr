@@ -6,11 +6,11 @@ import { PDFOptionsSchema } from "@/schemas/pdf";
 import type { PDFOptions } from "@/types";
 
 import { extractText, inspectPdf, pageContents, paintedImageOps } from "../../../tests/helpers/pdf-inspect";
-import { HAS_GOTHAM, registry, sampleScene, tropical } from "../../../tests/helpers/gotham";
+import { HAS_PIECE_FONT, registry, sampleScene, tropical } from "../../../tests/helpers/piece-font";
 import { renderPdfToBuffer } from "./writer";
 
 const options = (overrides: Partial<PDFOptions> = {}): PDFOptions => ({ ...PDFOptionsSchema.parse({}), ...overrides });
-const tile = { width: 50, height: 50 };
+const tile = { width: 70, height: 70 };
 const fonts = registry.forTemplate(tropical());
 const DATE = new Date("2026-10-06T12:00:00Z");
 
@@ -22,13 +22,13 @@ async function build(pdf: PDFOptions, count = 1, outlined = true) {
   return renderPdfToBuffer(scenes, { tile, pdf, fonts, creationDate: DATE, compress: false, title: "Test" });
 }
 
-describe.skipIf(!HAS_GOTHAM)("PDF vectorial (requiere Gotham: bun run fonts:setup)", () => {
-  it("hoja A4: MediaBox exacta, 0 imágenes y 15 piezas por página (spec §3, §18, §19)", async () => {
+describe.skipIf(!HAS_PIECE_FONT)("PDF vectorial (requiere la fuente de las piezas: bun run fonts:setup)", () => {
+  it("hoja A4: MediaBox exacta, 0 imágenes y 6 piezas por página (2 × 3 de 70 mm) (spec §3, §18, §19)", async () => {
     const bytes = await build(options(), 16);
     const report = await inspectPdf(bytes);
     const [w, h] = pageSizePt(210, 297);
 
-    expect(report.pageCount).toBe(2);
+    expect(report.pageCount).toBe(3); // 16 piezas, 6 por hoja
     for (const box of report.mediaBoxes) {
       expect(Math.abs((box[2] ?? 0) - w)).toBeLessThan(1e-4);
       expect(Math.abs((box[3] ?? 0) - h)).toBeLessThan(1e-4);
@@ -37,13 +37,13 @@ describe.skipIf(!HAS_GOTHAM)("PDF vectorial (requiere Gotham: bun run fonts:setu
     expect(await paintedImageOps(bytes)).toBe(0);
   });
 
-  it("cada pieza mide 50 × 50 mm = 141.732 pt y su origen es (25, 13.5) mm", async () => {
+  it("cada pieza mide 70 × 70 mm = 198.425 pt y su origen es (32.5, 38.5) mm", async () => {
     const [content] = await pageContents(await build(options(), 1));
-    // Por pieza: q · translate(70.866142, 38.267717) · scale(2.834646).
+    // Por pieza: q · translate(92.125984, 109.133858) · scale(2.834646).
     expect(content).toContain("1 0 0 -1 0 841.889764 cm"); // pdfkit pasa a coordenadas con y hacia abajo (A4 exacto)
-    expect(content).toContain("1 0 0 1 70.866142 38.267717 cm"); // (25, 13.5) mm
+    expect(content).toContain("1 0 0 1 92.125984 109.133858 cm"); // (32.5, 38.5) mm
     expect(content).toContain("2.834646 0 0 2.834646 0 0 cm"); // 1 mm = 2.834646 pt
-    expect(mmToPt(50)).toBeCloseTo(141.732283, 6);
+    expect(mmToPt(70)).toBeCloseTo(198.425197, 6);
   });
 
   it("modo contornos: 0 fuentes y 0 operadores de texto", async () => {
@@ -60,33 +60,34 @@ describe.skipIf(!HAS_GOTHAM)("PDF vectorial (requiere Gotham: bun run fonts:setu
     expect(content?.match(/^f\*$/gm)?.length).toBe(1);
   });
 
-  it("modo texto vivo: fuentes Gotham incrustadas con ToUnicode y el texto sigue siendo texto", async () => {
+  it("modo texto vivo: fuente de las piezas incrustada con ToUnicode y el texto sigue siendo texto", async () => {
     const bytes = await build(options({ textMode: "live" }), 1, false);
     const report = await inspectPdf(bytes);
-    expect(report.fontFiles).toBeGreaterThanOrEqual(3);
+    expect(report.fontFiles).toBeGreaterThanOrEqual(1);
     expect(report.fontsWithToUnicode).toBe(report.fontsTotal);
-    expect(report.fontNames.every((name) => /Gotham/.test(name))).toBe(true);
-    const [text] = await extractText(bytes);
-    expect(text).toContain("MESA – TABLE");
-    expect(text).toContain("CONSULTA EL MENÚ Y ORDENA EN LÍNEA");
-    expect(text).toContain("LOOK AT THE MENU AND ORDER ONLINE");
-    expect(text).toContain("TROPICAL");
+    expect(report.fontNames.every((name) => /AddressSansPro/.test(name))).toBe(true);
+    const [raw] = await extractText(bytes);
+    const text = (raw ?? "").replace(/\s+/g, " "); // el tracking negativo hace que pdf.js separe letras con espacios
+    expect(text.replaceAll(" ", "")).toContain("MESA–TABLE");
+    expect(text.replaceAll(" ", "")).toContain("CONSULTAELMENUYORDENAENLÍNEA");
+    expect(text.replaceAll(" ", "")).toContain("LOOKATTHEMENUANORDERONLINE");
+    expect(text.replaceAll(" ", "")).toContain("TROPICAL");
     expect(await paintedImageOps(bytes)).toBe(0);
   });
 
-  it("modo 'single': una página de 141.732 × 141.732 pt por pieza", async () => {
+  it("modo 'single': una página de 198.425 × 198.425 pt por pieza", async () => {
     const report = await inspectPdf(await build(options({ mode: "single" }), 3));
     expect(report.pageCount).toBe(3);
     for (const box of report.mediaBoxes) {
-      expect(box[2]).toBeCloseTo(141.732283, 4);
-      expect(box[3]).toBeCloseTo(141.732283, 4);
+      expect(box[2]).toBeCloseTo(198.425197, 4);
+      expect(box[3]).toBeCloseTo(198.425197, 4);
     }
   });
 
   it("'single' con sangrado: MediaBox mayor y TrimBox = tamaño de la pieza", async () => {
     const report = await inspectPdf(await build(options({ mode: "single", bleedMm: 2 }), 1));
-    expect(report.mediaBoxes[0]?.[2]).toBeCloseTo(mmToPt(54), 4);
-    expect(report.trimBoxes[0]?.map((v) => Math.round(v * 1000) / 1000)).toEqual([5.669, 5.669, 147.402, 147.402]);
+    expect(report.mediaBoxes[0]?.[2]).toBeCloseTo(mmToPt(74), 4);
+    expect(report.trimBoxes[0]?.map((v) => Math.round(v * 1000) / 1000)).toEqual([5.669, 5.669, 204.094, 204.094]);
   });
 
   it("tamaño Letter y personalizado", async () => {
@@ -108,7 +109,7 @@ describe.skipIf(!HAS_GOTHAM)("PDF vectorial (requiere Gotham: bun run fonts:setu
     const start = performance.now();
     const bytes = await build(options(), 1000);
     const seconds = (performance.now() - start) / 1000;
-    expect((await inspectPdf(bytes)).pageCount).toBe(67);
+    expect((await inspectPdf(bytes)).pageCount).toBe(167);
     expect(seconds).toBeLessThan(10);
   }, 60_000);
 });

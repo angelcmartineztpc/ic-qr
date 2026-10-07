@@ -4,18 +4,14 @@ import { describe, expect, it } from "vitest";
 import { outlineScene } from "@/lib/document/outline";
 import { buildScene, type SceneRecord } from "@/lib/document/scene";
 import { encodeMatrix } from "@/lib/qr/encode";
-import { getTemplate } from "@/templates";
 import type { Template, TileScene } from "@/types";
 
+import { legacyTile } from "../../../tests/helpers/legacy-tile";
 import { fakeFonts } from "../../../tests/helpers/fake-font";
 import { escapeXml, xmlText } from "./escape";
 import { renderSceneSvg, scalePath } from "./render-scene";
 
-const template = (): Template => {
-  const t = getTemplate("tropical-table");
-  if (!t) throw new Error("falta tropical-table");
-  return t;
-};
+const template = (): Template => legacyTile();
 const scene = (overrides: Partial<SceneRecord> = {}, options?: Parameters<typeof buildScene>[0]["options"]): TileScene => {
   const record: SceneRecord = { id: "r1", area: "Tropical", estacion: "", mesa: "M1", subgrupo: "", concepto: "", menuUrl: "https://menu.example.com/tropical", ...overrides };
   const matrix = encodeMatrix(record.menuUrl);

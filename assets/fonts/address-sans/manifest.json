@@ -1,0 +1,11 @@
+{
+  "family": "Address Sans Pro Cd",
+  "version": "Adobe Fonts (2019, Alejandro Paul)",
+  "license": "Adobe Fonts. Confirmar que la licencia cubre incrustar contornos en PDF/SVG y su uso en servidor. No versionar el .otf.",
+  "files": {
+    "AddressSansPro-CdSemibold.otf": {
+      "weight": 600,
+      "sha256": "3f5f99f8527d5b2e594ea75208591215c3d4cce082080e4f9fa55346d822ebda"
+    }
+  }
+}

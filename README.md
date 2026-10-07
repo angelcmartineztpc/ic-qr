@@ -35,7 +35,7 @@ bun run fonts:setup             # copia Gotham a assets/fonts/gotham (o: npm run
 
 Gotham tiene **licencia comercial** (Hoefler & Co.), así que sus archivos **no se versionan**. `bun run fonts:setup` los copia desde `~/Library/Fonts`. Para usar otra carpeta, define `FONTS_SOURCE_DIR=/ruta`. El script verifica el sha256 contra [`assets/fonts/gotham/manifest.json`](assets/fonts/gotham/manifest.json).
 
-La **interfaz** usa Gotham (decisión del 2026-10-07; se publica en `/_next/static`, así que la licencia debe cubrir uso web). Los `.otf` no se versionan: `bun run fonts:setup` los copia antes de `dev`/`build`. La tipografía de las **piezas** NO es Gotham: es la de la referencia (`QR_Tropical_1M_Alimentos.pdf`), pendiente de recibir el archivo de la fuente. Las vistas previas reciben el texto ya convertido en contornos desde el servidor.
+La **interfaz** usa Gotham (decisión del 2026-10-07; se publica en `/_next/static`, así que la licencia debe cubrir uso web). Los `.otf` no se versionan: `bun run fonts:setup` los copia antes de `dev`/`build`. La tipografía de las **piezas** NO es Gotham: es **Address Sans Pro Cd Semibold**, la de la referencia `QR_Tropical_1M_Alimentos.pdf` (`assets/fonts/address-sans`, tampoco versionada; `bun run fonts:setup` instala ambas). La pieza `tropical-table` mide **70 × 70 mm** y reproduce el PDF de referencia. Las vistas previas de las piezas reciben el texto ya convertido en contornos desde el servidor.
 
 ## Scripts
 

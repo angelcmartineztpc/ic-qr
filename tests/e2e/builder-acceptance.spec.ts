@@ -18,7 +18,7 @@ async function addPiece(page: Page, mesa: string, menuUrl = `${MENU}?mesa=${enco
 }
 
 test.describe("Descargar SVG de esta pieza (spec §17, AC20, AC26)", () => {
-  test("el SVG es de 50 × 50 mm, vectorial, con el texto en contornos y el QR como un solo trazado", async ({ page }) => {
+  test("el SVG es de 70 × 70 mm (la referencia), vectorial, con el texto en contornos y el QR como un solo trazado", async ({ page }) => {
     await page.goto("/editor");
     await addPiece(page, "M1");
     await expect(page.getByTestId("qr-status").first()).toContainText("✓ QR generado", { timeout: 15_000 });
@@ -29,14 +29,14 @@ test.describe("Descargar SVG de esta pieza (spec §17, AC20, AC26)", () => {
     expect(file.suggestedFilename()).toBe("M1-Tropical.svg");
 
     const svg = await readFile(await file.path(), "utf8");
-    expect(svg).toMatch(/^<svg [^>]*width="50mm" height="50mm" viewBox="0 0 500 500"/);
+    expect(svg).toMatch(/^<svg [^>]*width="70mm" height="70mm" viewBox="0 0 700 700"/);
     expect(svg).toContain('id="qr-code"');
     expect(svg.match(/<path id="qr-code"/g)).toHaveLength(1); // un solo trazado compuesto
     expect(svg).toContain('id="text-area"'); // el texto está, pero…
     expect(svg).not.toMatch(/<text|<image|<style|<script|font-face|href=/); // …en contornos: sin fuentes, imágenes ni scripts
     // Los avisos se muestran de uno en uno (§S7): este llega tras «Pieza agregada» y «1 QR generado».
-    // Este link da un QR de 41 caracteres (versión 5, módulos de 0.585 mm < 0.60): la app lo dice.
-    await expect(page.getByText("SVG descargado (M1-Tropical.svg) con 1 aviso de composición: revisa la pieza")).toBeVisible({ timeout: 15_000 });
+    // Con la referencia (QR de 24.79 mm sin zona de silencio propia) este link da módulos de ~0.67 mm: sin avisos.
+    await expect(page.getByText("SVG descargado: M1-Tropical.svg", { exact: true })).toBeVisible({ timeout: 15_000 });
   });
 
   test("con el QR pendiente no se descarga: se avisa", async ({ page }) => {
