@@ -44,6 +44,8 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/export": ["./assets/fonts/**/*"],
     "/api/preview/**": ["./assets/fonts/**/*"],
+    // El worker de SheetJS es un archivo que se abre en tiempo de ejecución (new Worker), así que no lo detecta el trazado.
+    "/api/import/excel": ["./src/server/excel/parse-worker.mjs", "./node_modules/xlsx/**/*"],
   },
   async headers() {
     return [

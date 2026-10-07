@@ -14,7 +14,8 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 4 | Núcleo vectorial: QR, texto, escena, SVG y PDF | ✓ (falta la verificación manual en Illustrator: [docs/ILLUSTRATOR.md](docs/ILLUSTRATOR.md)) |
 | 5 | QR y storage (regla crítica de extremo a extremo en el servidor) | ✓ |
 | 6 | Estado, document builder y formulario manual | ✓ |
-| 7–12 | Excel, editor visual, exportación, descarga, testing integral, pulido | pendiente (siguiente: **Fase 7, importación de Excel**) |
+| 7 | Importación de Excel | ✓ (falta probar con libros reales de Excel 365, Google Sheets y LibreOffice: `tests/fixtures/real/`) |
+| 8–12 | Editor visual, exportación, descarga, testing integral, pulido | pendiente (siguiente: **Fase 8, editor visual `/preview`**) |
 
 ## Requisitos
 
@@ -198,6 +199,26 @@ Qué se puede hacer en `/editor`:
 - **Proyecto:** autoguardado en el navegador, guardar y abrir `.qrproj.json` (abrirlo no regenera ningún QR), una sola pestaña escritora (la otra queda en solo lectura con «Tomar el control»).
 
 La vista previa la dibuja el servidor con Gotham (`bun run fonts:setup` antes de `dev` o `start`); sin las fuentes responde 503 con un mensaje claro.
+
+## Cómo probar la Fase 7
+
+```bash
+bun run test        # 790+ tests: guard del contenedor, cabeceras, pipeline, API real con el worker, interfaz
+bun run test:e2e    # incluye tests/e2e/import.spec.ts (escritorio y móvil) contra el servidor de producción
+bun run dev         # y abre http://localhost:3000/import
+```
+
+En `/import` (también desde «Importar Excel» en la barra):
+
+- **Subir un .xlsx** (arrastrar o «Seleccionar archivo»; en el móvil abre el selector). El archivo nunca se guarda: el servidor lo lee en memoria, dentro de un worker con límite de memoria y de tiempo.
+- **Resumen:** filas encontradas, válidas, con errores y duplicadas, y pestañas **Errores** («Fila 18: Falta Link del menú»), **Duplicados** y **Avisos**, filtrables y copiables.
+- **Columnas:** se reconocen alias y erratas pequeñas («No. Mesa», «Link del menú (URL)»). Si falta una columna obligatoria o hay una ambigua, se abre «Confirma las columnas».
+- **Duplicados:** Mantener, Eliminar duplicados o Revisar manualmente (un interruptor por fila); la clave de duplicados es editable.
+- **Añadir o Reemplazar** el proyecto, y opcionalmente **importar las filas con error como piezas a corregir**.
+- **Informe de errores (.csv)** y resultado guardado en el navegador: recargar no pierde las filas con error hasta que lo descartes.
+- Al confirmar se crean las piezas y se lanza la resolución de QR en lote: con **Link del QR** se verifica ese QR y **no se genera otro**; sin él se genera uno nuevo.
+
+Archivos reales: copia libros de Excel 365, Google Sheets o LibreOffice en `tests/fixtures/real/` (no se versionan) y `bun run test` los importa con la ruta real.
 
 ## Spec Kit (desarrollo guiado por especificaciones)
 

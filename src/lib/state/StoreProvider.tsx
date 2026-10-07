@@ -10,6 +10,7 @@ import type { PreviewResponse } from "@/schemas/preview";
 import type { ProjectState } from "@/types";
 
 import { createIdbStore } from "./idb";
+import { clearLastImport, loadLastImport, saveLastImport, type LastImport } from "./last-import";
 import { createAutosaver, loadProject, type KeyValueStore } from "./persistence";
 import { createEmptyProject, isDirty, orderedRecords } from "./project";
 import { createProjectStore, createSessionStore, patchSession, type ProjectStore, type SessionState, type SessionStore } from "./stores";
@@ -26,6 +27,10 @@ export interface Runtime {
   takeOver(): Promise<void>;
   /** Copia de seguridad que se hizo al no poder leer el proyecto guardado (para ofrecerla en descarga). */
   readBackup(key: string): Promise<unknown>;
+  /** Último resultado de importación (IndexedDB, clave `last-import`). */
+  lastImport: { save(value: LastImport): Promise<void>; clear(): Promise<void> };
+  /** Archivo Excel de la importación en curso: no es serializable, vive solo en memoria (para reenviarlo con otro mapeo). */
+  importSource: { file: File | null };
 }
 
 const RuntimeContext = createContext<Runtime | null>(null);
@@ -44,6 +49,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
   const flushRef = useRef<() => Promise<void>>(async () => undefined);
   const takeOverRef = useRef<() => Promise<void>>(async () => undefined);
   const readBackupRef = useRef<(key: string) => Promise<unknown>>(async () => undefined);
+  const lastImportRef = useRef<Runtime["lastImport"]>({ save: async () => undefined, clear: async () => undefined });
 
   // Una sola vez por montaje: el runtime (stores, QR en curso, caché de piezas) es estable.
   const [rt] = useState<Runtime>(() => ({
@@ -55,6 +61,8 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     flush: () => flushRef.current(),
     takeOver: () => takeOverRef.current(),
     readBackup: (key) => readBackupRef.current(key),
+    lastImport: { save: (value) => lastImportRef.current.save(value), clear: () => lastImportRef.current.clear() },
+    importSource: { file: null },
   }));
 
   useEffect(() => {
@@ -68,6 +76,22 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     flushRef.current = () => saver.flush();
 
     readBackupRef.current = (key) => store.get(key);
+    lastImportRef.current = {
+      save: async (value) => {
+        try {
+          await saveLastImport(store, value);
+        } catch {
+          /* sin almacenamiento: el resultado sigue en memoria, solo no sobrevive a recargar */
+        }
+      },
+      clear: async () => {
+        try {
+          await clearLastImport(store);
+        } catch {
+          /* idem */
+        }
+      },
+    };
 
     /**
      * Al pasar de solo lectura a escritora (tomar el control) el proyecto en memoria puede estar
@@ -104,6 +128,10 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
       const now = new Date().toISOString();
       const outcome = await loadProject(store, now);
       if (disposed) return;
+      void loadLastImport(store).then((last) => {
+        if (disposed || !last || rt.session.getState().import.status !== "idle") return;
+        patchSession(rt.session, (s) => ({ import: { ...s.import, status: last.outcome ? "done" : "review", result: last.result, outcome: last.outcome } }));
+      });
       switch (outcome.kind) {
         case "loaded": {
           rt.project.setState({ project: outcome.project });

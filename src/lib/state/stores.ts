@@ -1,7 +1,8 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 
+import type { ImportOutcomeSummary } from "./last-import";
 import type { SortKey } from "@/lib/records/order";
-import type { ProjectState, RecordId } from "@/types";
+import type { DuplicateDecision, DuplicateStrategy, ImportIssue, ImportResult, ProjectState, RecordId } from "@/types";
 
 import type { CounterFilter } from "./counters";
 import { createEmptyProject, type Removed } from "./project";
@@ -14,6 +15,22 @@ export interface ProjectStoreState {
 }
 
 export type ViewMode = "pages" | "grid";
+
+/** Importación de Excel en curso o recién terminada (spec §S1). Solo `result` y `outcome` se persisten (clave `last-import`). */
+export interface ImportSession {
+  status: "idle" | "uploading" | "review" | "done" | "error";
+  result: ImportResult | null;
+  strategy: DuplicateStrategy;
+  decisions: Record<number, DuplicateDecision>;
+  mode: "append" | "replace";
+  /** Crear también las filas con error como piezas a corregir. */
+  includeRejected: boolean;
+  /** Cuando ya se confirmó: lo que se creó y lo que se descartó. */
+  outcome: ImportOutcomeSummary | null;
+  error: { message: string; issues: ImportIssue[]; canTruncate: boolean } | null;
+}
+
+export const initialImport = (): ImportSession => ({ status: "idle", result: null, strategy: "keep", decisions: {}, mode: "append", includeRejected: false, outcome: null, error: null });
 
 export interface SessionState {
   /** Se terminó de leer IndexedDB (hasta entonces la pantalla muestra un esqueleto). */
@@ -35,6 +52,7 @@ export interface SessionState {
   /** Piezas cuyo QR se está resolviendo ahora mismo. */
   inFlight: RecordId[];
   qrProgress: { running: boolean; done: number; total: number };
+  import: ImportSession;
   /** Avisos persistentes de la hidratación. */
   notices: { restored: { records: number; modifiedAt: string } | null; quarantined: number; recoveredBackup: string | null };
 }
@@ -53,6 +71,7 @@ export const initialSession = (): SessionState => ({
   lastDeleted: null,
   inFlight: [],
   qrProgress: { running: false, done: 0, total: 0 },
+  import: initialImport(),
   notices: { restored: null, quarantined: 0, recoveredBackup: null },
 });
 

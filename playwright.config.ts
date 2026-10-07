@@ -25,6 +25,9 @@ export default defineConfig({
       STORAGE_LOCAL_DIR: ".data/e2e-storage",
       STORAGE_PUBLIC_BASE_URL: `http://localhost:${port}/api/storage`,
       LOG_LEVEL: "warn",
+      // Las pruebas de importación suben muchos archivos seguidos desde la misma IP (el límite real es 10/min).
+      RATE_LIMIT_IMPORT_PER_MIN: "500",
+      IMPORT_MAX_CONCURRENCY: "8",
     },
   },
 });

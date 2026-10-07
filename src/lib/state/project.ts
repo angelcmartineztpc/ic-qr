@@ -3,7 +3,7 @@
  * (estado → estado): se prueban sin Zustand, sin React y sin navegador, y el
  * store solo las aplica y sube `revision`.
  */
-import { applyQrResolution, acknowledgeQr, createRecord, duplicateRecord, regenerateQr, updateRecordData } from "@/lib/records/factory";
+import { applyQrResolution, acknowledgeQr, createRecord, duplicateRecord, regenerateQr, updateRecordData, withDerived } from "@/lib/records/factory";
 import { canApplyResolution } from "@/lib/records/qr-state";
 import { insertAfter, moveTo, removeIds, sortOrder, type SortKey } from "@/lib/records/order";
 import { switchTemplate } from "@/lib/template/resolve";
@@ -52,6 +52,51 @@ export function addRecord(state: ProjectState, draft: RecordDraft, now: string, 
   const record = createRecord(draft, { now, order: state.order.length, origin: options.origin ?? "manual", ...(options.id ? { id: options.id } : {}) });
   const next = touch({ ...withRecord(state, record), order: insertAfter(state.order, [record.id], options.afterId) });
   return { state: next, record };
+}
+
+/** Una pieza que entra desde un Excel ya revisado (§S1.10). */
+export interface ImportItem {
+  draft: RecordDraft;
+  /** Fila real de Excel. */
+  row: number;
+  extra: Record<string, string>;
+  /** Es la copia de una fila del archivo o de una pieza que ya existía (modo «Mantener»). */
+  duplicateOf?: { kind: "row"; row: number } | { kind: "record"; recordId: RecordId };
+  /** El Link del QR no es seguro o su host no está permitido: la pieza se crea ya bloqueada. */
+  qrIssue?: "unsafe-url" | "host-not-allowed";
+}
+
+export interface ImportOutcome {
+  state: ProjectState;
+  /** Ids creados, en el orden del archivo. */
+  created: RecordId[];
+}
+
+const QR_ISSUE_TEXT = {
+  "unsafe-url": "El Link del QR no es seguro (puerto, credenciales o dirección no pública); corrígelo para poder usarlo",
+  "host-not-allowed": "El host del Link del QR no está permitido para QR existentes; corrígelo para poder usarlo",
+} as const;
+
+/**
+ * Crea de golpe todas las piezas de una importación: una sola mutación (un solo
+ * paso de deshacer y de autoguardado). `replace` descarta antes las piezas actuales.
+ * Con Link del QR la pieza nace como QR existente: nunca se generará otro.
+ */
+export function importRecords(state: ProjectState, items: readonly ImportItem[], options: { now: string; fileName: string; mode: "append" | "replace" }): ImportOutcome {
+  const base: ProjectState = options.mode === "replace" ? { ...state, recordsById: {}, order: [] } : state;
+  const ids = new Map<number, RecordId>(items.map((item) => [item.row, newRecordId()]));
+  const recordsById = { ...base.recordsById };
+  const created: RecordId[] = [];
+  let index = base.order.length;
+  for (const item of items) {
+    const id = ids.get(item.row) ?? newRecordId();
+    const origin = item.duplicateOf?.kind === "row" ? ids.get(item.duplicateOf.row) : item.duplicateOf?.recordId;
+    let record = createRecord(item.draft, { now: options.now, order: index++, origin: "excel", id, sourceFile: options.fileName, sourceRow: item.row, extra: item.extra, ...(origin ? { duplicateOf: origin } : {}) });
+    if (item.qrIssue && record.qr.source === "existing") record = withDerived({ ...record, qrError: { code: item.qrIssue, message: QR_ISSUE_TEXT[item.qrIssue] } });
+    recordsById[id] = record;
+    created.push(id);
+  }
+  return { state: touch({ ...base, recordsById, order: [...base.order, ...created] }), created };
 }
 
 export function updateRecord(state: ProjectState, id: RecordId, draft: RecordDraft, now: string): ProjectState {
@@ -169,6 +214,11 @@ export function changeTemplate(state: ProjectState, template: Template): Project
 /** Descarta los registros ilegibles apartados (el usuario ya los descargó o no los necesita). */
 export function clearQuarantine(state: ProjectState): ProjectState {
   return state.quarantine.length === 0 ? state : touch({ ...state, quarantine: [] });
+}
+
+/** Clave de duplicados del proyecto (§1.2-10): al cambiarla, la importación recalcula sus grupos. */
+export function setDuplicateKey(state: ProjectState, config: ProjectState["duplicateKey"]): ProjectState {
+  return JSON.stringify(state.duplicateKey) === JSON.stringify(config) ? state : touch({ ...state, duplicateKey: config });
 }
 
 export function setProjectName(state: ProjectState, name: string): ProjectState {

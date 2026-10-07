@@ -121,3 +121,21 @@ export const ImportResponseSchema = z.discriminatedUnion("ok", [
   z.strictObject({ ok: z.literal(true), result: ImportResultSchema }),
   z.strictObject({ ok: z.literal(false), issues: z.array(ImportIssueSchema).min(1) }),
 ]);
+
+/**
+ * Cabecera `X-Column-Mapping` (base64url de JSON, ≤ 8 KB): mapeo elegido por la
+ * persona en ColumnMappingDialog. `null` = dejar la columna sin campo.
+ */
+export const COLUMN_MAPPING_HEADER_MAX_BYTES = 8 * 1024;
+export const ColumnMappingHeaderSchema = z
+  .strictObject({
+    sheet: z.string().max(255).optional(),
+    columns: z.record(z.string().regex(/^[A-Z]{1,3}$/), FieldKeySchema.nullable()),
+  })
+  .refine(
+    (mapping) => {
+      const fields = Object.values(mapping.columns).filter((f) => f !== null);
+      return new Set(fields).size === fields.length;
+    },
+    { error: "Un campo no puede asignarse a dos columnas" },
+  );

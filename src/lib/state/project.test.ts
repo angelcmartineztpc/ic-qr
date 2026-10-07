@@ -6,7 +6,7 @@ import type { QrResolution } from "@/types";
 
 import { draft, generatedSource, LATER, MENU, NOW } from "../../../tests/helpers/records";
 import { isPermutation } from "@/lib/records/order";
-import { acknowledge, addRecord, applyResolutions, changeTemplate, clearQrError, clearQuarantine, createEmptyProject, deleteRecords, duplicateRecordIn, isDirty, markQrFailure, markSaved, moveRecord, orderedRecords, regenerate, restoreRecords, setProjectName, sortRecords, updateRecord } from "./project";
+import { importRecords, acknowledge, addRecord, applyResolutions, changeTemplate, clearQrError, clearQuarantine, createEmptyProject, deleteRecords, duplicateRecordIn, isDirty, markQrFailure, markSaved, moveRecord, orderedRecords, regenerate, restoreRecords, setProjectName, sortRecords, updateRecord } from "./project";
 
 const empty = () => createEmptyProject(NOW, { id: "p1" });
 const withThree = () => {
@@ -192,5 +192,60 @@ describe("cuarentena", () => {
     expect(cleared.quarantine).toEqual([]);
     expect(cleared.revision).toBe(s.revision + 1);
     expect(clearQuarantine(cleared)).toBe(cleared);
+  });
+});
+
+describe("importRecords (Excel)", () => {
+  const item = (row: number, overrides: Parameters<typeof draft>[0] = {}) => ({ row, draft: draft({ mesa: `M${row}`, menuUrl: `${MENU}?m=${row}`, ...overrides }), extra: {} });
+
+  it("crea todas las piezas de golpe, con su fila y archivo de origen, y sube la revisión una sola vez", () => {
+    const start = createEmptyProject(NOW, { id: "p" });
+    const { state, created } = importRecords(start, [item(2), item(3), item(5)], { now: LATER, fileName: "mesas.xlsx", mode: "append" });
+    expect(state.revision).toBe(start.revision + 1);
+    expect(created).toHaveLength(3);
+    expect(state.order).toEqual(created);
+    expect(orderedRecords(state).map((r) => r.metadata)).toEqual([
+      { origin: "excel", sourceFile: "mesas.xlsx", sourceRow: 2 },
+      { origin: "excel", sourceFile: "mesas.xlsx", sourceRow: 3 },
+      { origin: "excel", sourceFile: "mesas.xlsx", sourceRow: 5 },
+    ]);
+    expect(isPermutation(state.order, Object.keys(state.recordsById))).toBe(true);
+  });
+
+  it("añadir deja las piezas actuales y agrega al final; reemplazar las descarta", () => {
+    const base = addRecord(createEmptyProject(NOW, { id: "p" }), draft({ mesa: "M0" }), NOW, { id: "old" }).state;
+    const appended = importRecords(base, [item(2)], { now: LATER, fileName: "a.xlsx", mode: "append" }).state;
+    expect(orderedRecords(appended).map((r) => r.mesa)).toEqual(["M0", "M2"]);
+    const replaced = importRecords(base, [item(2)], { now: LATER, fileName: "a.xlsx", mode: "replace" }).state;
+    expect(orderedRecords(replaced).map((r) => r.mesa)).toEqual(["M2"]);
+    expect(replaced.recordsById["old"]).toBeUndefined();
+  });
+
+  it("regla crítica: con Link del QR nace como QR existente (nunca se generará otro); sin él, pendiente", () => {
+    const { state } = importRecords(createEmptyProject(NOW), [item(2, { qrUrl: "https://cdn.example.com/qr/1.svg" }), item(3)], { now: LATER, fileName: "a.xlsx", mode: "append" });
+    const [withQr, without] = orderedRecords(state);
+    expect(withQr).toMatchObject({ qr: { source: "existing", verification: "unchecked" }, qrUrl: "https://cdn.example.com/qr/1.svg", qrStatus: "existing" });
+    expect(without).toMatchObject({ qr: { source: "none" }, qrStatus: "pending" });
+  });
+
+  it("las copias apuntan a su original (fila del archivo o pieza existente)", () => {
+    const base = addRecord(createEmptyProject(NOW), draft({ mesa: "M0" }), NOW, { id: "old" }).state;
+    const { state, created } = importRecords(base, [item(2), { ...item(3), duplicateOf: { kind: "row", row: 2 } }, { ...item(4), duplicateOf: { kind: "record", recordId: "old" } }, { ...item(5), duplicateOf: { kind: "row", row: 99 } }], { now: LATER, fileName: "a.xlsx", mode: "append" });
+    const meta = (index: number) => state.recordsById[created[index] ?? ""]?.metadata;
+    expect(meta(1)?.duplicateOf).toBe(created[0]);
+    expect(meta(2)?.duplicateOf).toBe("old");
+    expect(meta(3)?.duplicateOf).toBeUndefined(); // la original no se importó
+  });
+
+  it("un Link del QR no seguro crea la pieza bloqueada con su error", () => {
+    const { state } = importRecords(createEmptyProject(NOW), [{ ...item(2, { qrUrl: "https://cdn.example.com:8443/q.svg" }), qrIssue: "unsafe-url" }], { now: LATER, fileName: "a.xlsx", mode: "append" });
+    expect(orderedRecords(state)[0]).toMatchObject({ qrStatus: "error", qrError: { code: "unsafe-url" } });
+  });
+
+  it("una pieza a corregir conserva lo leído y queda con errores de validación", () => {
+    const { state } = importRecords(createEmptyProject(NOW), [{ row: 7, extra: { Notas: "x" }, draft: { area: "Bar", estacion: "", mesa: "", subgrupo: "", concepto: "", menuUrl: "no es url" } }], { now: LATER, fileName: "a.xlsx", mode: "append" });
+    const record = orderedRecords(state)[0];
+    expect(record?.validationErrors.filter((e) => e.severity === "error").map((e) => e.field).sort()).toEqual(["menuUrl", "mesa"]);
+    expect(record?.metadata.extra).toEqual({ Notas: "x" });
   });
 });
