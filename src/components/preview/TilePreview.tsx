@@ -4,51 +4,16 @@ import ErrorIcon from "@mui/icons-material/Error";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo } from "react";
 
 import { describeLayoutWarning } from "@/lib/errors/messages.es";
-import { tileInputOf, type TileContext } from "@/lib/app/tile-preview-client";
-import { useProject, useRuntime } from "@/lib/state/StoreProvider";
-import type { PreviewTileResult } from "@/schemas/preview";
 import type { QRRecord } from "@/types";
 
-const dataUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+import { svgDataUrl as dataUrl, useTile } from "./useTile";
 
-/** Pieza dibujada por el servidor (contornos de Gotham). Se muestra como <img>: el SVG nunca ejecuta nada. */
+/** Pieza dibujada por el servidor (contornos de la tipografía de la pieza). Se muestra como <img>: el SVG nunca ejecuta nada. */
 export const TilePreview = memo(function TilePreview({ record, detail = "full", className = "" }: { record: QRRecord; detail?: "full" | "low"; className?: string }) {
-  const { tiles } = useRuntime();
-  const templateId = useProject((p) => p.templateId);
-  const templateOverrides = useProject((p) => p.templateOverrides);
-  const layout = useProject((p) => p.layout);
-  const context = useMemo<TileContext>(() => ({ templateId, templateOverrides, layout, detail }), [templateId, templateOverrides, layout, detail]);
-  const input = useMemo(() => tileInputOf(record), [record]);
-
-  const [result, setResult] = useState<PreviewTileResult | undefined>(() => tiles.peek(context, input));
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let current = true;
-    const cached = tiles.peek(context, input);
-    if (cached) {
-      setResult(cached);
-      setError(null);
-      return;
-    }
-    // Se conserva la imagen anterior mientras llega la nueva: sin parpadeo al editar.
-    tiles.request(context, input).then(
-      (next) => {
-        if (!current) return;
-        setResult(next);
-        setError(null);
-      },
-      (e: unknown) => {
-        if (current) setError(e instanceof Error ? e.message : "No se pudo dibujar la pieza");
-      },
-    );
-    return () => {
-      current = false;
-    };
-  }, [tiles, context, input]);
+  const { result, error } = useTile(record, detail);
 
   const title = `Vista previa de la pieza ${[record.mesa, record.area].filter(Boolean).join(" · ") || "sin nombre"}`;
   const warnings = result?.warnings ?? [];

@@ -18,8 +18,11 @@ function mesas(valid: number, invalid = 5): Buffer {
   return Buffer.from(buildXlsx([{ name: "Mesas", rows: [HEADER, ...rows, ...bad] }]));
 }
 
-const upload = (page: Page, name: string, buffer: Buffer) =>
-  page.getByTestId("excel-input").setInputFiles({ name, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer });
+/** El botón se habilita al terminar de hidratar: antes, el selector aún no tiene su manejador y el archivo se perdería. */
+const upload = async (page: Page, name: string, buffer: Buffer) => {
+  await expect(page.getByRole("button", { name: "Seleccionar archivo" })).toBeEnabled();
+  await page.getByTestId("excel-input").setInputFiles({ name, mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer });
+};
 
 test.describe("Importar Excel (AC5–AC11, spec §4B)", () => {
   test("100 filas válidas + 5 con error: 100 piezas, 5 listadas, descargables y recuperables tras recargar", async ({ page }) => {
@@ -90,7 +93,8 @@ test.describe("Importar Excel (AC5–AC11, spec §4B)", () => {
     await page.goto("/import");
     await upload(page, "sin-mesa.xlsx", file);
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("combobox", { name: /Columna B/ }).click();
+    await dialog.getByRole("combobox", { name: /Columna B/ }).focus();
+    await page.keyboard.press("Enter"); // abre el menú también con el emulador táctil
     await page.getByRole("option", { name: /^Mesa/ }).click();
     await dialog.getByRole("button", { name: "Aplicar y revisar" }).click();
     await expect(page.getByTestId("stat-valid")).toHaveText("Válidas: 1");

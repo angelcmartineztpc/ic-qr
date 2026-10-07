@@ -15,7 +15,8 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 5 | QR y storage (regla crítica de extremo a extremo en el servidor) | ✓ |
 | 6 | Estado, document builder y formulario manual | ✓ |
 | 7 | Importación de Excel | ✓ (falta probar con libros reales de Excel 365, Google Sheets y LibreOffice: `tests/fixtures/real/`) |
-| 8–12 | Editor visual, exportación, descarga, testing integral, pulido | pendiente (siguiente: **Fase 8, editor visual `/preview`**) |
+| 8 | Editor visual (`/preview`) | ✓ (el botón «Descargar PDF» queda desactivado hasta la Fase 9) |
+| 9–12 | Exportación, descarga, testing integral, pulido | pendiente (siguiente: **Fase 9, `POST /api/export`**) |
 
 ## Requisitos
 
@@ -220,6 +221,25 @@ En `/import` (también desde «Importar Excel» en la barra):
 - Al confirmar se crean las piezas y se lanza la resolución de QR en lote: con **Link del QR** se verifica ese QR y **no se genera otro**; sin él se genera uno nuevo.
 
 Archivos reales: copia libros de Excel 365, Google Sheets o LibreOffice en `tests/fixtures/real/` (no se versionan) y `bun run test` los importa con la ruta real.
+
+## Cómo probar la Fase 8
+
+```bash
+bun run test        # 840+ tests (incluye la geometría, el estado y la pantalla /preview en jsdom)
+bun run test:e2e    # Playwright: arrastre real con el ratón, teclado y 1000 piezas
+bun run dev         # y abre http://localhost:3000/preview
+```
+
+En `/preview` (menú «Generar PDF»):
+
+- **Mover y redimensionar** el QR (4 esquinas, siempre cuadrado) y el bloque de texto (8 manejadores) con el ratón o el dedo. Imán a los bordes, el centro, el margen de seguridad y la otra caja (6 px); reglas en mm y rejilla opcional de 1, 2 o 5 mm. **Esc** cancela el arrastre.
+- **Teclado:** con una caja enfocada, flechas = 0,5 mm, Mayús = 5 mm, Alt = 0,1 mm. Cada caja anuncia sus coordenadas al lector de pantalla.
+- **Coordenadas exactas** (X, Y, ancho, alto) en mm o cm; se validan al salir del campo y **nunca se corrigen en silencio**: si no caben, se explica por qué.
+- **Posición del QR** (abajo centrado / izquierda / derecha / centro) y aviso de solape con «Ajustar bloque de texto».
+- **Ámbito:** «Todas las piezas» o «Solo esta pieza»; con piezas personalizadas aparece «Aplicar también a ellas».
+- **Plantilla:** cambiar de plantilla y ajustar texto, tamaño, alineación, color, peso, margen y visibilidad de cada línea, zona de silencio y color del QR; un valor no válido se rechaza con su motivo.
+- **PDF:** nombre del archivo (por defecto con fecha y hora locales), hoja o una pieza por página, A4 / Carta / personalizada, márgenes, separación y sangrado, y el resultado en vivo («6 por página · 2 páginas» o por qué no cabe). Las hojas se ven en miniatura, virtualizadas.
+- **Deshacer / rehacer** (Ctrl/⌘ + Z) del diseño, la plantilla y las opciones del PDF.
 
 ## Spec Kit (desarrollo guiado por especificaciones)
 

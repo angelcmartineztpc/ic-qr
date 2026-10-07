@@ -32,6 +32,20 @@ export interface ImportSession {
 
 export const initialImport = (): ImportSession => ({ status: "idle", result: null, strategy: "keep", decisions: {}, mode: "append", includeRejected: false, outcome: null, error: null });
 
+/** Estado del editor visual (/preview). Solo de sesión. */
+export interface EditorUiState {
+  scope: "all" | "single";
+  /** Caja seleccionada para los paneles de coordenadas y las flechas. */
+  box: "qr" | "content";
+  showGrid: boolean;
+  gridMm: 1 | 2 | 5;
+  snap: boolean;
+  /** Unidad de los campos de coordenadas. */
+  unit: "mm" | "cm";
+}
+
+export const initialEditor = (): EditorUiState => ({ scope: "all", box: "qr", showGrid: false, gridMm: 5, snap: true, unit: "mm" });
+
 export interface SessionState {
   /** Se terminó de leer IndexedDB (hasta entonces la pantalla muestra un esqueleto). */
   hydrated: boolean;
@@ -53,6 +67,7 @@ export interface SessionState {
   inFlight: RecordId[];
   qrProgress: { running: boolean; done: number; total: number };
   import: ImportSession;
+  editor: EditorUiState;
   /** Avisos persistentes de la hidratación. */
   notices: { restored: { records: number; modifiedAt: string } | null; quarantined: number; recoveredBackup: string | null };
 }
@@ -72,6 +87,7 @@ export const initialSession = (): SessionState => ({
   inFlight: [],
   qrProgress: { running: false, done: 0, total: 0 },
   import: initialImport(),
+  editor: initialEditor(),
   notices: { restored: null, quarantined: 0, recoveredBackup: null },
 });
 

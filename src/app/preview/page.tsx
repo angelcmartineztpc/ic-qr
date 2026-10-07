@@ -1,18 +1,21 @@
+import Typography from "@mui/material/Typography";
 import type { Metadata } from "next";
 
+import { PreviewScreen } from "@/components/editor/PreviewScreen";
 import { AppShell } from "@/components/ui/AppShell";
-import { PlannedScreen } from "@/components/ui/PlannedScreen";
 
 export const metadata: Metadata = { title: "Generar PDF" };
 
 export default function PreviewPage() {
   return (
     <AppShell>
-      <PlannedScreen
-        title="Generar PDF"
-        description="Editor visual final: ajusta posiciones, nombra el archivo y descarga el PDF vectorial."
-        phase="Fase 8 (editor visual)"
-      />
+      <header className="flex flex-col gap-1">
+        <Typography variant="h4" component="h1">
+          Generar PDF
+        </Typography>
+        <Typography color="text.secondary">Ajusta la composición de la pieza, elige las opciones de la hoja y revisa cómo quedará el PDF.</Typography>
+      </header>
+      <PreviewScreen />
     </AppShell>
   );
 }

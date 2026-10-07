@@ -9,6 +9,7 @@ import { TilePreviewClient } from "@/lib/app/tile-preview-client";
 import type { PreviewResponse } from "@/schemas/preview";
 import type { ProjectState } from "@/types";
 
+import { EditorHistory } from "./history";
 import { createIdbStore } from "./idb";
 import { clearLastImport, loadLastImport, saveLastImport, type LastImport } from "./last-import";
 import { createAutosaver, loadProject, type KeyValueStore } from "./persistence";
@@ -31,6 +32,8 @@ export interface Runtime {
   lastImport: { save(value: LastImport): Promise<void>; clear(): Promise<void> };
   /** Archivo Excel de la importación en curso: no es serializable, vive solo en memoria (para reenviarlo con otro mapeo) y el Link del menú común elegido. */
   importSource: { file: File | null; defaultMenuUrl: string };
+  /** Deshacer/rehacer del editor visual. */
+  history: EditorHistory;
 }
 
 const RuntimeContext = createContext<Runtime | null>(null);
@@ -63,6 +66,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     readBackup: (key) => readBackupRef.current(key),
     lastImport: { save: (value) => lastImportRef.current.save(value), clear: () => lastImportRef.current.clear() },
     importSource: { file: null, defaultMenuUrl: "" },
+    history: new EditorHistory(),
   }));
 
   useEffect(() => {
@@ -116,6 +120,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
 
     // Cada cambio del proyecto se programa para guardarse, solo si esta pestaña es la escritora.
     const unsubscribeProject = rt.project.subscribe((state, previous) => {
+      if (state.project.projectId !== previous.project.projectId) rt.history.clear(); // otro proyecto: no se puede «deshacer» hacia el anterior
       const session = rt.session.getState();
       if (!session.hydrated || session.writer !== "owner" || session.persistence.status === "unavailable") return;
       if (state.project !== previous.project) saver.schedule(state.project);

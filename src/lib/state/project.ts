@@ -4,6 +4,7 @@
  * store solo las aplica y sube `revision`.
  */
 import { applyQrResolution, acknowledgeQr, createRecord, duplicateRecord, regenerateQr, updateRecordData, withDerived } from "@/lib/records/factory";
+import { applyLayoutChange, resetOverride } from "@/lib/layout/resolve-layout";
 import { canApplyResolution } from "@/lib/records/qr-state";
 import { insertAfter, moveTo, removeIds, sortOrder, type SortKey } from "@/lib/records/order";
 import { switchTemplate } from "@/lib/template/resolve";
@@ -13,7 +14,7 @@ import { PDF_DEFAULTS } from "@/schemas/pdf";
 import { PROJECT_SCHEMA_VERSION } from "@/schemas/project";
 import { EMPTY_TEMPLATE_OVERRIDES } from "@/schemas/template";
 import { getTemplate, DEFAULT_TEMPLATE_ID } from "@/templates";
-import type { PersistedProject, ProjectState, QrAck, QRRecord, QrResolution, RecordDraft, RecordId, Template } from "@/types";
+import type { Layout, PDFOptions, PersistedProject, ProjectState, QrAck, QRRecord, QrResolution, RecordDraft, RecordId, Template, TemplateOverrides } from "@/types";
 
 export type { ProjectState };
 
@@ -210,6 +211,61 @@ export function changeTemplate(state: ProjectState, template: Template): Project
   const result = switchTemplate(template, { layout: state.layout, templateOverrides: state.templateOverrides });
   return touch({ ...state, templateId: template.id, layout: result.layout, templateOverrides: result.templateOverrides });
 }
+
+// ---------- editor visual (Fase 8) ----------
+
+export type LayoutScope = { kind: "all" } | { kind: "single"; recordId: RecordId };
+
+/** Mueve/redimensiona una caja. «Todas» escribe en la base; «Solo esta pieza» en su override. */
+export function setLayoutBox(state: ProjectState, key: keyof Layout, box: Layout["qr"], scope: LayoutScope): ProjectState {
+  return touch({ ...state, layout: applyLayoutChange(state.layout, { [key]: box }, scope) });
+}
+
+/** Una pieza vuelve a la posición común. */
+export function resetPieceLayout(state: ProjectState, recordId: RecordId): ProjectState {
+  const layout = resetOverride(state.layout, recordId);
+  return layout === state.layout ? state : touch({ ...state, layout });
+}
+
+/** Piezas con posición propia para una caja (para el aviso «3 piezas tienen posición personalizada»). */
+export const customizedIds = (state: Pick<ProjectState, "layout">, key: keyof Layout): RecordId[] =>
+  Object.entries(state.layout.overrides).flatMap(([id, override]) => (override[key] ? [id] : []));
+
+/** «Aplicar también a ellas»: las piezas personalizadas vuelven a seguir la base en esa caja. */
+export function applyBaseToCustomized(state: ProjectState, key: keyof Layout): ProjectState {
+  const overrides: ProjectState["layout"]["overrides"] = {};
+  for (const [id, override] of Object.entries(state.layout.overrides)) {
+    const { [key]: _dropped, ...rest } = override;
+    if (Object.keys(rest).length > 0) overrides[id] = rest;
+  }
+  return touch({ ...state, layout: { ...state.layout, overrides } });
+}
+
+export function setTemplateOverrides(state: ProjectState, templateOverrides: TemplateOverrides): ProjectState {
+  return touch({ ...state, templateOverrides });
+}
+
+export function setPdfOptions(state: ProjectState, patch: Partial<PDFOptions>): ProjectState {
+  return touch({ ...state, exportOptions: { ...state.exportOptions, pdf: { ...state.exportOptions.pdf, ...patch } } });
+}
+
+/** Escribir un nombre lo marca como «tocado»; vaciarlo vuelve al nombre por defecto. */
+export function setExportFileName(state: ProjectState, fileName: string): ProjectState {
+  const value = fileName.slice(0, 200);
+  return state.exportOptions.fileName === value ? state : touch({ ...state, exportOptions: { ...state.exportOptions, fileName: value }, fileNameTouched: value !== "" });
+}
+
+/** Lo que deshacer/rehacer del editor restaura (no los datos de las piezas). */
+export interface EditorSnapshot {
+  layout: ProjectState["layout"];
+  templateOverrides: ProjectState["templateOverrides"];
+  exportOptions: ProjectState["exportOptions"];
+  fileNameTouched: boolean;
+}
+
+export const editorSnapshot = (state: ProjectState): EditorSnapshot => ({ layout: state.layout, templateOverrides: state.templateOverrides, exportOptions: state.exportOptions, fileNameTouched: state.fileNameTouched });
+
+export const restoreEditorSnapshot = (state: ProjectState, snapshot: EditorSnapshot): ProjectState => touch({ ...state, ...snapshot });
 
 /** Descarta los registros ilegibles apartados (el usuario ya los descargó o no los necesita). */
 export function clearQuarantine(state: ProjectState): ProjectState {

@@ -5,6 +5,9 @@ const port = Number(process.env.E2E_PORT ?? 3100);
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
+  timeout: 60_000,
+  // Con 3-4 navegadores en paralelo y el servidor de producción compartido, 5 s se quedan cortos en cargas puntuales.
+  expect: { timeout: 10_000 },
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL: `http://localhost:${port}`, trace: "retain-on-failure" },
   projects: [
