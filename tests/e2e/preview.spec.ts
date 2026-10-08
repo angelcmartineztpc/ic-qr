@@ -157,3 +157,44 @@ test.describe("opciones del PDF y hojas", () => {
     expect(sheets).toBeLessThan(15); // virtualizadas: 167 hojas no están todas en el DOM
   });
 });
+
+test.describe("visor del PDF (paso Exportar)", () => {
+  test("muestra las piezas reales en las hojas, salta de hoja, cambia el zoom y usa las miniaturas", async ({ page, isMobile }, info) => {
+    await openProject(page, 14, info.outputPath("v14.qrproj.json"), "/export");
+    const viewer = page.getByTestId("pdf-preview");
+    await expect(viewer).toBeVisible();
+    await expect(page.getByTestId("pdf-page-count")).toHaveText("/ 3"); // 14 piezas, 6 por hoja
+    // Piezas reales (SVG del servidor), no recuadros.
+    const first = viewer.locator("figure").first().locator("img");
+    await expect(first.first()).toBeVisible({ timeout: 30_000 });
+    await expect(first).toHaveCount(6);
+    await expect.poll(() => first.first().evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+
+    // Saltar de hoja con el campo, con los botones y con las teclas.
+    const input = page.getByTestId("pdf-page-input");
+    await input.fill("3");
+    await input.press("Enter");
+    await expect(input).toHaveValue("3");
+    await expect(viewer.locator("figure").last()).toHaveAttribute("aria-label", "Hoja 3 de 3");
+    await page.getByRole("button", { name: "Página anterior" }).click();
+    await expect(input).toHaveValue("2");
+
+    // Zoom: el porcentaje cambia el tamaño real de la hoja.
+    const page1 = viewer.locator("figure > div").first();
+    await page.getByRole("combobox", { name: "Zoom" }).focus();
+    await page.keyboard.press("Enter");
+    await page.getByRole("option", { name: "50 %", exact: true }).click();
+    const small = (await viewer.locator("figure > div").first().boundingBox())?.width ?? 0;
+    await page.getByRole("button", { name: "Acercar" }).click();
+    await expect.poll(async () => (await viewer.locator("figure > div").first().boundingBox())?.width ?? 0).toBeGreaterThan(small * 1.3);
+    void page1;
+
+    if (!isMobile) {
+      await expect(page.getByTestId("pdf-thumbnails")).toBeVisible();
+      await page.getByRole("button", { name: "Ir a la hoja 3" }).click();
+      await expect(input).toHaveValue("3");
+      await page.getByRole("button", { name: "Miniaturas" }).click();
+      await expect(page.getByTestId("pdf-thumbnails")).toHaveCount(0);
+    }
+  });
+});

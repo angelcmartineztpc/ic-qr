@@ -3003,3 +3003,12 @@ A petición del usuario, las pantallas pasan a un **stepper**: Piezas (`/editor`
 - **«Proyecto restaurado»** solo aparece al abrir el proyecto (Inicio y Piezas), no en cada paso.
 - **Hallazgo:** en desarrollo (`next dev`), el montaje doble de React (StrictMode) dejaba **siempre** la aplicación en «solo lectura»: el primer montaje pedía el bloqueo de pestaña y el segundo lo encontraba ocupado. `createWriterLock` ahora reintenta unos instantes al arrancar y devuelve sin avisar un bloqueo cuyo montaje ya se descartó. En producción no ocurría.
 - Las pruebas E2E del editor ya no asumen un menú superior; hay un `stepper.spec.ts` (flujo completo, pasos bloqueados sin piezas, móvil sin desbordes).
+
+### Notas del visor del PDF (2026-10-08)
+
+El paso Exportar sustituye las miniaturas de recuadros por un **visor al estilo de un lector de PDF** (`PdfViewer`): barra oscura con miniaturas, página anterior/siguiente, campo «página / total», alejar/acercar y zoom («Ajustar al ancho», «Ajustar a la página» y 25–300 %, donde 100 % = 96 ppp), desplazamiento continuo con sombra por hoja y las **piezas reales** (las dibuja el servidor con el diseño actual) en el sitio exacto que dará `packGrid`. Teclado: RePág/AvPág (o Alt + ←/→) cambian de hoja, Ctrl/⌘ + y − hacen zoom, Ctrl + Inicio/Fin saltan a la primera y última hoja.
+
+- **Es una vista previa, no el PDF:** no genera ni sube nada. Una pieza con QR pendiente muestra el de su Link del menú y, si no hay QR existente verificado, el marcador; el PDF final lleva los QR resueltos.
+- **Virtualizado** (hojas y miniaturas): con 1000 piezas (167 hojas) solo hay unas pocas hojas en el DOM. Las piezas se piden al servidor por lotes (≤48) y se cachean; con zoom bajo se piden en baja definición.
+- **Hallazgo (solo desarrollo):** si se abría o creaba una pieza mientras se leía el almacenamiento (el primer segundo de `next dev`), el autoguardado esperaba a la hidratación y esa pieza no se guardaba; ahora se guarda al terminar de hidratar.
+

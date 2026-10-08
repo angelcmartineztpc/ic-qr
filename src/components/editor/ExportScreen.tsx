@@ -21,7 +21,7 @@ import { DownloadProgress } from "./DownloadProgress";
 import { ExportBlockersDialog } from "./ExportBlockersDialog";
 import { FileNameInput } from "./FileNameInput";
 import { GenerationStatus } from "./GenerationStatus";
-import { PDFPreview } from "./PDFPreview";
+import { PdfViewer } from "./PdfViewer";
 import { PdfOptionsPanel } from "./PdfOptionsPanel";
 import { useEditorActions } from "./useEditorActions";
 import { useExportActions } from "./useExportActions";
@@ -98,8 +98,8 @@ export function ExportScreen() {
           </Panel>
         </div>
 
-        <Panel title="Hojas del PDF" description="Así se colocan las piezas; el número es su orden." className="self-start lg:sticky lg:top-40">
-          <PDFPreview tile={template.tile} options={exportOptions.pdf} count={included.length} />
+        <Panel title="Vista previa del PDF" description="Así quedan las hojas: las piezas reales, en el lugar donde irán en el archivo." className="self-start lg:sticky lg:top-40" label="Hojas del PDF">
+          <PdfViewer tile={template.tile} options={exportOptions.pdf} records={included} />
           {generation.phase === "done" && generation.result ? (
             <Alert severity={generation.result.warnings > 0 ? "warning" : "success"} data-testid="last-export" action={generation.result.zip ? <Button color="inherit" size="small" onClick={() => exporter.downloadZip()}>Descargar ZIP</Button> : undefined}>
               Última exportación: {plural(generation.result.pieces, "pieza", "piezas")} en {plural(generation.result.pages, "página", "páginas")}

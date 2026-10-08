@@ -150,8 +150,12 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
         case "unavailable":
           patchSession(rt.session, { hydrated: true, persistence: { status: "unavailable" } });
           break;
-        default:
+        default: {
           patchSession(rt.session, { hydrated: true });
+          // Si la persona ya abrió o creó piezas mientras se leía el almacenamiento (el autoguardado esperaba a la hidratación), se guardan ahora.
+          const early = rt.project.getState().project;
+          if (early.order.length > 0 && rt.session.getState().writer === "owner") saver.schedule(early);
+        }
       }
     })();
 
