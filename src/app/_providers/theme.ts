@@ -16,6 +16,9 @@ export const theme = createTheme({
       palette: {
         primary: { main: "#1f5c4d", contrastText: "#ffffff" },
         secondary: { main: "#8a5a19", contrastText: "#ffffff" },
+        // Ámbar oscuro: el naranja por defecto de MUI no llega a 4.5:1 como texto sobre fondo claro.
+        warning: { main: "#9a4f00", contrastText: "#ffffff" },
+        text: { secondary: "rgba(0, 0, 0, 0.68)" },
         background: { default: "#f5f6f4", paper: "#ffffff" },
       },
     },
@@ -30,7 +33,25 @@ export const theme = createTheme({
     button: { textTransform: "none", fontWeight: 500 },
   },
   components: {
-    MuiButton: { defaultProps: { disableElevation: true } },
+    MuiCssBaseline: {
+      styleOverrides: {
+        // Foco visible y consistente con el teclado (sin ruido al hacer clic).
+        ":focus-visible": { outline: "2px solid var(--mui-palette-primary-main)", outlineOffset: "2px" },
+      },
+    },
+    MuiButton: {
+      defaultProps: { disableElevation: true },
+      styleOverrides: { root: { minHeight: 40, "@media (pointer: coarse)": { minHeight: 44 } } },
+    },
+    MuiIconButton: {
+      styleOverrides: { root: { "@media (pointer: coarse)": { minWidth: 44, minHeight: 44 } } },
+    },
+    MuiToggleButton: {
+      styleOverrides: { root: { "@media (pointer: coarse)": { minHeight: 44 } } },
+    },
+    MuiMenuItem: {
+      styleOverrides: { root: { "@media (pointer: coarse)": { minHeight: 44 } } },
+    },
     MuiCard: { defaultProps: { variant: "outlined" } },
     MuiTextField: { defaultProps: { fullWidth: true, size: "small" } },
   },

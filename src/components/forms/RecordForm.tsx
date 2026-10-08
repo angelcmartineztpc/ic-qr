@@ -143,7 +143,7 @@ function RecordFormBody({ formId, record, busy, setBusy, onClose, onSubmit }: Bo
           <aside aria-label="Vista previa" className="flex flex-col gap-2">
             <TilePreview record={previewRecord} />
             {record ? <QrStatusBadge record={record} /> : null}
-            <p className="m-0 text-xs text-muted">Pieza de 50 × 50 mm. {record ? "" : "El QR se genera al guardar."}</p>
+            <p className="m-0 text-xs text-muted">Vista previa de la pieza. {record ? "" : "El QR se genera al guardar."}</p>
           </aside>
         </div>
       </DialogContent>

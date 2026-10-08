@@ -25,7 +25,7 @@ const uiFont = localFont({
 
 export const metadata: Metadata = {
   title: { default: "QR Production Generator", template: "%s · QR Production Generator" },
-  description: "Generación de piezas de 50 × 50 mm con QR vectorial para fabricación.",
+  description: "Generación de piezas con QR vectorial para fabricación.",
   robots: { index: false, follow: false },
 };
 
