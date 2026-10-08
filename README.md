@@ -16,7 +16,8 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 6 | Estado, document builder y formulario manual | ✓ |
 | 7 | Importación de Excel | ✓ (falta probar con libros reales de Excel 365, Google Sheets y LibreOffice: `tests/fixtures/real/`) |
 | 8 | Editor visual (`/preview`) | ✓ (el botón «Descargar PDF» queda desactivado hasta la Fase 9) |
-| 9–12 | Exportación, descarga, testing integral, pulido | pendiente (siguiente: **Fase 9, `POST /api/export`**) |
+| 9 | Exportación en el servidor (`POST /api/export`) | ✓ (aún sin botón: la descarga con progreso es la Fase 10) |
+| 10–12 | Descarga con progreso, testing integral, pulido | pendiente (siguiente: **Fase 10, descarga con progreso y cancelación**) |
 
 ## Requisitos
 
@@ -240,6 +241,14 @@ En `/preview` (menú «Generar PDF»):
 - **Plantilla:** cambiar de plantilla y ajustar texto, tamaño, alineación, color, peso, margen y visibilidad de cada línea, zona de silencio y color del QR; un valor no válido se rechaza con su motivo.
 - **PDF:** nombre del archivo (por defecto con fecha y hora locales), hoja o una pieza por página, A4 / Carta / personalizada, márgenes, separación y sangrado, y el resultado en vivo («6 por página · 2 páginas» o por qué no cabe). Las hojas se ven en miniatura, virtualizadas.
 - **Deshacer / rehacer** (Ctrl/⌘ + Z) del diseño, la plantilla y las opciones del PDF.
+
+## Cómo probar la Fase 9
+
+```bash
+bun run test                                   # incluye tests/integration/export.test.ts (la ruta real, el storage real y el PDF/ZIP resultantes)
+```
+
+`POST /api/export` recibe las piezas ya proyectadas (`lib/export/build-request.ts`) y devuelve un **stream de frames** (`lib/export/frames.ts`): progreso, metadatos de cada archivo, trozos de 64 KB, avisos y `DONE`. Genera el **PDF vectorial** y, si se pide, el **ZIP de SVG** (`001.svg`, `002.svg`… numerado sobre la lista exportada). No sube nada al storage, no genera QR y no sale a la red: solo lee. Antes de dibujar comprueba que el QR de cada pieza es exactamente el archivo al que apunta; si una pieza está pendiente, desactualizada sin confirmar o con errores, responde 400 indicando cuál.
 
 ## Spec Kit (desarrollo guiado por especificaciones)
 

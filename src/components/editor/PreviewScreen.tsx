@@ -215,7 +215,7 @@ export function PreviewScreen() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => void builder.downloadPieceSvg(current.id)}>Descargar SVG de esta pieza</Button>
-        <Tooltip title="La generación del PDF llega con la exportación (Fase 9)">
+        <Tooltip title="La descarga del PDF con su barra de progreso llega en la Fase 10">
           <span><Button variant="contained" startIcon={<DownloadIcon />} disabled data-testid="download-pdf">Descargar PDF</Button></span>
         </Tooltip>
       </div>

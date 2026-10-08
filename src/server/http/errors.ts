@@ -12,6 +12,10 @@ export type ApiErrorCode =
   | "RATE_LIMITED"
   | "BUSY"
   | "DRAINING"
+  | "EXPORT_TIMEOUT"
+  | "EXPORT_CANCELLED"
+  | "QR_IDENTITY_MISMATCH"
+  | "QR_UNRESOLVED"
   | "INTERNAL";
 
 export interface AppErrorPayload {

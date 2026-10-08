@@ -41,3 +41,6 @@ export const ExportRequestSchema = z
     error: "Hay registros repetidos en la exportación",
     path: ["records"],
   });
+
+export type ExportRequest = z.output<typeof ExportRequestSchema>;
+export type ExportRequestInput = z.input<typeof ExportRequestSchema>;
