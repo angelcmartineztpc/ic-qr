@@ -120,20 +120,25 @@ export function PreviewScreen() {
   return (
     <div className="flex flex-col gap-4">
       <PersistenceBanners actions={builder} showRestored={false} />
-      <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Editor">
-                <IconButton aria-label="Pieza anterior" onClick={() => go(-1)} disabled={index === 0}><ChevronLeftIcon /></IconButton>
-        <span aria-live="polite" data-testid="piece-position">Pieza {index + 1} de {records.length}</span>
-        <IconButton aria-label="Pieza siguiente" onClick={() => go(1)} disabled={index >= records.length - 1}><ChevronRightIcon /></IconButton>
-        <TextField size="small" type="number" label="Ir a" className="w-24" slotProps={{ htmlInput: { min: 1, max: records.length } }} onKeyDown={(e) => {
-          if (e.key !== "Enter") return;
-          const n = Number((e.target as HTMLInputElement).value);
-          const target = records[Math.min(records.length, Math.max(1, Math.trunc(n))) - 1];
-          if (target) builder.select(target.id);
-        }} />
+      <div className="flex flex-wrap items-center gap-3" role="toolbar" aria-label="Editor">
+        <div className="flex items-center gap-2">
+          <IconButton aria-label="Pieza anterior" onClick={() => go(-1)} disabled={index === 0}><ChevronLeftIcon /></IconButton>
+          <span aria-live="polite" data-testid="piece-position">Pieza {index + 1} de {records.length}</span>
+          <IconButton aria-label="Pieza siguiente" onClick={() => go(1)} disabled={index >= records.length - 1}><ChevronRightIcon /></IconButton>
+          <TextField size="small" type="number" label="Ir a" className="w-24" slotProps={{ htmlInput: { min: 1, max: records.length } }} onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const n = Number((e.target as HTMLInputElement).value);
+            const target = records[Math.min(records.length, Math.max(1, Math.trunc(n))) - 1];
+            if (target) builder.select(target.id);
+          }} />
+        </div>
+        <span className="min-h-6 w-px self-stretch bg-divider" aria-hidden="true" />
+        <div className="flex items-center gap-2">
+          <Tooltip title="Deshacer (Ctrl/⌘ + Z)"><span><IconButton aria-label="Deshacer" onClick={() => editor.undo()} disabled={disabled || !canUndo}><UndoIcon /></IconButton></span></Tooltip>
+          <Tooltip title="Rehacer (Mayús + Ctrl/⌘ + Z)"><span><IconButton aria-label="Rehacer" onClick={() => editor.redo()} disabled={disabled || !canRedo}><RedoIcon /></IconButton></span></Tooltip>
+        </div>
         <span className="flex-1" />
         <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void builder.downloadPieceSvg(current.id)}>Descargar SVG de esta pieza</Button>
-        <Tooltip title="Deshacer (Ctrl/⌘ + Z)"><span><IconButton aria-label="Deshacer" onClick={() => editor.undo()} disabled={disabled || !canUndo}><UndoIcon /></IconButton></span></Tooltip>
-        <Tooltip title="Rehacer (Mayús + Ctrl/⌘ + Z)"><span><IconButton aria-label="Rehacer" onClick={() => editor.redo()} disabled={disabled || !canRedo}><RedoIcon /></IconButton></span></Tooltip>
       </div>
 
       {disabled ? <Alert severity="info">Esta pestaña está en solo lectura: la otra pestaña es la que edita.</Alert> : null}
