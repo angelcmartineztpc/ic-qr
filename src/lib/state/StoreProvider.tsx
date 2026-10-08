@@ -14,7 +14,7 @@ import { createIdbStore } from "./idb";
 import { clearLastImport, loadLastImport, saveLastImport, type LastImport } from "./last-import";
 import { createAutosaver, loadProject, type KeyValueStore } from "./persistence";
 import { createEmptyProject, isDirty, orderedRecords } from "./project";
-import { createProjectStore, createSessionStore, patchSession, type ProjectStore, type SessionState, type SessionStore } from "./stores";
+import { createProjectStore, createSessionStore, isGenerating, patchSession, type ProjectStore, type SessionState, type SessionStore } from "./stores";
 import { createWriterLock, type LockManagerLike } from "./tab-lock";
 
 export interface Runtime {
@@ -160,7 +160,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     };
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
       // Solo el diálogo nativo del navegador: no admite texto ni botones propios.
-      if (isDirty(rt.project.getState().project) || rt.inflight.ids().length > 0) {
+      if (isDirty(rt.project.getState().project) || rt.inflight.ids().length > 0 || isGenerating(rt.session.getState().generation)) {
         event.preventDefault();
         event.returnValue = "";
       }

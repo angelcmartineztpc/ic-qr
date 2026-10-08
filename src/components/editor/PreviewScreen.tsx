@@ -26,6 +26,7 @@ import { layoutWarnings } from "@/lib/layout/warnings";
 import { resolveLayout, isCustomized } from "@/lib/layout/resolve-layout";
 import { orderedRecords } from "@/lib/state/project";
 import { useProject, useRuntime, useSession } from "@/lib/state/StoreProvider";
+import { isGenerating } from "@/lib/state/stores";
 import { getTemplate } from "@/templates";
 
 import { svgDataUrl, useTile } from "@/components/preview/useTile";
@@ -41,7 +42,11 @@ import { PDFPreview } from "./PDFPreview";
 import { PdfOptionsPanel } from "./PdfOptionsPanel";
 import { OverlapAlert, QrPresetPicker, ScopeSwitch } from "./PositionControls";
 import { TemplatePanel } from "./TemplatePanel";
+import { DownloadProgress } from "./DownloadProgress";
+import { ExportBlockersDialog } from "./ExportBlockersDialog";
+import { GenerationStatus } from "./GenerationStatus";
 import { useEditorActions } from "./useEditorActions";
+import { useExportActions } from "./useExportActions";
 
 function Section({ title, defaultExpanded = false, children }: { title: string; defaultExpanded?: boolean; children: React.ReactNode }) {
   return (
@@ -58,6 +63,8 @@ function Section({ title, defaultExpanded = false, children }: { title: string; 
 export function PreviewScreen() {
   const builder = useBuilderActions();
   const editor = useEditorActions();
+  const exporter = useExportActions();
+  const generation = useSession((s) => s.generation);
   const notify = useNotify();
   const runtime = useRuntime();
   const hydrated = useSession((s) => s.hydrated);
@@ -113,6 +120,7 @@ export function PreviewScreen() {
     );
   }
 
+  const generating = isGenerating(generation);
   const disabled = readOnly;
   const customized = isCustomized(projectLayout, current.id);
   const warnings = [...layoutWarnings(layout, spec), ...(tileResult?.warnings ?? [])].filter((w, i, all) => all.findIndex((o) => o.code === w.code && JSON.stringify(o) === JSON.stringify(w)) === i);
@@ -143,7 +151,7 @@ export function PreviewScreen() {
 
       {disabled ? <Alert severity="info">Esta pestaña está en solo lectura: la otra pestaña es la que edita.</Alert> : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <section aria-label="Composición" className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-4">
             <FormControlLabel control={<Switch checked={ui.snap} onChange={(e) => editor.patchEditor({ snap: e.target.checked })} />} label="Imán" />
@@ -202,7 +210,7 @@ export function PreviewScreen() {
           <Section title="PDF" defaultExpanded>
             <div className="flex flex-col gap-3">
               <FileNameInput value={exportOptions.fileName} disabled={disabled} onChange={(name) => editor.setFileName(name)} />
-              <PdfOptionsPanel options={exportOptions.pdf} tile={template.tile} count={exportCount} disabled={disabled} onChange={(patch) => editor.setPdfOptions(patch)} />
+              <PdfOptionsPanel options={exportOptions.pdf} tile={template.tile} count={exportCount} disabled={disabled} onChange={(patch) => editor.setPdfOptions(patch)} formats={exportOptions.formats} zipNaming={exportOptions.zipNaming} onFormats={(formats, naming) => editor.setFormats(formats, naming)} />
             </div>
           </Section>
         </aside>
@@ -215,10 +223,25 @@ export function PreviewScreen() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => void builder.downloadPieceSvg(current.id)}>Descargar SVG de esta pieza</Button>
-        <Tooltip title="La descarga del PDF con su barra de progreso llega en la Fase 10">
-          <span><Button variant="contained" startIcon={<DownloadIcon />} disabled data-testid="download-pdf">Descargar PDF</Button></span>
-        </Tooltip>
+        <Button variant="contained" startIcon={<DownloadIcon />} disabled={disabled || generating || exportCount === 0} onClick={() => void exporter.start()} data-testid="download-pdf">
+          {exportOptions.formats.includes("pdf") ? "Descargar PDF" : "Descargar ZIP de SVG"}
+        </Button>
+        <GenerationStatus />
+        {excluded.length > 0 ? (
+          <span className="text-sm text-muted" data-testid="excluded-note">
+            {excluded.length} {excluded.length === 1 ? "pieza excluida" : "piezas excluidas"} de esta exportación{" "}
+            <Button size="small" onClick={() => exporter.includeAll()} disabled={generating}>Volver a incluirlas</Button>
+          </span>
+        ) : null}
+        {generation.phase === "done" && generation.result ? (
+          <span className="text-sm text-muted" data-testid="last-export">
+            Última exportación: {generation.result.pieces} piezas en {generation.result.pages} {generation.result.pages === 1 ? "página" : "páginas"}.{" "}
+            {generation.result.zip ? <Button size="small" onClick={() => exporter.downloadZip()}>Descargar ZIP</Button> : null}
+          </span>
+        ) : null}
       </div>
+      <DownloadProgress actions={exporter} />
+      <ExportBlockersDialog actions={exporter} />
     </div>
   );
 }

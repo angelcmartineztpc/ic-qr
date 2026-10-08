@@ -28,7 +28,7 @@ export const tropicalTable = {
   fontDir: PIECE_FONT_DIR,
   fonts: PIECE_FONT_FILES,
   defaultLayout: {
-    content: { x: 4, y: 5.493, width: 62, height: 34 },
+    content: { x: 4, y: 5.493, width: 62, height: 33.9 },
     qr: { x: 22.606, y: 39.424, width: 24.788, height: 24.788 },
   },
   content: {

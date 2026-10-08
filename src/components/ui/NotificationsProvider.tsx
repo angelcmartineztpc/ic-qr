@@ -16,7 +16,8 @@ import {
 export type NotificationSeverity = "success" | "info" | "warning" | "error";
 
 /**
- * Una notificación nueva de un grupo reemplaza a la que esté visible o en cola
+ * Una notificación nueva reemplaza a la visible si es del mismo grupo o si la visible
+ * es pasajera (éxito/info); si no, espera en cola. También sustituye a la en cola
  * del mismo grupo, para que secuencias como "PDF generado → Descarga iniciada →
  * PDF descargado" no se acumulen.
  */
@@ -71,7 +72,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       };
       if (item.group) queue.current = queue.current.filter((q) => q.group !== item.group);
       const visible = currentRef.current;
-      if (!visible || (item.group !== undefined && visible.group === item.group)) show(item);
+      // Un aviso nuevo toma el sitio de uno pasajero (éxito/info): así «2 QR generados» no retiene 4 s a un error que sí importa.
+      const transient = visible?.severity === "info" || visible?.severity === "success";
+      if (!visible || transient || (item.group !== undefined && visible.group === item.group)) show(item);
       else queue.current.push(item);
     },
     [show],

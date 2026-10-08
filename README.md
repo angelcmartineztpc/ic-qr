@@ -15,9 +15,10 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 5 | QR y storage (regla crítica de extremo a extremo en el servidor) | ✓ |
 | 6 | Estado, document builder y formulario manual | ✓ |
 | 7 | Importación de Excel | ✓ (falta probar con libros reales de Excel 365, Google Sheets y LibreOffice: `tests/fixtures/real/`) |
-| 8 | Editor visual (`/preview`) | ✓ (el botón «Descargar PDF» queda desactivado hasta la Fase 9) |
-| 9 | Exportación en el servidor (`POST /api/export`) | ✓ (aún sin botón: la descarga con progreso es la Fase 10) |
-| 10–12 | Descarga con progreso, testing integral, pulido | pendiente (siguiente: **Fase 10, descarga con progreso y cancelación**) |
+| 8 | Editor visual (`/preview`) | ✓ |
+| 9 | Exportación en el servidor (`POST /api/export`) | ✓ |
+| 10 | Descarga con progreso y cancelación | ✓ |
+| 11–12 | Testing integral, pulido | pendiente (siguiente: **Fase 11, testing integral y endurecimiento**) |
 
 ## Requisitos
 
@@ -249,6 +250,24 @@ bun run test                                   # incluye tests/integration/expor
 ```
 
 `POST /api/export` recibe las piezas ya proyectadas (`lib/export/build-request.ts`) y devuelve un **stream de frames** (`lib/export/frames.ts`): progreso, metadatos de cada archivo, trozos de 64 KB, avisos y `DONE`. Genera el **PDF vectorial** y, si se pide, el **ZIP de SVG** (`001.svg`, `002.svg`… numerado sobre la lista exportada). No sube nada al storage, no genera QR y no sale a la red: solo lee. Antes de dibujar comprueba que el QR de cada pieza es exactamente el archivo al que apunta; si una pieza está pendiente, desactualizada sin confirmar o con errores, responde 400 indicando cuál.
+
+## Cómo probar la Fase 10
+
+```bash
+bun run test        # 900+ tests (acciones de exportación, cliente del stream, avisos)
+bun run test:e2e    # incluye export.spec.ts y export-1000.spec.ts (descarga real de PDF y ZIP)
+bun run dev         # /preview → «Descargar PDF»
+```
+
+En `/preview`, **Descargar PDF**:
+
+1. Si hay QR pendientes o sin verificar, los **resuelve primero** (con progreso). Los QR que ya tienen Link del QR solo se verifican: nunca se genera otro.
+2. Si alguna pieza bloquea (QR con error, desactualizado sin confirmar, datos con errores), un diálogo la **lista con su motivo** y ofrece **Ir a corregir** o **Excluir N piezas de esta exportación**. Las excluidas no viajan y el resto se numera 1…n; «Volver a incluirlas» las recupera.
+3. Si el QR se solapa con el texto en alguna pieza, **pide confirmación**.
+4. Muestra el progreso real: «Generando PDF…» (piezas), «Preparando descarga…» y «Descargando…» (MB), con **Cancelar**. El PDF se descarga solo; con «También un ZIP con un SVG por pieza», el ZIP se ofrece aparte («Descargar ZIP»).
+5. Al terminar el proyecto cuenta como exportado («Cambios sin exportar» desaparece). Si la descarga se corta: «La descarga se interrumpió» con **Reintentar**; sin conexión, un mensaje claro.
+
+Mientras se genera, cerrar o recargar la pestaña pide confirmación al navegador.
 
 ## Spec Kit (desarrollo guiado por especificaciones)
 

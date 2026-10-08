@@ -144,7 +144,6 @@ test.describe("opciones del PDF y hojas", () => {
     await page.keyboard.press("Enter"); // abre el menú también con el emulador táctil
     await page.getByRole("option", { name: "Una pieza por página" }).click();
     await expect(page.getByTestId("packing-result")).toContainText("8 páginas");
-    await expect(page.getByTestId("download-pdf")).toBeDisabled();
   });
 
   test("escritorio: 1000 piezas siguen siendo fluidas y el DOM es pequeño (≤ 300 trazos)", async ({ page, isMobile }, info) => {

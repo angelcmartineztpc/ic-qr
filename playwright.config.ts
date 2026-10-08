@@ -31,6 +31,10 @@ export default defineConfig({
       // Las pruebas de importación suben muchos archivos seguidos desde la misma IP (el límite real es 10/min).
       RATE_LIMIT_IMPORT_PER_MIN: "500",
       IMPORT_MAX_CONCURRENCY: "8",
+      // Las pruebas de exportación generan QR y PDF desde la misma IP; los límites reales son 30 y 6 por minuto.
+      RATE_LIMIT_RESOLVE_PER_MIN: "600",
+      RATE_LIMIT_EXPORT_PER_MIN: "300",
+      EXPORT_MAX_CONCURRENCY: "6",
     },
   },
 });

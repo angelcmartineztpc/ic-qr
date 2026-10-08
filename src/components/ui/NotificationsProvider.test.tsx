@@ -54,4 +54,22 @@ describe("NotificationsProvider", () => {
     act(() => screen.getByRole("button", { name: /close|cerrar/i }).click());
     expect(await screen.findByText("Pieza eliminada")).toBeTruthy();
   });
+
+  it("un error toma el sitio de un aviso pasajero (éxito/info) sin esperar a que se oculte", async () => {
+    const send = setup();
+    send({ message: "2 QR generados", severity: "success", group: "qr-batch" });
+    await screen.findByText("2 QR generados");
+    send({ message: "No se pudo conectar", severity: "error", group: "export" });
+    expect(await screen.findByText("No se pudo conectar")).toBeTruthy();
+    await waitFor(() => expect(screen.queryByText("2 QR generados")).toBeNull());
+  });
+
+  it("un aviso o un error visibles no se pisan: el siguiente espera en cola", async () => {
+    const send = setup();
+    send({ message: "Revisa el QR", severity: "warning", group: "qr-batch" });
+    await screen.findByText("Revisa el QR");
+    send({ message: "Otro aviso", severity: "success", group: "records" });
+    expect(screen.queryByText("Otro aviso")).toBeNull();
+    expect(screen.getByText("Revisa el QR")).toBeTruthy();
+  });
 });

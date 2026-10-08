@@ -32,6 +32,25 @@ export interface ImportSession {
 
 export const initialImport = (): ImportSession => ({ status: "idle", result: null, strategy: "keep", decisions: {}, mode: "append", includeRejected: false, outcome: null, error: null });
 
+/** Generación y descarga del PDF (§S5). Solo de sesión; los Blob no se serializan. */
+export interface GenerationState {
+  phase: "idle" | "resolving" | "generating" | "preparing" | "downloading" | "done" | "cancelled" | "error";
+  done: number;
+  total: number;
+  bytes: number;
+  size: number;
+  /** Resultado de la última descarga correcta (para «Descargar ZIP»). */
+  result: { pieces: number; pages: number; warnings: number; zip: { name: string; blob: Blob } | null } | null;
+}
+
+export const initialGeneration = (): GenerationState => ({ phase: "idle", done: 0, total: 0, bytes: 0, size: 0, result: null });
+export const isGenerating = (g: Pick<GenerationState, "phase">): boolean => g.phase === "resolving" || g.phase === "generating" || g.phase === "preparing" || g.phase === "downloading";
+
+/** Piezas que bloquean la exportación y se muestran en el diálogo (§1.2-22). */
+export interface ExportReview {
+  blocked: Array<{ recordId: string; reason: string }>;
+}
+
 /** Estado del editor visual (/preview). Solo de sesión. */
 export interface EditorUiState {
   scope: "all" | "single";
@@ -68,6 +87,8 @@ export interface SessionState {
   qrProgress: { running: boolean; done: number; total: number };
   import: ImportSession;
   editor: EditorUiState;
+  generation: GenerationState;
+  exportReview: ExportReview | null;
   /** Avisos persistentes de la hidratación. */
   notices: { restored: { records: number; modifiedAt: string } | null; quarantined: number; recoveredBackup: string | null };
 }
@@ -88,6 +109,8 @@ export const initialSession = (): SessionState => ({
   qrProgress: { running: false, done: 0, total: 0 },
   import: initialImport(),
   editor: initialEditor(),
+  generation: initialGeneration(),
+  exportReview: null,
   notices: { restored: null, quarantined: 0, recoveredBackup: null },
 });
 

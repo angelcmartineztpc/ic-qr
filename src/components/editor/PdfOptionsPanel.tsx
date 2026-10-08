@@ -32,9 +32,12 @@ export interface PdfOptionsPanelProps {
   count: number;
   disabled: boolean;
   onChange(patch: Partial<PDFOptions>): void;
+  formats: Array<"pdf" | "svgZip">;
+  zipNaming: "index" | "index-area-mesa";
+  onFormats(formats: Array<"pdf" | "svgZip">, zipNaming?: "index" | "index-area-mesa"): void;
 }
 
-export function PdfOptionsPanel({ options, tile, count, disabled, onChange }: PdfOptionsPanelProps) {
+export function PdfOptionsPanel({ options, tile, count, disabled, onChange, formats, zipNaming, onFormats }: PdfOptionsPanelProps) {
   const packing = describePacking(tile, options, count);
   const margin = (side: keyof PDFOptions["margins"], label: string) => (
     <NumberField key={`${side}-${options.margins[side]}`} label={label} unit="mm" step={1} value={options.margins[side]} disabled={disabled} onCommit={(v) => (between(0, 100, v).ok ? (onChange({ margins: { ...options.margins, [side]: v } }), ok) : between(0, 100, v))} />
@@ -84,6 +87,16 @@ export function PdfOptionsPanel({ options, tile, count, disabled, onChange }: Pd
         <MenuItem value="live">Texto vivo</MenuItem>
       </TextField>
       <FormControlLabel control={<Switch checked={options.includeQrBackground} disabled={disabled} onChange={(e) => onChange({ includeQrBackground: e.target.checked })} />} label="Fondo blanco bajo el QR" />
+      <FormControlLabel
+        control={<Switch checked={formats.includes("svgZip")} disabled={disabled} onChange={(e) => onFormats(e.target.checked ? ["pdf", "svgZip"] : ["pdf"])} />}
+        label="También un ZIP con un SVG por pieza"
+      />
+      {formats.includes("svgZip") ? (
+        <TextField select size="small" label="Nombre de cada SVG" value={zipNaming} disabled={disabled} onChange={(e) => onFormats(formats, e.target.value as "index" | "index-area-mesa")}>
+          <MenuItem value="index">001.svg, 002.svg…</MenuItem>
+          <MenuItem value="index-area-mesa">001-area-mesa.svg…</MenuItem>
+        </TextField>
+      ) : null}
       {!options.includeQrBackground ? <Alert severity="warning">Sin fondo blanco el QR puede no leerse sobre un metal oscuro o con relieve.</Alert> : null}
     </section>
   );

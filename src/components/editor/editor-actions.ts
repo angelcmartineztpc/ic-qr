@@ -2,7 +2,7 @@ import { MIN_BOX_MM, boxesOverlap, isInside, roundMm } from "@/lib/layout/geomet
 import { qrPresetBox } from "@/lib/layout/presets";
 import { round } from "@/lib/units";
 import { resolveLayout } from "@/lib/layout/resolve-layout";
-import { applyBaseToCustomized, customizedIds, editorSnapshot, orderedRecords, resetPieceLayout, restoreEditorSnapshot, setExportFileName, setLayoutBox, setPdfOptions, setTemplateOverrides } from "@/lib/state/project";
+import { applyBaseToCustomized, customizedIds, editorSnapshot, orderedRecords, resetPieceLayout, restoreEditorSnapshot, setExportFileName, setExportFormats, setLayoutBox, setPdfOptions, setTemplateOverrides } from "@/lib/state/project";
 import type { Runtime } from "@/lib/state/StoreProvider";
 import { patchSession, updateProject, type EditorUiState } from "@/lib/state/stores";
 import { resolveTemplate } from "@/lib/template/resolve";
@@ -116,6 +116,12 @@ export function createEditorActions(deps: EditorDeps) {
 
     setPdfOptions(patch: Partial<PDFOptions>): void {
       mutate((p) => setPdfOptions(p, patch));
+    },
+
+    /** Formatos de salida (PDF y/o ZIP de SVG): al menos uno. */
+    setFormats(formats: Array<"pdf" | "svgZip">, zipNaming?: "index" | "index-area-mesa"): void {
+      if (formats.length === 0) return;
+      mutate((p) => setExportFormats(p, { formats, ...(zipNaming ? { zipNaming } : {}) }));
     },
 
     setFileName(name: string): void {

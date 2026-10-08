@@ -33,7 +33,7 @@ describe("editor visual (/preview)", () => {
     // 70 mm en A4: 2 × 3 = 6 por página → 8 piezas = 2 páginas.
     expect(screen.getByTestId("packing-result").textContent).toBe("6 por página · 2 páginas");
     expect(screen.getByTestId("pdf-preview")).toBeTruthy();
-    expect((screen.getByTestId("download-pdf") as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByTestId("download-pdf") as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("las flechas mueven la caja (Mayús 5 mm, Alt 0,1 mm) y cada pulsación es un paso de deshacer", async () => {

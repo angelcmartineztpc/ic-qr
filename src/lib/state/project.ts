@@ -249,6 +249,11 @@ export function setPdfOptions(state: ProjectState, patch: Partial<PDFOptions>): 
   return touch({ ...state, exportOptions: { ...state.exportOptions, pdf: { ...state.exportOptions.pdf, ...patch } } });
 }
 
+/** Formatos de salida (PDF y/o ZIP de SVG) y nombre de las entradas del ZIP. */
+export function setExportFormats(state: ProjectState, patch: Partial<Pick<ProjectState["exportOptions"], "formats" | "zipNaming">>): ProjectState {
+  return touch({ ...state, exportOptions: { ...state.exportOptions, ...patch } });
+}
+
 /** Escribir un nombre lo marca como «tocado»; vaciarlo vuelve al nombre por defecto. */
 export function setExportFileName(state: ProjectState, fileName: string): ProjectState {
   const value = fileName.slice(0, 200);
