@@ -98,6 +98,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         autoHideDuration={current ? AUTO_HIDE_MS[current.severity] : null}
         onClose={handleClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        className="max-sm:!bottom-20"
         slotProps={{ transition: { onExited: handleExited } }}
       >
         {current ? (

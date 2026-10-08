@@ -44,7 +44,8 @@ function QuarantineDialog({ open, onClose, onDownload, onDiscard }: { open: bool
 }
 
 /** Avisos permanentes sobre el guardado local y la pestaña escritora (§S6). Nada silencioso. */
-export function PersistenceBanners({ actions }: { actions: BuilderActions }) {
+/** `showRestored`: el aviso «Proyecto restaurado» solo tiene sentido al abrir el proyecto (Inicio y Piezas), no en cada paso. */
+export function PersistenceBanners({ actions, showRestored = true }: { actions: BuilderActions; showRestored?: boolean }) {
   const runtime = useRuntime();
   const writer = useSession((s) => s.writer);
   const status = useSession((s) => s.persistence.status);
@@ -100,7 +101,7 @@ export function PersistenceBanners({ actions }: { actions: BuilderActions }) {
           {quarantined === 1 ? "1 registro no se pudo leer" : `${quarantined} registros no se pudieron leer`} y se apartó en cuarentena; el resto del proyecto está intacto.
         </Alert>
       ) : null}
-      {notices.restored ? (
+      {showRestored && notices.restored ? (
         <Alert
           severity="info"
           action={

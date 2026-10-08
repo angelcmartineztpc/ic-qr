@@ -20,10 +20,19 @@ export interface WriterLock {
   release(): void;
 }
 
+/**
+ * En desarrollo React monta cada efecto dos veces (StrictMode): el primer montaje pide el
+ * bloqueo, se desmonta y el segundo lo pide mientras el primero aún lo suelta. Por eso un
+ * «no disponible» al arrancar se reintenta unas veces antes de decidir que otra pestaña escribe.
+ */
+const START_RETRIES = 4;
+const RETRY_MS = 40;
+
 export function createWriterLock(onChange: (role: WriterRole) => void, locks: LockManagerLike | undefined, name = "qr-project"): WriterLock {
   let releaseHeld: (() => void) | undefined;
+  let disposed = false;
 
-  const hold = (steal: boolean): Promise<void> =>
+  const hold = (steal: boolean, attempt = 0): Promise<void> =>
     new Promise<void>((resolve) => {
       if (!locks) {
         onChange("owner");
@@ -32,7 +41,16 @@ export function createWriterLock(onChange: (role: WriterRole) => void, locks: Lo
       }
       const request = locks.request(name, steal ? { mode: "exclusive", steal: true } : { mode: "exclusive", ifAvailable: true }, (lock) => {
         if (!lock) {
+          if (!steal && attempt < START_RETRIES && !disposed) {
+            setTimeout(() => void hold(false, attempt + 1).then(resolve), RETRY_MS);
+            return undefined;
+          }
           onChange("read-only");
+          resolve();
+          return undefined;
+        }
+        // Si se soltó antes de obtenerlo (desmontaje), se devuelve de inmediato y sin avisar.
+        if (disposed) {
           resolve();
           return undefined;
         }
@@ -54,6 +72,9 @@ export function createWriterLock(onChange: (role: WriterRole) => void, locks: Lo
     supported: locks !== undefined,
     start: () => hold(false),
     takeOver: () => hold(true),
-    release: () => releaseHeld?.(),
+    release: () => {
+      disposed = true;
+      releaseHeld?.();
+    },
   };
 }

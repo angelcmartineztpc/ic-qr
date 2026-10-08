@@ -8,7 +8,7 @@ import { serializeProjectFile } from "../../src/lib/state/project-file";
 const NOW = "2026-10-07T10:00:00.000Z";
 const MENU = "https://menu.example.com/tropical";
 
-async function openProject(page: Page, count: number, file: string) {
+async function openProject(page: Page, count: number, file: string, route = "/preview") {
   let project = setProjectName(createEmptyProject(NOW, { id: "pv" }), "Editor");
   for (let i = 1; i <= count; i++) project = addRecord(project, { area: `Área ${(i % 5) + 1}`, estacion: "", mesa: `M${i}`, subgrupo: "", concepto: "", menuUrl: `${MENU}?m=${i}` }, NOW, { id: `r${i}` }).state;
   await writeFile(file, serializeProjectFile(project, NOW));
@@ -16,8 +16,8 @@ async function openProject(page: Page, count: number, file: string) {
   await page.getByTestId("open-project-input").setInputFiles(file);
   await expect(page.getByText(new RegExp(`${count} piezas? abiertas?`))).toBeVisible({ timeout: 30_000 });
   await page.waitForTimeout(1200); // el autoguardado (200 ms) debe terminar antes de recargar la página
-  await page.goto("/preview");
-  await expect(page.getByTestId("layout-editor")).toBeVisible({ timeout: 20_000 });
+  await page.goto(route);
+  await expect(page.getByTestId(route === "/export" ? "download-pdf" : "layout-editor")).toBeVisible({ timeout: 20_000 });
 }
 
 const label = (page: Page, key: "qr" | "content") => page.getByTestId(`box-${key}`).getAttribute("aria-label");
@@ -25,7 +25,8 @@ const rectOf = (page: Page, key: "qr" | "content") => page.getByTestId(`box-${ke
 
 /** Caja en pantalla: el ratón de Playwright solo llega a lo que está dentro del viewport. */
 async function onScreen(page: Page, key: "qr" | "content") {
-  await rectOf(page, key).scrollIntoViewIfNeeded();
+  // Al centro de la pantalla: el pie fijo del paso tapa el borde inferior y el ratón no llegaría a la caja.
+  await rectOf(page, key).evaluate((el) => el.scrollIntoView({ block: "center" }));
   const box = await rectOf(page, key).boundingBox();
   if (!box) throw new Error("sin caja");
   return box;
@@ -87,7 +88,7 @@ test.describe("editor visual: arrastre real (AC19, AC21–AC24)", () => {
 
   test("redimensionar el QR por una esquina lo mantiene cuadrado y el bloque de texto por sus 8 manejadores", async ({ page }, info) => {
     await openProject(page, 1, info.outputPath("p1c.qrproj.json"));
-    await page.getByTestId("handle-qr-nw").scrollIntoViewIfNeeded();
+    await page.getByTestId("handle-qr-nw").evaluate((el) => el.scrollIntoView({ block: "center" }));
     const handle = await page.getByTestId("handle-qr-nw").boundingBox();
     if (!handle) throw new Error("sin manejador");
     await drag(page, { x: handle.x + handle.width / 2, y: handle.y + handle.height / 2 }, { x: handle.x + 30, y: handle.y + 30 });
@@ -138,7 +139,7 @@ test.describe("editor visual: arrastre real (AC19, AC21–AC24)", () => {
 
 test.describe("opciones del PDF y hojas", () => {
   test("el resultado de packGrid se actualiza en vivo y las hojas son miniaturas", async ({ page }, info) => {
-    await openProject(page, 8, info.outputPath("p8.qrproj.json"));
+    await openProject(page, 8, info.outputPath("p8.qrproj.json"), "/export");
     await expect(page.getByTestId("packing-result")).toHaveText("6 por página · 2 páginas");
     await page.getByRole("combobox", { name: "Disposición" }).focus();
     await page.keyboard.press("Enter"); // abre el menú también con el emulador táctil
@@ -148,7 +149,7 @@ test.describe("opciones del PDF y hojas", () => {
 
   test("escritorio: 1000 piezas siguen siendo fluidas y el DOM es pequeño (≤ 300 trazos)", async ({ page, isMobile }, info) => {
     test.skip(isMobile, "la medida de rendimiento se hace en escritorio");
-    await openProject(page, 1000, info.outputPath("p1000.qrproj.json"));
+    await openProject(page, 1000, info.outputPath("p1000.qrproj.json"), "/export");
     await expect(page.getByTestId("packing-result")).toHaveText("6 por página · 167 páginas");
     const paths = await page.locator("svg path").count();
     expect(paths).toBeLessThanOrEqual(300);

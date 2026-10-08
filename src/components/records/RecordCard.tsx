@@ -77,7 +77,7 @@ export const RecordCard = memo(function RecordCard({ record, position, selected,
       </CardActionArea>
       <div className="absolute right-1 top-1 flex items-center gap-0.5">
         {leading}
-        <IconButton size="small" aria-label={`Más acciones de ${title}`} aria-haspopup="menu" aria-controls={anchor ? menuId : undefined} onClick={(e) => setAnchor(e.currentTarget)} className="!bg-white/90">
+        <IconButton size="small" aria-label={`Más acciones de ${title}`} aria-haspopup="menu" aria-controls={anchor ? menuId : undefined} onClick={(e) => setAnchor(e.currentTarget)} className="!bg-white/90 hover:!bg-white">
           <MoreVertIcon fontSize="small" />
         </IconButton>
       </div>

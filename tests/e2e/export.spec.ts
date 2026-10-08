@@ -10,7 +10,7 @@ import { serializeProjectFile } from "../../src/lib/state/project-file";
 const NOW = "2026-10-08T10:00:00.000Z";
 const MENU = "https://menu.example.com/lblc";
 
-/** Abre un proyecto de piezas SIN QR (el flujo real: «Descargar» los resuelve primero) y va a /preview. */
+/** Abre un proyecto de piezas SIN QR (el flujo real: «Descargar» los resuelve primero) y va al paso Exportar. */
 async function openProject(page: Page, file: string, pieces: Array<{ id: string; mesa: string; qrUrl?: string }>) {
   let project = setProjectName(createEmptyProject(NOW, { id: "ex" }), "Exportación");
   for (const piece of pieces) {
@@ -21,8 +21,8 @@ async function openProject(page: Page, file: string, pieces: Array<{ id: string;
   await page.getByTestId("open-project-input").setInputFiles(file);
   await expect(page.getByText(/piezas? abiertas?/)).toBeVisible({ timeout: 30_000 });
   await page.waitForTimeout(1200); // autoguardado antes de cambiar de página
-  await page.goto("/preview");
-  await expect(page.getByTestId("layout-editor")).toBeVisible({ timeout: 20_000 });
+  await page.goto("/export");
+  await expect(page.getByTestId("download-pdf")).toBeVisible({ timeout: 20_000 });
 }
 
 const pieces = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `r${i + 1}`, mesa: `B${i + 1}` }));

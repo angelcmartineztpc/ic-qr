@@ -1,25 +1,40 @@
 "use client";
 
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import EditNoteIcon from "@mui/icons-material/EditNote";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import Typography from "@mui/material/Typography";
 import Link from "next/link";
-import { useMemo, useRef } from "react";
+import type { Route } from "next";
+import { useMemo, useRef, type ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { countRecords } from "@/lib/state/counters";
 import { orderedRecords } from "@/lib/state/project";
 import { useProject, useSession } from "@/lib/state/StoreProvider";
 
-import { TemplatePicker } from "@/components/editor/TemplatePicker";
+import { Panel } from "@/components/ui/Panel";
 
 import { PersistenceBanners } from "./PersistenceBanners";
 import { useBuilderActions } from "./useBuilderActions";
 
-/** Inicio (spec §36): continuar el proyecto, crear manualmente o importar un Excel. */
+function Option({ icon, title, text, action }: { icon: ReactNode; title: string; text: string; action: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-divider p-4">
+      <div className="flex items-center gap-2 text-primary" aria-hidden>
+        {icon}
+      </div>
+      <div className="flex flex-col gap-1">
+        <h3 className="m-0 text-base font-semibold">{title}</h3>
+        <p className="m-0 text-sm text-muted">{text}</p>
+      </div>
+      <div className="mt-auto">{action}</div>
+    </div>
+  );
+}
+
+/** Inicio: retomar el proyecto abierto o empezar uno nuevo. Nada más; el resto del flujo vive en los tres pasos. */
 export function DashboardPanel() {
   const actions = useBuilderActions();
   const hydrated = useSession((s) => s.hydrated);
@@ -35,46 +50,54 @@ export function DashboardPanel() {
       <PersistenceBanners actions={actions} />
 
       {hydrated && hasProject ? (
-        <Card variant="outlined" data-testid="continue-card">
-          <CardContent className="flex flex-col gap-1">
-            <Typography variant="overline" color="text.secondary">Proyecto actual</Typography>
-            <Typography variant="h6" component="h2">{name || "Proyecto sin nombre"}</Typography>
-            <Typography color="text.secondary">
-              {counts.total} {counts.total === 1 ? "pieza" : "piezas"} · {counts.withQr} con QR · {counts.needQr} necesitan QR{counts.withErrors > 0 ? ` · ${counts.withErrors} con errores` : ""}
-            </Typography>
-          </CardContent>
-          <CardActions className="px-4 pb-4">
-            <Button component={Link} href="/editor" variant="contained">Continuar</Button>
-          </CardActions>
-        </Card>
+        <Panel title="Retoma tu proyecto" className="border-l-4 !border-l-primary" label="Proyecto actual">
+          <div data-testid="continue-card" className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <p className="m-0 text-xl font-semibold">{name || "Proyecto sin nombre"}</p>
+              <p className="m-0 text-sm text-muted">
+                {counts.total} {counts.total === 1 ? "pieza" : "piezas"} · {counts.withQr} con QR · {counts.needQr} necesitan QR{counts.withErrors > 0 ? ` · ${counts.withErrors} con errores` : ""}
+              </p>
+            </div>
+            <Button component={Link} href={"/editor" as Route} variant="contained" size="large" endIcon={<ArrowForwardIcon />}>
+              Continuar
+            </Button>
+          </div>
+        </Panel>
       ) : null}
 
-      <section aria-label="Empezar" className="grid gap-4 md:grid-cols-2">
-        <Card variant="outlined">
-          <CardContent className="flex flex-col gap-2">
-            <Typography variant="h6" component="h2">Crear manualmente</Typography>
-            <Typography color="text.secondary">Agrega piezas una a una: área, estación, mesa, sub-grupo, concepto y links. Si no escribes un Link del QR, se genera uno nuevo.</Typography>
-          </CardContent>
-          <CardActions className="px-4 pb-4">
-            <Button component={Link} href="/editor" variant={hasProject ? "outlined" : "contained"}>+ Agregar nuevo</Button>
-          </CardActions>
-        </Card>
-        <Card variant="outlined">
-          <CardContent className="flex flex-col gap-2">
-            <Typography variant="h6" component="h2">Importar Excel</Typography>
-            <Typography color="text.secondary">Sube un archivo .xlsx: cada fila se convierte en una pieza editable, con resumen de errores y duplicados.</Typography>
-          </CardContent>
-          <CardActions className="px-4 pb-4">
-            <Button component={Link} href="/import" variant="outlined">Importar Excel</Button>
-          </CardActions>
-        </Card>
-      </section>
-
-      <section aria-label="Proyecto" className="flex flex-wrap items-center gap-3">
-        <TemplatePicker actions={actions} />
-        <Button variant="text" startIcon={<FolderOpenIcon />} onClick={() => fileInput.current?.click()} disabled={readOnly}>
-          Abrir proyecto…
-        </Button>
+      <Panel title={hasProject ? "O empieza otro proyecto" : "Cómo quieres empezar"} description="Las piezas se crean de una en una, desde un Excel o CSV, o abriendo un proyecto guardado.">
+        <div className="grid gap-4 md:grid-cols-3">
+          <Option
+            icon={<EditNoteIcon />}
+            title="Crear manualmente"
+            text="Área, estación, mesa, sub-grupo, concepto y links. Sin Link del QR, se genera uno nuevo."
+            action={
+              <Button component={Link} href={"/editor" as Route} variant={hasProject ? "outlined" : "contained"}>
+                + Agregar nuevo
+              </Button>
+            }
+          />
+          <Option
+            icon={<UploadFileIcon />}
+            title="Importar Excel o CSV"
+            text="Cada fila se convierte en una pieza editable, con resumen de errores y duplicados."
+            action={
+              <Button component={Link} href={"/import" as Route} variant="outlined" startIcon={<UploadFileIcon />}>
+                Importar Excel
+              </Button>
+            }
+          />
+          <Option
+            icon={<FolderOpenIcon />}
+            title="Abrir un proyecto"
+            text="Un archivo .qrproj.json guardado antes. Abrirlo no vuelve a generar ningún QR."
+            action={
+              <Button variant="outlined" startIcon={<FolderOpenIcon />} onClick={() => fileInput.current?.click()} disabled={readOnly}>
+                Abrir proyecto…
+              </Button>
+            }
+          />
+        </div>
         <input
           ref={fileInput}
           type="file"
@@ -87,7 +110,7 @@ export function DashboardPanel() {
             if (file) void actions.openProjectFromFile(file);
           }}
         />
-      </section>
+      </Panel>
     </div>
   );
 }

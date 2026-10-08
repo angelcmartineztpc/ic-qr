@@ -60,7 +60,7 @@ export function ImportScreen() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PersistenceBanners actions={builder} />
+      <PersistenceBanners actions={builder} showRestored={false} />
       {readOnly ? <Alert severity="info">Esta pestaña está en solo lectura: la otra pestaña es la que edita. Puedes revisar el archivo, pero no importar.</Alert> : null}
 
       {busy ? (

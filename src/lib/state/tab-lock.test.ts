@@ -67,3 +67,31 @@ describe("un solo escritor entre pestañas", () => {
     expect(lock.supported).toBe(false);
   });
 });
+
+describe("montaje doble de React en desarrollo (StrictMode)", () => {
+  it("un montaje que se desmonta antes de obtener el bloqueo lo devuelve sin avisar, y el segundo escribe", async () => {
+    // Como el navegador real: el bloqueo se concede de forma asíncrona, no dentro de request().
+    const base = fakeLocks();
+    const locks: LockManagerLike = { request: (name, options, callback) => Promise.resolve().then(() => base.request(name, options, callback)) };
+    const first: WriterRole[] = [];
+    const second: WriterRole[] = [];
+    const a = createWriterLock((role) => first.push(role), locks);
+    const started = a.start(); // pide el bloqueo…
+    a.release(); // …y se desmonta antes de recibirlo
+    const b = createWriterLock((role) => second.push(role), locks);
+    await Promise.all([started, b.start()]);
+    expect(first).toEqual([]); // el montaje descartado no cambia el estado
+    expect(second).toEqual(["owner"]); // el definitivo no se queda en solo lectura
+    b.release();
+  });
+
+  it("si de verdad hay otra pestaña, tras los reintentos queda en solo lectura", async () => {
+    const locks = fakeLocks();
+    const owner = createWriterLock(() => undefined, locks);
+    await owner.start();
+    const roles: WriterRole[] = [];
+    await createWriterLock((role) => roles.push(role), locks).start();
+    expect(roles).toEqual(["read-only"]);
+    owner.release();
+  });
+});

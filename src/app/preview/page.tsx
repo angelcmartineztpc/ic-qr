@@ -1,20 +1,15 @@
-import Typography from "@mui/material/Typography";
 import type { Metadata } from "next";
 
 import { PreviewScreen } from "@/components/editor/PreviewScreen";
 import { AppShell } from "@/components/ui/AppShell";
+import { StepHeader } from "@/components/ui/StepHeader";
 
-export const metadata: Metadata = { title: "Generar PDF" };
+export const metadata: Metadata = { title: "Diseño" };
 
 export default function PreviewPage() {
   return (
-    <AppShell>
-      <header className="flex flex-col gap-1">
-        <Typography variant="h4" component="h1">
-          Generar PDF
-        </Typography>
-        <Typography color="text.secondary">Ajusta la composición de la pieza, elige las opciones de la hoja y revisa cómo quedará el PDF.</Typography>
-      </header>
+    <AppShell step={1}>
+      <StepHeader step={1} title="Diseña la pieza" description="Mueve el QR y el bloque de texto, o escribe sus medidas. Puedes aplicar el cambio a todas las piezas o solo a la que ves." />
       <PreviewScreen />
     </AppShell>
   );

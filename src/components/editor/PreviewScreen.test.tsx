@@ -25,15 +25,16 @@ describe("editor visual (/preview)", () => {
     expect(screen.getByRole("link", { name: "Ir a las piezas" }).getAttribute("href")).toBe("/editor");
   });
 
-  it("muestra la pieza, sus cajas con coordenadas accesibles y el resultado de packGrid en vivo", async () => {
+  it("muestra la pieza, sus cajas con coordenadas accesibles y la navegación del paso", async () => {
     renderApp(<PreviewScreen />, { initialProject: seeded(8) });
     expect((await screen.findByTestId("piece-position")).textContent).toBe("Pieza 1 de 8");
     expect(qrBox().getAttribute("aria-label")).toBe("QR: x 22.61 mm, y 39.42 mm, 24.79 × 24.79 mm");
     expect(screen.getByTestId("box-content").getAttribute("aria-label")).toContain("Bloque de texto");
-    // 70 mm en A4: 2 × 3 = 6 por página → 8 piezas = 2 páginas.
-    expect(screen.getByTestId("packing-result").textContent).toBe("6 por página · 2 páginas");
-    expect(screen.getByTestId("pdf-preview")).toBeTruthy();
-    expect((screen.getByTestId("download-pdf") as HTMLButtonElement).disabled).toBe(false);
+    // El paso «Diseño» ya no lleva las opciones del PDF: viven en el paso Exportar.
+    expect(screen.queryByTestId("packing-result")).toBeNull();
+    expect(screen.queryByTestId("download-pdf")).toBeNull();
+    expect(screen.getByRole("link", { name: "Siguiente: Exportar" }).getAttribute("href")).toBe("/export");
+    expect(screen.getByRole("link", { name: "Piezas" }).getAttribute("href")).toBe("/editor");
   });
 
   it("las flechas mueven la caja (Mayús 5 mm, Alt 0,1 mm) y cada pulsación es un paso de deshacer", async () => {
@@ -121,21 +122,6 @@ describe("editor visual (/preview)", () => {
     expect(await screen.findByText(/1 pieza tiene posición personalizada/)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Aplicar también a ellas" }));
     await waitFor(() => expect(screen.queryByText(/posición personalizada/)).toBeNull());
-  });
-
-  it("opciones del PDF: la hoja no cabe → error claro; el nombre de archivo muestra el predeterminado", async () => {
-    const user = userEvent.setup();
-    renderApp(<PreviewScreen />, { initialProject: seeded(2) });
-    expect((await screen.findByLabelText("Nombre del archivo")).getAttribute("placeholder")).toMatch(/^qr-production-\d{4}-\d{2}-\d{2}-\d{4}$/);
-    await user.type(screen.getByLabelText("Nombre del archivo"), "Mesas LBLC");
-    expect(screen.getByText("Se descargará como Mesas LBLC.pdf")).toBeTruthy();
-
-    await user.click(screen.getByRole("combobox", { name: "Página" }));
-    await user.click(await screen.findByRole("option", { name: "Personalizada" }));
-    const widthField = await screen.findByLabelText("Ancho de página");
-    await user.clear(widthField);
-    await user.type(widthField, "60{Enter}");
-    await waitFor(() => expect(screen.getByTestId("packing-result").textContent).toContain("no cabe"));
   });
 
   it("en solo lectura no se puede editar", async () => {

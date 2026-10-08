@@ -224,6 +224,18 @@ En `/import` (también desde «Importar Excel» en la barra):
 
 Archivos reales: copia libros de Excel 365, Google Sheets o LibreOffice en `tests/fixtures/real/` (no se versionan) y `bun run test` los importa con la ruta real.
 
+## El flujo: tres pasos
+
+La interfaz es un **stepper**: **1 Piezas → 2 Diseño → 3 Exportar**. El logotipo vuelve al Inicio, que solo sirve para retomar el proyecto abierto o empezar uno (crear, importar o abrir un `.qrproj.json`).
+
+| Paso | Ruta | Qué se hace |
+|---|---|---|
+| 1 · Piezas | `/editor` (e `/import`) | Crear o importar piezas, buscar, editar y comprobar el QR. |
+| 2 · Diseño | `/preview` | Mover y redimensionar el QR y el texto, plantilla, deshacer. |
+| 3 · Exportar | `/export` | Nombre, hoja, formato (PDF y ZIP de SVG), vista de hojas y **Descargar**. |
+
+Cada paso termina en una barra fija con **Atrás** y **Siguiente**; los pasos 2 y 3 esperan a que haya piezas. En el móvil el Stepper se resume en «Paso N de 3».
+
 ## Cómo probar la Fase 8
 
 ```bash

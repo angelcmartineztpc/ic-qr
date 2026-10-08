@@ -19,7 +19,7 @@ test("1000 piezas: se resuelven los QR, se genera y se descarga un PDF de 167 p�
   await page.getByTestId("open-project-input").setInputFiles(file);
   await expect(page.getByText(/1000 piezas abiertas/)).toBeVisible({ timeout: 30_000 });
   await page.waitForTimeout(2500);
-  await page.goto("/preview");
+  await page.goto("/export");
   await expect(page.getByTestId("packing-result")).toHaveText("6 por página · 167 páginas", { timeout: 20_000 });
 
   const started = Date.now();

@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
-import { isExportable } from "@/lib/records/qr-state";
 import { matchesFilter, matchesQuery, paginate, type CounterFilter } from "@/lib/state/counters";
 import { useProject, useRuntime, useSession } from "@/lib/state/StoreProvider";
 import { patchSession } from "@/lib/state/stores";
@@ -21,6 +20,7 @@ import { BuilderToolbar } from "./BuilderToolbar";
 import { MoveToDialog } from "./MoveToDialog";
 import { PersistenceBanners } from "./PersistenceBanners";
 import { RecordCard } from "./RecordCard";
+import { StepFooter } from "@/components/ui/StepFooter";
 import { RecordCounters } from "./RecordCounters";
 import { RecordDetail } from "./RecordDetail";
 import { SortableStrip } from "./SortableStrip";
@@ -31,7 +31,7 @@ function EmptyState({ onAdd, readOnly }: { onAdd(): void; readOnly: boolean }) {
     <section aria-label="Sin piezas" className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-divider p-10 text-center">
       <QrCode2Icon color="primary" sx={{ fontSize: 56 }} />
       <h2 className="m-0 text-lg font-semibold">Aún no hay piezas</h2>
-      <p className="m-0 max-w-md text-muted">Agrega una pieza con el formulario o importa un Excel: cada fila se convierte en una pieza de 50 × 50 mm con su QR.</p>
+      <p className="m-0 max-w-md text-muted">Agrega una pieza con el formulario o importa un Excel: cada fila se convierte en una pieza con su QR.</p>
       <div className="flex flex-wrap justify-center gap-2">
         <Button variant="contained" onClick={onAdd} disabled={readOnly}>
           + Agregar nuevo
@@ -65,7 +65,7 @@ export function EditorScreen() {
   const excludedSet = useMemo(() => new Set(excluded), [excluded]);
   const visible = useMemo(() => all.filter((r) => matchesFilter(r, filter, excludedSet) && matchesQuery(r, query)), [all, filter, excludedSet, query]);
   const customized = useMemo(() => new Set(Object.keys(overrides)), [overrides]);
-  const exportable = useMemo(() => all.filter(isExportable).length, [all]);
+  const withErrors = useMemo(() => all.filter((r) => r.qrError !== undefined || r.validationErrors.some((i) => i.severity === "error")).length, [all]);
 
   const index = Math.max(0, visible.findIndex((r) => r.id === selection.currentId));
   const current = visible[index];
@@ -116,9 +116,9 @@ export function EditorScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <PersistenceBanners actions={actions} />
-      <BuilderToolbar actions={actions} total={all.length} exportable={exportable} onAdd={() => setEditing("new")} />
+      <BuilderToolbar actions={actions} total={all.length} onAdd={() => setEditing("new")} />
 
       {all.length === 0 ? (
         <EmptyState onAdd={() => setEditing("new")} readOnly={readOnly} />
@@ -153,6 +153,11 @@ export function EditorScreen() {
           )}
         </>
       )}
+
+      <StepFooter
+        next={{ href: "/preview", label: "Siguiente: Diseño", disabled: all.length === 0 }}
+        {...(all.length === 0 ? { note: "Agrega al menos una pieza para continuar" } : withErrors > 0 ? { note: `${withErrors} ${withErrors === 1 ? "pieza tiene" : "piezas tienen"} errores: corrígelas antes de exportar` } : {})}
+      />
 
       <RecordForm open={editing !== null} record={editing === "new" ? null : editing} onClose={() => setEditing(null)} onSubmit={onSubmit} />
       <MoveToDialog open={moving !== null} label={moveRecord ? [moveRecord.mesa, moveRecord.area].filter(Boolean).join(" · ") : ""} current={moveIndex + 1} total={all.length} onClose={() => setMoving(null)} onMove={(to) => moving && actions.move(moving, to)} />

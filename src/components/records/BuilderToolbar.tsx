@@ -2,7 +2,6 @@
 
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import SaveIcon from "@mui/icons-material/Save";
 import SearchIcon from "@mui/icons-material/Search";
 import SortIcon from "@mui/icons-material/Sort";
@@ -53,12 +52,11 @@ function SaveStatus() {
 export interface BuilderToolbarProps {
   actions: BuilderActions;
   total: number;
-  exportable: number;
   onAdd(): void;
 }
 
-/** Barra del builder (spec §12): Piezas · + Agregar nuevo · Importar Excel · Generar PDF + proyecto y vista. */
-export function BuilderToolbar({ actions, total, exportable, onAdd }: BuilderToolbarProps) {
+/** Barra del primer paso: proyecto, + Agregar nuevo, Importar Excel, búsqueda y vista. «Siguiente» vive en el pie del paso. */
+export function BuilderToolbar({ actions, total, onAdd }: BuilderToolbarProps) {
   const runtime = useRuntime();
   const name = useProject((p) => p.name);
   const view = useSession((s) => s.selection.view);
@@ -73,17 +71,24 @@ export function BuilderToolbar({ actions, total, exportable, onAdd }: BuilderToo
   const pendingCount = actions.pendingIds().length;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="m-0 mr-auto text-2xl font-bold">Piezas</h1>
-        <Button variant="contained" onClick={onAdd} disabled={readOnly}>
+    <div className="flex flex-col gap-4 rounded-xl border border-divider bg-surface p-4 sm:p-5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
+        <TextField
+          size="small"
+          label="Nombre del proyecto"
+          value={name}
+          onChange={(e) => actions.setName(e.target.value)}
+          disabled={readOnly}
+          className="!w-full sm:!w-72"
+          slotProps={{ htmlInput: { maxLength: 200 } }}
+        />
+        <SaveStatus />
+        <span className="flex-1" />
+        <Button variant="contained" onClick={onAdd} disabled={readOnly} className="max-sm:!flex-1">
           + Agregar nuevo
         </Button>
-        <Button component={Link} href="/import" variant="outlined" startIcon={<UploadFileIcon />}>
+        <Button component={Link} href="/import" variant="outlined" startIcon={<UploadFileIcon />} className="max-sm:!flex-1">
           Importar Excel
-        </Button>
-        <Button component={Link} href="/preview" variant="outlined" startIcon={<PictureAsPdfIcon />} disabled={total === 0} title={exportable < total ? `${total - exportable} pieza(s) aún no están listas para exportar` : undefined}>
-          Generar PDF
         </Button>
         <IconButton aria-label="Más opciones del proyecto" aria-haspopup="menu" onClick={(e) => setMenu(e.currentTarget)}>
           <MoreVertIcon />
@@ -126,16 +131,7 @@ export function BuilderToolbar({ actions, total, exportable, onAdd }: BuilderToo
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <TextField
-          size="small"
-          label="Nombre del proyecto"
-          value={name}
-          onChange={(e) => actions.setName(e.target.value)}
-          disabled={readOnly}
-          className="!w-full sm:!w-64"
-          slotProps={{ htmlInput: { maxLength: 200 } }}
-        />
+      <div className="flex flex-wrap items-center gap-3 border-t border-divider pt-4">
         <TextField
           size="small"
           label="Buscar pieza"
@@ -149,7 +145,6 @@ export function BuilderToolbar({ actions, total, exportable, onAdd }: BuilderToo
           <ToggleButton value="pages" aria-label="Vista de páginas"><ViewCarouselIcon fontSize="small" /> <span className="ml-1 hidden sm:inline">Páginas</span></ToggleButton>
           <ToggleButton value="grid" aria-label="Vista de rejilla"><ViewModuleIcon fontSize="small" /> <span className="ml-1 hidden sm:inline">Rejilla</span></ToggleButton>
         </ToggleButtonGroup>
-        <div className="ml-auto"><SaveStatus /></div>
       </div>
 
       {progress.running || pending > 0 ? (

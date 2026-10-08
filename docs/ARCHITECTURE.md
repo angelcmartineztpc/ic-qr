@@ -2992,3 +2992,14 @@ La descarga con progreso y cancelación está implementada y verificada con el s
 - **Móvil:** el editor de `/preview` desbordaba 23 px en horizontal (una columna de rejilla con `min-content`); corregido con `grid-cols-[minmax(0,1fr)]`.
 - **Medido (escritorio, servidor de producción):** 1000 piezas con generación de QR + PDF + descarga en **10.5 s**, 2.8 MB, 167 páginas.
 - **Para las pruebas E2E** el servidor de pruebas sube los límites (`RATE_LIMIT_RESOLVE_PER_MIN=600`, `RATE_LIMIT_EXPORT_PER_MIN=300`, `EXPORT_MAX_CONCURRENCY=6`): comparten una sola IP y los límites reales (30 y 6 por minuto) los agotarían.
+
+### Notas de la reorganización en tres pasos (2026-10-08)
+
+A petición del usuario, las pantallas pasan a un **stepper**: Piezas (`/editor`, con `/import` como parte del mismo paso) → Diseño (`/preview`) → Exportar (`/export`, ruta nueva). Motivo: había menús y botones repetidos (el menú superior, los botones de las tarjetas del Inicio y los de la barra de Piezas llevaban a lo mismo) y `/preview` mezclaba el diseño de la pieza con las opciones del PDF.
+
+- **Componentes nuevos:** `WizardSteps` (Stepper accesible; cada paso es un enlace, `aria-current="step"`, los pasos 2 y 3 se bloquean sin piezas o durante la generación; en pantallas pequeñas «Paso N de 3»), `StepHeader` (un solo `h1` por pantalla con «Paso N de 3»), `StepFooter` (Atrás / Siguiente fijo abajo, con la razón cuando no se puede avanzar), `Panel` (bloque con borde y respiración uniforme) y `ExportScreen`.
+- **Qué se quitó por redundante:** el menú superior (el logotipo vuelve al Inicio y el Stepper es la navegación), los botones «Generar PDF» e «Importar Excel» duplicados, el selector de plantilla del Inicio (queda en Diseño) y las secciones del PDF dentro de Diseño. El proyecto abierto y su estado de guardado están siempre en la cabecera.
+- **Reparto del PDF:** Diseño conserva posición, plantilla, deshacer y «Descargar SVG de esta pieza»; Exportar lleva el resumen (piezas, QR por generar, excluidas), nombre del archivo, hoja y formato (con `packGrid` en vivo), vista de las hojas y **Descargar PDF**.
+- **«Proyecto restaurado»** solo aparece al abrir el proyecto (Inicio y Piezas), no en cada paso.
+- **Hallazgo:** en desarrollo (`next dev`), el montaje doble de React (StrictMode) dejaba **siempre** la aplicación en «solo lectura»: el primer montaje pedía el bloqueo de pestaña y el segundo lo encontraba ocupado. `createWriterLock` ahora reintenta unos instantes al arrancar y devuelve sin avisar un bloqueo cuyo montaje ya se descartó. En producción no ocurría.
+- Las pruebas E2E del editor ya no asumen un menú superior; hay un `stepper.spec.ts` (flujo completo, pasos bloqueados sin piezas, móvil sin desbordes).

@@ -1,11 +1,12 @@
 "use client";
 
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DownloadIcon from "@mui/icons-material/Download";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -26,32 +27,25 @@ import { layoutWarnings } from "@/lib/layout/warnings";
 import { resolveLayout, isCustomized } from "@/lib/layout/resolve-layout";
 import { orderedRecords } from "@/lib/state/project";
 import { useProject, useRuntime, useSession } from "@/lib/state/StoreProvider";
-import { isGenerating } from "@/lib/state/stores";
 import { getTemplate } from "@/templates";
 
 import { svgDataUrl, useTile } from "@/components/preview/useTile";
+import { StepFooter } from "@/components/ui/StepFooter";
 import { PersistenceBanners } from "@/components/records/PersistenceBanners";
 import { useBuilderActions } from "@/components/records/useBuilderActions";
 import { TemplatePicker } from "./TemplatePicker";
 import { useNotify } from "@/components/ui/NotificationsProvider";
 
 import { CoordinatesPanel } from "./CoordinatesPanel";
-import { FileNameInput } from "./FileNameInput";
 import { LayoutEditor } from "./LayoutEditor";
-import { PDFPreview } from "./PDFPreview";
-import { PdfOptionsPanel } from "./PdfOptionsPanel";
 import { OverlapAlert, QrPresetPicker, ScopeSwitch } from "./PositionControls";
 import { TemplatePanel } from "./TemplatePanel";
-import { DownloadProgress } from "./DownloadProgress";
-import { ExportBlockersDialog } from "./ExportBlockersDialog";
-import { GenerationStatus } from "./GenerationStatus";
 import { useEditorActions } from "./useEditorActions";
-import { useExportActions } from "./useExportActions";
 
 function Section({ title, defaultExpanded = false, children }: { title: string; defaultExpanded?: boolean; children: React.ReactNode }) {
   return (
     <Accordion defaultExpanded={defaultExpanded} disableGutters variant="outlined">
-      <AccordionSummary expandIcon={<span aria-hidden>▾</span>}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <h3 className="m-0 text-base font-semibold">{title}</h3>
       </AccordionSummary>
       <AccordionDetails>{children}</AccordionDetails>
@@ -63,20 +57,16 @@ function Section({ title, defaultExpanded = false, children }: { title: string; 
 export function PreviewScreen() {
   const builder = useBuilderActions();
   const editor = useEditorActions();
-  const exporter = useExportActions();
-  const generation = useSession((s) => s.generation);
   const notify = useNotify();
   const runtime = useRuntime();
   const hydrated = useSession((s) => s.hydrated);
   const readOnly = useSession((s) => s.writer === "read-only");
   const ui = useSession((s) => s.editor);
   const currentId = useSession((s) => s.selection.currentId);
-  const excluded = useSession(useShallow((s) => s.excluded));
   const records = useProject(useShallow((p) => orderedRecords(p)));
   const projectLayout = useProject((p) => p.layout);
   const templateId = useProject((p) => p.templateId);
   const templateOverrides = useProject((p) => p.templateOverrides);
-  const exportOptions = useProject((p) => p.exportOptions);
 
   // Sin selección válida se muestra (y se edita) la primera pieza.
   const index = Math.max(0, records.findIndex((r) => r.id === currentId));
@@ -85,7 +75,6 @@ export function PreviewScreen() {
   const spec = useMemo(() => (template ? { width: template.tile.width, height: template.tile.height, safeMarginMm: template.tile.safeMarginMm } : null), [template]);
   const layout = current ? resolveLayout(projectLayout, current.id) : projectLayout.base;
   const { result: tileResult } = useTile(current);
-  const exportCount = records.filter((r) => !excluded.includes(r.id)).length;
 
   const history = useSyncExternalStore(
     (listener) => runtime.history.subscribe(listener),
@@ -109,7 +98,7 @@ export function PreviewScreen() {
   }, [editor]);
 
   if (!hydrated) return <p role="status">Cargando…</p>;
-  if (!template || !spec) return <Alert severity="error">La plantilla «{templateId}» ya no existe. Elige otra en el Inicio.</Alert>;
+  if (!template || !spec) return <Alert severity="error">La plantilla «{templateId}» ya no existe. Elige otra en la sección Plantilla.</Alert>;
   if (records.length === 0 || !current) {
     return (
       <section aria-label="Sin piezas" className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-divider p-10 text-center">
@@ -120,7 +109,6 @@ export function PreviewScreen() {
     );
   }
 
-  const generating = isGenerating(generation);
   const disabled = readOnly;
   const customized = isCustomized(projectLayout, current.id);
   const warnings = [...layoutWarnings(layout, spec), ...(tileResult?.warnings ?? [])].filter((w, i, all) => all.findIndex((o) => o.code === w.code && JSON.stringify(o) === JSON.stringify(w)) === i);
@@ -131,11 +119,9 @@ export function PreviewScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PersistenceBanners actions={builder} />
+      <PersistenceBanners actions={builder} showRestored={false} />
       <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Editor">
-        <Button component={Link} href="/editor" startIcon={<ArrowBackIcon />}>Volver a editar datos</Button>
-        <span className="mx-1 text-muted" aria-hidden>|</span>
-        <IconButton aria-label="Pieza anterior" onClick={() => go(-1)} disabled={index === 0}><ChevronLeftIcon /></IconButton>
+                <IconButton aria-label="Pieza anterior" onClick={() => go(-1)} disabled={index === 0}><ChevronLeftIcon /></IconButton>
         <span aria-live="polite" data-testid="piece-position">Pieza {index + 1} de {records.length}</span>
         <IconButton aria-label="Pieza siguiente" onClick={() => go(1)} disabled={index >= records.length - 1}><ChevronRightIcon /></IconButton>
         <TextField size="small" type="number" label="Ir a" className="w-24" slotProps={{ htmlInput: { min: 1, max: records.length } }} onKeyDown={(e) => {
@@ -145,6 +131,7 @@ export function PreviewScreen() {
           if (target) builder.select(target.id);
         }} />
         <span className="flex-1" />
+        <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void builder.downloadPieceSvg(current.id)}>Descargar SVG de esta pieza</Button>
         <Tooltip title="Deshacer (Ctrl/⌘ + Z)"><span><IconButton aria-label="Deshacer" onClick={() => editor.undo()} disabled={disabled || !canUndo}><UndoIcon /></IconButton></span></Tooltip>
         <Tooltip title="Rehacer (Mayús + Ctrl/⌘ + Z)"><span><IconButton aria-label="Rehacer" onClick={() => editor.redo()} disabled={disabled || !canRedo}><RedoIcon /></IconButton></span></Tooltip>
       </div>
@@ -161,7 +148,7 @@ export function PreviewScreen() {
                 {[1, 2, 5].map((g) => (<MenuItem key={g} value={g}>{g} mm</MenuItem>))}
               </TextField>
             ) : null}
-            {customized ? <span className="text-sm text-warning">Esta pieza tiene posición propia</span> : null}
+            {customized ? <span className="rounded-full border border-warning px-2 py-0.5 text-sm text-warning">Esta pieza tiene posición propia</span> : null}
           </div>
           <LayoutEditor
             tile={spec}
@@ -180,7 +167,7 @@ export function PreviewScreen() {
           <OverlapAlert layout={layout} onFit={() => { const r = editor.fitContentAboveQr(); if (!r.ok) notify({ message: r.message, severity: "warning", group: "records" }); }} />
           {warnings.length > 0 ? (
             <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm" aria-label="Avisos de composición" data-testid="layout-warnings">
-              {warnings.map((w, i) => (<li key={i} className="text-warning">⚠ {describeLayoutWarning(w)}</li>))}
+              {warnings.map((w, i) => (<li key={i} className="flex items-start gap-1.5 text-warning"><WarningAmberIcon fontSize="small" aria-hidden />{describeLayoutWarning(w)}</li>))}
             </ul>
           ) : null}
         </section>
@@ -207,41 +194,10 @@ export function PreviewScreen() {
               <TemplatePanel template={template} overrides={templateOverrides} disabled={disabled} onChange={(next) => editor.setTemplateOverrides(next)} />
             </div>
           </Section>
-          <Section title="PDF" defaultExpanded>
-            <div className="flex flex-col gap-3">
-              <FileNameInput value={exportOptions.fileName} disabled={disabled} onChange={(name) => editor.setFileName(name)} />
-              <PdfOptionsPanel options={exportOptions.pdf} tile={template.tile} count={exportCount} disabled={disabled} onChange={(patch) => editor.setPdfOptions(patch)} formats={exportOptions.formats} zipNaming={exportOptions.zipNaming} onFormats={(formats, naming) => editor.setFormats(formats, naming)} />
-            </div>
-          </Section>
         </aside>
       </div>
 
-      <section aria-label="Hojas" className="flex flex-col gap-2">
-        <h2 className="m-0 text-lg font-semibold">Hojas del PDF</h2>
-        <PDFPreview tile={template.tile} options={exportOptions.pdf} count={exportCount} />
-      </section>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => void builder.downloadPieceSvg(current.id)}>Descargar SVG de esta pieza</Button>
-        <Button variant="contained" startIcon={<DownloadIcon />} disabled={disabled || generating || exportCount === 0} onClick={() => void exporter.start()} data-testid="download-pdf">
-          {exportOptions.formats.includes("pdf") ? "Descargar PDF" : "Descargar ZIP de SVG"}
-        </Button>
-        <GenerationStatus />
-        {excluded.length > 0 ? (
-          <span className="text-sm text-muted" data-testid="excluded-note">
-            {excluded.length} {excluded.length === 1 ? "pieza excluida" : "piezas excluidas"} de esta exportación{" "}
-            <Button size="small" onClick={() => exporter.includeAll()} disabled={generating}>Volver a incluirlas</Button>
-          </span>
-        ) : null}
-        {generation.phase === "done" && generation.result ? (
-          <span className="text-sm text-muted" data-testid="last-export">
-            Última exportación: {generation.result.pieces} piezas en {generation.result.pages} {generation.result.pages === 1 ? "página" : "páginas"}.{" "}
-            {generation.result.zip ? <Button size="small" onClick={() => exporter.downloadZip()}>Descargar ZIP</Button> : null}
-          </span>
-        ) : null}
-      </div>
-      <DownloadProgress actions={exporter} />
-      <ExportBlockersDialog actions={exporter} />
+      <StepFooter back={{ href: "/editor", label: "Piezas" }} next={{ href: "/export", label: "Siguiente: Exportar" }} />
     </div>
   );
 }
