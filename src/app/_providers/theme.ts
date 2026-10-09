@@ -14,7 +14,7 @@ export const theme = createTheme({
   colorSchemes: {
     light: {
       palette: {
-        primary: { main: "#1f5c4d", contrastText: "#ffffff" },
+        primary: { main: "#274c69", contrastText: "#ffffff" },
         secondary: { main: "#8a5a19", contrastText: "#ffffff" },
         // Ámbar oscuro: el naranja por defecto de MUI no llega a 4.5:1 como texto sobre fondo claro.
         warning: { main: "#9a4f00", contrastText: "#ffffff" },
