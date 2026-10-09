@@ -3,12 +3,12 @@
  * no se versionan en git. Este script copia los archivos desde una carpeta local
  * a assets/fonts/<familia> y verifica su integridad contra manifest.json.
  *
- *   bun run fonts:setup                          (por defecto ~/Library/Fonts)
+ *   bun run fonts:setup                          (por defecto ~/Library/Fonts; los archivos son .woff2)
  *   FONTS_SOURCE_DIR=/ruta/a/gotham npm run fonts:setup
  *   bun run fonts:setup --write-manifest         (actualiza el manifest; solo al cambiar de versión)
  */
 import { createHash } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,25 +21,10 @@ interface FontManifest {
 }
 
 const sourceDir = process.env.FONTS_SOURCE_DIR ?? join(homedir(), "Library", "Fonts");
-const adobeCache = join(homedir(), "Library", "Application Support", "Adobe", "CoreSync", "plugins", "livetype");
 const writeManifest = process.argv.includes("--write-manifest");
 const FAMILIES = ["gotham", "address-sans"];
 
 const sha256 = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
-
-/** Fuentes activadas desde Adobe Fonts viven en la caché con nombres opacos (.w/.43264.otf): se buscan por sha256. */
-function findInAdobeCache(wanted: string): string | null {
-  if (!existsSync(adobeCache)) return null;
-  for (const folder of readdirSync(adobeCache)) {
-    const dir = join(adobeCache, folder);
-    if (!statSync(dir).isDirectory()) continue;
-    for (const file of readdirSync(dir)) {
-      const path = join(dir, file);
-      if (/\.(otf|ttf)$/i.test(file) && sha256(path) === wanted) return path;
-    }
-  }
-  return null;
-}
 
 let failures = 0;
 for (const family of FAMILIES) {
@@ -54,9 +39,9 @@ for (const family of FAMILIES) {
       console.log(`✓ ${family}/${file} (ya instalada)`);
       continue;
     }
-    const source = existsSync(join(sourceDir, file)) ? join(sourceDir, file) : info.sha256 ? findInAdobeCache(info.sha256) : null;
+    const source = existsSync(join(sourceDir, file)) ? join(sourceDir, file) : null;
     if (!source) {
-      console.error(`✕ ${family}/${file}: no está en ${sourceDir} ni en la caché de Adobe Fonts`);
+      console.error(`✕ ${family}/${file}: no está en ${sourceDir} (define FONTS_SOURCE_DIR con la carpeta que tiene los .woff2)`);
       failures++;
       continue;
     }

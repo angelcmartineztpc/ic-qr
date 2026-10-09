@@ -1,23 +1,23 @@
 {
   "family": "Gotham",
   "version": "3.301",
-  "license": "Comercial (Hoefler & Co.). No versionar los archivos .otf; confirmar que la licencia cubre el uso en servidor.",
+  "license": "Comercial (Hoefler & Co.). No versionar los archivos .woff2; confirmar que la licencia cubre el uso en servidor.",
   "files": {
-    "Gotham-Book.otf": {
+    "Gotham-Book.woff2": {
       "weight": 400,
-      "sha256": "39a0be6269a3b75d80eee6bb7e63e6797d6808514417287d9c2dca9780b48b67"
+      "sha256": "25f621303f7908ef34bd3e567ec8e6ba2871b2d9ddf41b915f425166448307d9"
     },
-    "Gotham-Medium.otf": {
+    "Gotham-Medium.woff2": {
       "weight": 500,
-      "sha256": "c583cf3a8e3887d7ae88a8a91aff3772782f8dbb87c13a97817fb23d54c7635c"
+      "sha256": "ed114f43e17da00f39ecdb5a4ed25cbbb9871b04ba4888ffbbb3d30097385afa"
     },
-    "Gotham-Bold.otf": {
+    "Gotham-Bold.woff2": {
       "weight": 700,
-      "sha256": "a71a3ed61473b7ddc93f1779fba3414ae2738f16e20516f37d902948479baf7c"
+      "sha256": "b66819dd3960cf4a33565fba9ea692b73ed433458ba9984334aeaba71c67121b"
     },
-    "Gotham-Black.otf": {
+    "Gotham-Black.woff2": {
       "weight": 800,
-      "sha256": "73103eafef8bf6779ad8cb9c6c0e1a48511320ee92c4b8d13f20d765a8b8885c"
+      "sha256": "a64825a75e24b8f252b98d99aaff8a5276f38dd5bf9ad5dd59be87dc5cc64afd"
     }
   }
 }

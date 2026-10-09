@@ -6,17 +6,17 @@ import "./globals.css";
 
 /**
  * Tipografía de la INTERFAZ: Gotham (decisión del 2026-10-07). Las piezas ya no
- * la usan: su tipografía es la de la referencia. Los .otf no se versionan
+ * la usan: su tipografía es la de la referencia. Los .woff2 no se versionan
  * (licencia comercial): `bun run fonts:setup` los copia a assets/fonts/gotham
  * antes de compilar. OJO: next/font los publica en /_next/static, o sea que la
  * licencia debe cubrir uso web.
  */
 const uiFont = localFont({
   src: [
-    { path: "../../assets/fonts/gotham/Gotham-Book.otf", weight: "400", style: "normal" },
-    { path: "../../assets/fonts/gotham/Gotham-Medium.otf", weight: "500", style: "normal" },
-    { path: "../../assets/fonts/gotham/Gotham-Bold.otf", weight: "700", style: "normal" },
-    { path: "../../assets/fonts/gotham/Gotham-Black.otf", weight: "900", style: "normal" },
+    { path: "../../assets/fonts/gotham/Gotham-Book.woff2", weight: "400", style: "normal" },
+    { path: "../../assets/fonts/gotham/Gotham-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../../assets/fonts/gotham/Gotham-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../../assets/fonts/gotham/Gotham-Black.woff2", weight: "900", style: "normal" },
   ],
   variable: "--font-ui",
   display: "swap",

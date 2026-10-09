@@ -86,7 +86,7 @@ export const ShapeElementSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
-export const FontFileSchema = FontRefSchema.extend({ file: z.string().regex(/^[\w.-]+\.(ttf|otf)$/) });
+export const FontFileSchema = FontRefSchema.extend({ file: z.string().regex(/^[\w.-]+\.(ttf|otf|woff2?)$/) });
 
 export const TemplateSchema = z
   .strictObject({

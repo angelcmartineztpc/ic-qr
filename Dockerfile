@@ -23,7 +23,7 @@ FROM base AS builder
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN test -f assets/fonts/gotham/Gotham-Bold.otf && test -f assets/fonts/address-sans/AddressSansPro-CdSemibold.otf \
+RUN test -f assets/fonts/gotham/Gotham-Bold.woff2 && test -f assets/fonts/address-sans/AddressSansPro-CdSemibold.woff2 \
   || (echo "Faltan las fuentes (Gotham y Address Sans Pro Cd): ejecuta 'bun run fonts:setup' antes de docker build" && exit 1)
 # next build se ejecuta con el node del PATH (Node 24 real).
 RUN bun run build

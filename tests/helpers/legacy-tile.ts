@@ -17,7 +17,7 @@ export const legacyTile = (): Template =>
     version: "1.0.0",
     tile: { width: 50, height: 50, safeMarginMm: 2, background: "#FFFFFF" },
     fontDir: "gotham",
-    fonts: [400, 500, 700, 800].map((w) => ({ ...weight(w), file: `Gotham-${w}.otf` })),
+    fonts: [400, 500, 700, 800].map((w) => ({ ...weight(w), file: `Gotham-${w}.woff2` })),
     defaultLayout: { content: { x: 4, y: 3, width: 42, height: 20 }, qr: { x: 13, y: 24, width: 24, height: 24 } },
     content: {
       verticalAlign: "start",

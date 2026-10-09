@@ -9,7 +9,7 @@ import type { QrGeometry, Template } from "@/types";
 
 export const FONTS_DIR = join(process.cwd(), "assets", "fonts");
 /** La fuente de las piezas no está en git: los tests que la necesitan se saltan si no está instalada (`bun run fonts:setup`). */
-export const HAS_PIECE_FONT = existsSync(join(FONTS_DIR, "address-sans", "AddressSansPro-CdSemibold.otf"));
+export const HAS_PIECE_FONT = existsSync(join(FONTS_DIR, "address-sans", "AddressSansPro-CdSemibold.woff2"));
 export const registry = new NodeFontRegistry(FONTS_DIR);
 
 export function tropical(): Template {

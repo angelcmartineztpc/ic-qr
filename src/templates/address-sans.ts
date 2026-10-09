@@ -9,7 +9,7 @@ export const PIECE_FONT_DIR = "address-sans";
 
 export const pieceFont = () => ({ family: "Address Sans Pro Cd", weight: 600, style: "normal" as const });
 
-export const PIECE_FONT_FILES: FontFile[] = [{ ...pieceFont(), file: "AddressSansPro-CdSemibold.otf" }];
+export const PIECE_FONT_FILES: FontFile[] = [{ ...pieceFont(), file: "AddressSansPro-CdSemibold.woff2" }];
 
 /** Color de la referencia (todo el arte es #2C2E35, no negro puro). */
 export const PIECE_INK = "#2C2E35";

@@ -2,7 +2,7 @@
 
 Tipografía de la **interfaz** (desde el 2026-10-07; las piezas usan `address-sans`).
 
-Los archivos `.otf` **no se versionan**: Gotham tiene licencia comercial de Hoefler & Co.
+Los archivos `.woff2` **no se versionan**: Gotham tiene licencia comercial de Hoefler & Co.
 Para instalarlos en tu copia local:
 
 ```bash

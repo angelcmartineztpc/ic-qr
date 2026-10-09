@@ -1,7 +1,7 @@
 # Address Sans Pro Cd Semibold
 
 Tipografía de las **piezas** (la de `QR_Tropical_1M_Alimentos.pdf`; decisión del 2026-10-07).
-El `.otf` **no se versiona** (licencia de Adobe Fonts). Para instalarlo en tu copia local:
+El `.woff2` **no se versiona** (licencia de Adobe Fonts). Para instalarlo en tu copia local:
 
 ```bash
 bun run fonts:setup            # busca ~/Library/Fonts y la caché de Adobe Fonts (CoreSync/livetype)
