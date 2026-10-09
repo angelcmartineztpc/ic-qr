@@ -5,7 +5,8 @@
   "files": {
     "AddressSansPro-CdSemibold.woff2": {
       "weight": 600,
-      "sha256": "4e057a351ec60c109436fac77092155ad037a898265ed8d37044ce220c2462fa"
+      "sha256": ""
     }
-  }
+  },
+  "note": "PENDIENTE: el archivo AddressSansPro-CdSemibold.woff2 que hay en esta máquina es Address Sans Pro SemiBold de ancho normal (no condensada). Instala la versión Cd real y ejecuta 'bun run fonts:setup --write-manifest' para fijar su sha256. Referencia: la línea «CONSULTA EL MENU Y ORDENA EN LÍNEA» mide ≈ 54 mm a 13.2 pt con tracking −25."
 }
