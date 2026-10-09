@@ -29,7 +29,7 @@ export const TilePreview = memo(function TilePreview({ record, detail = "full", 
           {error}
         </div>
       ) : (
-        <Skeleton variant="rectangular" className="!h-full !w-full" aria-label="Cargando vista previa" />
+        <Skeleton variant="rectangular" className="!h-full !w-full" role="img" aria-label="Cargando vista previa" />
       )}
       {warnings.length > 0 ? (
         <Tooltip title={<ul className="m-0 list-disc pl-4">{warnings.map((w, i) => <li key={i}>{describeLayoutWarning(w)}</li>)}</ul>} arrow>

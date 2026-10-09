@@ -20,9 +20,9 @@ function QuarantineDialog({ open, onClose, onDownload, onDiscard }: { open: bool
   const entries = useProject((p) => p.quarantine);
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" aria-labelledby={`${id}-title`}>
-      <DialogTitle id={`${id}-title`}>Registros que no se pudieron leer ({entries.length})</DialogTitle>
+      <DialogTitle id={`${id}-title`}>Piezas dañadas que se apartaron ({entries.length})</DialogTitle>
       <DialogContent dividers>
-        <p className="mt-0 text-sm text-muted">Se apartaron para no perder el resto del proyecto. Descárgalos para revisarlos o recuperarlos a mano.</p>
+        <p className="mt-0 text-sm text-muted">Estas piezas no se pudieron leer y se apartaron para no perder el resto del proyecto. Descárgalas para revisarlas o recuperarlas a mano.</p>
         <ul className="m-0 flex list-none flex-col gap-3 p-0">
           {entries.map((entry, i) => (
             <li key={i} className="rounded border border-divider p-3">
@@ -61,7 +61,7 @@ export function PersistenceBanners({ actions, showRestored = true }: { actions: 
     <div className="flex flex-col gap-2" data-testid="persistence-banners">
       {writer === "read-only" ? (
         <Alert severity="warning" action={<Button color="inherit" size="small" onClick={() => void runtime.takeOver()}>Tomar el control</Button>}>
-          Este proyecto está abierto en otra pestaña (solo lectura).
+          Este proyecto está abierto en otra pestaña y aquí solo puedes verlo. Si pulsas «Tomar el control», editarás aquí y la otra pestaña pasará a solo lectura.
         </Alert>
       ) : null}
       {status === "unavailable" ? (
@@ -98,7 +98,7 @@ export function PersistenceBanners({ actions, showRestored = true }: { actions: 
             </>
           }
         >
-          {quarantined === 1 ? "1 registro no se pudo leer" : `${quarantined} registros no se pudieron leer`} y se apartó en cuarentena; el resto del proyecto está intacto.
+          {quarantined === 1 ? "1 pieza no se pudo leer y se apartó" : `${quarantined} piezas no se pudieron leer y se apartaron`}; el resto del proyecto está intacto.
         </Alert>
       ) : null}
       {showRestored && notices.restored ? (

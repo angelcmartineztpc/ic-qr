@@ -35,8 +35,7 @@ export const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        // Foco visible y consistente con el teclado (sin ruido al hacer clic).
-        ":focus-visible": { outline: "2px solid var(--mui-palette-primary-main)", outlineOffset: "2px" },
+        // El foco visible vive en globals.css (sin capa, para ganar a `outline: 0` de MUI).
       },
     },
     MuiButton: {
@@ -44,7 +43,8 @@ export const theme = createTheme({
       styleOverrides: { root: { minHeight: 40, "@media (pointer: coarse)": { minHeight: 44 } } },
     },
     MuiIconButton: {
-      styleOverrides: { root: { "@media (pointer: coarse)": { minWidth: 44, minHeight: 44 } } },
+      // 40 px como mínimo (la guía recomienda 44 en pantallas táctiles); antes los pequeños medían 30.
+      styleOverrides: { root: { minWidth: 40, minHeight: 40, "@media (pointer: coarse)": { minWidth: 44, minHeight: 44 } } },
     },
     MuiToggleButton: {
       styleOverrides: { root: { "@media (pointer: coarse)": { minHeight: 44 } } },
@@ -52,6 +52,8 @@ export const theme = createTheme({
     MuiMenuItem: {
       styleOverrides: { root: { "@media (pointer: coarse)": { minHeight: 44 } } },
     },
+    // Las ayudas y los errores de los campos se leen: 14 px en lugar de los 12 px de MUI.
+    MuiFormHelperText: { styleOverrides: { root: { fontSize: "0.875rem", lineHeight: 1.4 } } },
     MuiCard: { defaultProps: { variant: "outlined" } },
     MuiTextField: { defaultProps: { fullWidth: true, size: "small" } },
   },

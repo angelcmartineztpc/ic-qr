@@ -57,8 +57,10 @@ export const RecordCard = memo(function RecordCard({ record, position, selected,
 
   return (
     <Card variant="outlined" className={`relative flex h-full flex-col ${selected ? "ring-2 ring-primary" : ""}`} data-testid="record-card" data-record-id={record.id} aria-current={selected ? "true" : undefined}>
-      <CardActionArea onClick={() => onSelect(record.id)} aria-label={`Seleccionar la pieza ${title}`} className="flex flex-1 flex-col items-stretch gap-2 p-2">
-        <TilePreview record={record} />
+      <CardActionArea onClick={() => onSelect(record.id)} className="flex flex-1 flex-col items-stretch gap-2 p-2">
+        <div aria-hidden>
+          <TilePreview record={record} />
+        </div>
         <div className="flex flex-col gap-1 px-1">
           <div className="flex items-baseline justify-between gap-2">
             <strong className="truncate text-sm" title={title}>

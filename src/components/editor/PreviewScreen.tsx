@@ -44,9 +44,9 @@ import { useEditorActions } from "./useEditorActions";
 
 function Section({ title, defaultExpanded = false, children }: { title: string; defaultExpanded?: boolean; children: React.ReactNode }) {
   return (
-    <Accordion defaultExpanded={defaultExpanded} disableGutters variant="outlined">
+    <Accordion defaultExpanded={defaultExpanded} disableGutters variant="outlined" slotProps={{ heading: { component: "h2" } }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <h3 className="m-0 text-base font-semibold">{title}</h3>
+        <span className="text-base font-semibold">{title}</span>
       </AccordionSummary>
       <AccordionDetails>{children}</AccordionDetails>
     </Accordion>
@@ -125,7 +125,7 @@ export function PreviewScreen() {
           <IconButton aria-label="Pieza anterior" onClick={() => go(-1)} disabled={index === 0}><ChevronLeftIcon /></IconButton>
           <span aria-live="polite" data-testid="piece-position">Pieza {index + 1} de {records.length}</span>
           <IconButton aria-label="Pieza siguiente" onClick={() => go(1)} disabled={index >= records.length - 1}><ChevronRightIcon /></IconButton>
-          <TextField size="small" type="number" label="Ir a" className="w-24" slotProps={{ htmlInput: { min: 1, max: records.length } }} onKeyDown={(e) => {
+          <TextField size="small" type="number" label="Ir a la pieza n.º" className="w-40" slotProps={{ htmlInput: { min: 1, max: records.length } }} onKeyDown={(e) => {
             if (e.key !== "Enter") return;
             const n = Number((e.target as HTMLInputElement).value);
             const target = records[Math.min(records.length, Math.max(1, Math.trunc(n))) - 1];
@@ -146,7 +146,7 @@ export function PreviewScreen() {
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <section aria-label="Composición" className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-4">
-            <FormControlLabel control={<Switch checked={ui.snap} onChange={(e) => editor.patchEditor({ snap: e.target.checked })} />} label="Imán" />
+            <FormControlLabel control={<Switch checked={ui.snap} onChange={(e) => editor.patchEditor({ snap: e.target.checked })} />} label="Ajustar a las guías (imán)" />
             <FormControlLabel control={<Switch checked={ui.showGrid} onChange={(e) => editor.patchEditor({ showGrid: e.target.checked })} />} label="Rejilla" />
             {ui.showGrid ? (
               <TextField select size="small" label="Cada" value={ui.gridMm} onChange={(e) => editor.patchEditor({ gridMm: Number(e.target.value) as 1 | 2 | 5 })} className="w-24">

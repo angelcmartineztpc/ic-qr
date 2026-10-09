@@ -44,7 +44,7 @@ function SaveStatus() {
   return (
     <div className="flex flex-wrap gap-1.5" aria-live="polite">
       {status === "saving" ? <Chip size="small" label="Guardando…" /> : status === "ok" ? <Chip size="small" variant="outlined" label="Guardado en este navegador" /> : null}
-      {dirty ? <Chip size="small" color="warning" variant="outlined" label="Cambios sin exportar" data-testid="dirty-chip" /> : null}
+      {dirty ? <Chip size="small" color="warning" variant="outlined" label="Cambios sin descargar" data-testid="dirty-chip" /> : null}
     </div>
   );
 }
@@ -79,18 +79,18 @@ export function BuilderToolbar({ actions, total, onAdd }: BuilderToolbarProps) {
           value={name}
           onChange={(e) => actions.setName(e.target.value)}
           disabled={readOnly}
-          className="!w-full sm:!w-72"
+          className="max-sm:order-1 max-sm:!w-[calc(100%-3.25rem)] sm:!w-72"
           slotProps={{ htmlInput: { maxLength: 200 } }}
         />
-        <SaveStatus />
-        <span className="flex-1" />
-        <Button variant="contained" onClick={onAdd} disabled={readOnly} className="max-sm:!flex-1">
+        <div className="max-sm:order-3 max-sm:w-full"><SaveStatus /></div>
+        <span className="flex-1 max-sm:hidden" />
+        <Button variant="contained" onClick={onAdd} disabled={readOnly} className="whitespace-nowrap max-sm:order-4 max-sm:!basis-[calc(50%-0.375rem)]">
           + Agregar nuevo
         </Button>
-        <Button component={Link} href="/import" variant="outlined" startIcon={<UploadFileIcon />} className="max-sm:!flex-1">
+        <Button component={Link} href="/import" variant="outlined" startIcon={<UploadFileIcon />} className="whitespace-nowrap max-sm:order-4 max-sm:!basis-[calc(50%-0.375rem)]">
           Importar Excel
         </Button>
-        <IconButton aria-label="Más opciones del proyecto" aria-haspopup="menu" onClick={(e) => setMenu(e.currentTarget)}>
+        <IconButton aria-label="Más opciones del proyecto" aria-haspopup="menu" className="max-sm:order-2" onClick={(e) => setMenu(e.currentTarget)}>
           <MoreVertIcon />
         </IconButton>
         <Menu anchorEl={menu} open={menu !== null} onClose={close}>
@@ -142,8 +142,8 @@ export function BuilderToolbar({ actions, total, onAdd }: BuilderToolbarProps) {
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> } }}
         />
         <ToggleButtonGroup size="small" exclusive value={view} onChange={(_e, next: ViewMode | null) => next && patchSession(runtime.session, (s) => ({ selection: { ...s.selection, view: next } }))} aria-label="Vista">
-          <ToggleButton value="pages" aria-label="Vista de páginas"><ViewCarouselIcon fontSize="small" /> <span className="ml-1 hidden sm:inline">Páginas</span></ToggleButton>
-          <ToggleButton value="grid" aria-label="Vista de rejilla"><ViewModuleIcon fontSize="small" /> <span className="ml-1 hidden sm:inline">Rejilla</span></ToggleButton>
+          <ToggleButton value="pages" aria-label="Una por una: una pieza por pantalla"><ViewCarouselIcon fontSize="small" /> <span className="ml-1 hidden sm:inline">Una por una</span></ToggleButton>
+          <ToggleButton value="grid" aria-label="Todas: todas las piezas en cuadrícula"><ViewModuleIcon fontSize="small" /> <span className="ml-1 hidden sm:inline">Todas</span></ToggleButton>
         </ToggleButtonGroup>
       </div>
 

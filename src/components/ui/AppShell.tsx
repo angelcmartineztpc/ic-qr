@@ -23,7 +23,7 @@ function ProjectBadge() {
       <span className="shrink-0 text-muted max-sm:hidden">
         · {count} {count === 1 ? "pieza" : "piezas"}
       </span>
-      <span className="shrink-0 text-xs text-muted max-md:hidden" aria-live="polite">
+      <span className="shrink-0 text-sm text-muted max-md:hidden">
         {status === "saving" ? "Guardando…" : status === "ok" ? "Guardado" : ""}
       </span>
     </p>
@@ -42,7 +42,7 @@ export function AppShell({ children, step }: { children: ReactNode; step?: StepI
       </a>
       <header className="sticky top-0 z-20 border-b border-divider bg-surface/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-screen-xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 text-inherit no-underline" aria-label="QR Production Generator: inicio">
+          <Link href="/" className="flex min-h-10 min-w-10 shrink-0 items-center gap-2 text-inherit no-underline" aria-label="QR Production Generator: inicio">
             <QrCode2Icon color="primary" />
             <span className="text-base font-bold max-sm:hidden">QR Production Generator</span>
           </Link>

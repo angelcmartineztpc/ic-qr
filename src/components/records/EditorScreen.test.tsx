@@ -165,7 +165,7 @@ describe("filtros, búsqueda, vistas y paginación", () => {
   it("vista de rejilla con paginación «Página N de M» (1000 piezas, AC: sin renderizar todo)", async () => {
     const user = userEvent.setup();
     renderApp(<EditorScreen />, { initialProject: seeded(100) });
-    await user.click(await screen.findByRole("button", { name: "Vista de rejilla" }));
+    await user.click(await screen.findByRole("button", { name: /^Todas/ }));
     expect(screen.getAllByTestId("record-card")).toHaveLength(24); // solo la página visible
     expect(screen.getByTestId("page-position").textContent).toBe("Página 1 de 5");
     await user.click(screen.getByRole("button", { name: "Página siguiente" }));
@@ -191,13 +191,13 @@ describe("persistencia y avisos (spec §37, §38)", () => {
     renderApp(<EditorScreen />, { kv });
     await screen.findByRole("heading", { name: "Aún no hay piezas" });
     await addPiece(user, { area: "Tropical", mesa: "M1", menuUrl: MENU });
-    expect(screen.getByTestId("dirty-chip").textContent).toBe("Cambios sin exportar");
+    expect(screen.getByTestId("dirty-chip").textContent).toBe("Cambios sin descargar");
     await waitFor(() => expect((kv.data.get("project") as { order: string[] } | undefined)?.order.length).toBe(1), { timeout: 3000 });
   });
 
   it("si otra pestaña escribe, esta queda en solo lectura con «Tomar el control»", async () => {
     renderApp(<EditorScreen />, { locks: heldLocks, initialProject: undefined });
-    expect(await screen.findByText(/abierto en otra pestaña \(solo lectura\)/)).toBeTruthy();
+    expect(await screen.findByText(/abierto en otra pestaña y aquí solo puedes verlo/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Tomar el control" })).toBeTruthy();
     expect((screen.getAllByRole("button", { name: /\+ Agregar nuevo/ })[0] as HTMLButtonElement).disabled).toBe(true);
   });
@@ -216,7 +216,7 @@ describe("persistencia y avisos (spec §37, §38)", () => {
   it("los registros ilegibles van a cuarentena y se avisa", async () => {
     const project = seeded(1);
     renderApp(<EditorScreen />, { kv: memoryKv({ project: { ...project, recordsById: { ...project.recordsById, roto: { id: "roto", area: 5 } }, order: ["r1", "roto"] } }) });
-    expect(await screen.findByText(/1 registro no se pudo leer/)).toBeTruthy();
+    expect(await screen.findByText(/1 pieza no se pudo leer y se apartó/)).toBeTruthy();
     expect(screen.getByTestId("counter-all").textContent).toBe("Total: 1");
   });
 });
@@ -269,10 +269,10 @@ describe("descargas y avisos con acciones (§S6)", () => {
     const user = userEvent.setup();
     const project = seeded(1);
     renderApp(<EditorScreen />, { kv: memoryKv({ project: { ...project, recordsById: { ...project.recordsById, roto: { id: "roto", area: 5 } }, order: ["r1", "roto"] } }) });
-    expect(await screen.findByText(/1 registro no se pudo leer/)).toBeTruthy();
+    expect(await screen.findByText(/1 pieza no se pudo leer y se apartó/)).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Ver" }));
-    const dialog = await screen.findByRole("dialog", { name: /Registros que no se pudieron leer \(1\)/ });
+    const dialog = await screen.findByRole("dialog", { name: /Piezas dañadas que se apartaron \(1\)/ });
     expect(within(dialog).getByText(/"area": 5/)).toBeTruthy();
     await user.click(within(dialog).getByRole("button", { name: "Cerrar" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());

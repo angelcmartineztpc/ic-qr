@@ -36,7 +36,7 @@ export function WizardSteps({ active }: { active: StepIndex }) {
               </span>
               <span className="flex flex-col text-left leading-tight">
                 <span className={`text-sm ${current ? "font-bold text-foreground" : "font-medium text-foreground"}`}>{step.label}</span>
-                <span className="text-xs text-muted">{step.hint}</span>
+                <span className="text-sm text-muted">{step.hint}</span>
               </span>
             </>
           );
@@ -45,6 +45,7 @@ export function WizardSteps({ active }: { active: StepIndex }) {
               {disabled ? (
                 <span aria-disabled="true" className="flex items-center gap-3 rounded-lg px-2 py-1 opacity-50">
                   {body}
+                  <span className="sr-only">{busy ? "No disponible mientras se generan los QR" : "Disponible cuando haya piezas"}</span>
                 </span>
               ) : (
                 <Link href={step.href} aria-current={current ? "step" : undefined} className="flex items-center gap-3 rounded-lg px-2 py-1 text-inherit no-underline hover:bg-black/5">

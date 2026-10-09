@@ -77,15 +77,16 @@ export function PdfOptionsPanel({ options, tile, count, disabled, onChange, form
             {margin("left", "Margen izquierdo")}
             {margin("right", "Margen derecho")}
             <NumberField key={`gap-${options.gapMm}`} label="Separación" unit="mm" step={1} value={options.gapMm} disabled={disabled} onCommit={(v) => (between(0, 50, v).ok ? (onChange({ gapMm: v }), ok) : between(0, 50, v))} />
-            <NumberField key={`bleed-${options.bleedMm}`} label="Sangrado" unit="mm" step={0.5} value={options.bleedMm} disabled={disabled} onCommit={(v) => (between(0, 5, v).ok ? (onChange({ bleedMm: v }), ok) : between(0, 5, v))} />
+            <NumberField key={`bleed-${options.bleedMm}`} label="Sangrado (margen extra para el corte)" unit="mm" step={0.5} value={options.bleedMm} disabled={disabled} onCommit={(v) => (between(0, 5, v).ok ? (onChange({ bleedMm: v }), ok) : between(0, 5, v))} />
           </div>
           <FormControlLabel control={<Switch checked={options.center} disabled={disabled} onChange={(e) => onChange({ center: e.target.checked })} />} label="Centrar las piezas en la hoja" />
         </>
       ) : null}
-      <TextField select size="small" label="Texto en el PDF" value={options.textMode} disabled={disabled} helperText={options.textMode === "live" ? "Texto editable en Illustrator: necesita Address Sans Pro Cd Semibold instalada (Adobe Fonts) al abrir el archivo" : "Contornos: se ve igual en cualquier equipo, pero el texto ya no se puede editar"} onChange={(e) => onChange({ textMode: e.target.value as PDFOptions["textMode"] })}>
+      <TextField select size="small" label="Texto en el PDF" value={options.textMode} disabled={disabled} helperText={options.textMode === "live" ? "Podrás editar el texto en Illustrator." : "Se ve igual en cualquier equipo, pero el texto ya no se puede editar."} onChange={(e) => onChange({ textMode: e.target.value as PDFOptions["textMode"] })}>
         <MenuItem value="live">Texto vivo (editable en Illustrator)</MenuItem>
-        <MenuItem value="outlined">Convertido a contornos (para fabricación)</MenuItem>
+        <MenuItem value="outlined">Convertido a contornos (se ve igual en cualquier equipo)</MenuItem>
       </TextField>
+      {options.textMode === "live" ? <Alert severity="info">Para ver bien el texto, instala la fuente Address Sans Pro Cd Semibold (Adobe Fonts) en el equipo donde abras el archivo. Si no la tienes, Illustrator usará otra y el texto cambiará de aspecto.</Alert> : null}
       <FormControlLabel control={<Switch checked={options.includeQrBackground} disabled={disabled} onChange={(e) => onChange({ includeQrBackground: e.target.checked })} />} label="Fondo blanco bajo el QR" />
       <FormControlLabel
         control={<Switch checked={formats.includes("svgZip")} disabled={disabled} onChange={(e) => onFormats(e.target.checked ? ["pdf", "svgZip"] : ["pdf"])} />}

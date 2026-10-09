@@ -92,7 +92,7 @@ test.describe("builder de piezas (flujo manual de punta a punta)", () => {
     await addPiece(page, { area: "Tropical", mesa: "M1", qrUrl: "https://no-existe.invalid/qr.svg" });
     await expect(page.getByTestId("qr-status").first()).toContainText("✕ Error de QR: unreachable", { timeout: 20_000 });
     await expect(page.getByRole("button", { name: "Reintentar" }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Reemplazar por QR generado" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Cambiar por un QR nuevo de esta app" })).toBeVisible();
     await expect(page.getByTestId("counter-needQr")).toHaveText("Necesitan QR: 1");
     expect(bodies).toHaveLength(1);
     const body = JSON.parse(bodies[0] as string) as { items?: unknown; verify?: Array<{ qrUrl: string }> };
@@ -181,7 +181,7 @@ test.describe("responsive", () => {
     await page.goto("/editor");
     await addPiece(page, { area: "Tropical", mesa: "M1" });
     await noHorizontalScroll(page);
-    await page.getByRole("button", { name: "Vista de rejilla" }).click();
+    await page.getByRole("button", { name: /^Todas/ }).click();
     await noHorizontalScroll(page);
   });
 

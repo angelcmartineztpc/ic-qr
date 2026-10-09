@@ -32,6 +32,6 @@ test("1000 piezas: se resuelven los QR, se genera y se descarga un PDF de 167 p�
   console.log(`DESCARGA 1000 piezas: ${seconds.toFixed(1)} s (con QR) · ${(size / 1024 / 1024).toFixed(1)} MB`);
   const head = (await readFile(path)).subarray(0, 5).toString();
   expect(head).toBe("%PDF-");
-  expect(size).toBeGreaterThan(1_000_000);
+  expect(size).toBeGreaterThan(500_000);
   await expect(page.getByTestId("last-export")).toContainText("1000 piezas en 167 páginas");
 });

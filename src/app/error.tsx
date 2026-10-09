@@ -16,7 +16,7 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
           </Button>
         }
       >
-        Ocurrió un error inesperado.{error.digest ? ` Referencia: ${error.digest}` : ""}
+        Algo salió mal. Tu proyecto sigue guardado en este navegador. Pulsa «Reintentar»; si se repite, guarda el proyecto en un archivo y avisa al equipo.{error.digest ? ` Referencia: ${error.digest}` : ""}
       </Alert>
     </AppShell>
   );

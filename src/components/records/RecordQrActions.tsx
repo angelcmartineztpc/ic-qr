@@ -9,11 +9,11 @@ import type { QRRecord } from "@/types";
 import type { BuilderActions } from "./builder-actions";
 
 const LABELS: Record<QrAction, string> = {
-  regenerate: "Regenerar QR",
-  keep: "Mantener QR anterior",
-  "use-anyway": "Usar de todos modos",
+  regenerate: "Crear un QR nuevo con el link actual",
+  keep: "Imprimir el QR anterior (apunta al link viejo)",
+  "use-anyway": "Usar este QR aunque apunte a otra dirección",
   retry: "Reintentar",
-  replace: "Reemplazar por QR generado",
+  replace: "Cambiar por un QR nuevo de esta app",
   generate: "Generar QR",
   verify: "Verificar de nuevo",
 };
@@ -33,12 +33,17 @@ export function RecordQrActions({ record, actions }: { record: QRRecord; actions
     verify: () => void actions.verify(record.id),
   };
   return (
-    <div className="flex flex-wrap gap-2">
-      {list.map((action) => (
-        <Button key={action} size="small" variant={action === "regenerate" || action === "generate" || action === "retry" ? "contained" : "outlined"} onClick={run[action]} disabled={inFlight}>
-          {LABELS[action]}
-        </Button>
-      ))}
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
+        {list.map((action) => (
+          <Button key={action} size="small" variant={action === "regenerate" || action === "generate" || action === "retry" ? "contained" : "outlined"} onClick={run[action]} disabled={inFlight}>
+            {LABELS[action]}
+          </Button>
+        ))}
+      </div>
+      {list.some((a) => a === "regenerate" || a === "keep" || a === "replace" || a === "use-anyway") ? (
+        <p className="m-0 text-sm text-muted">El QR que ya imprimiste no cambia: crear uno nuevo solo afecta a lo que imprimas a partir de ahora.</p>
+      ) : null}
     </div>
   );
 }

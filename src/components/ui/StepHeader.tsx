@@ -8,7 +8,7 @@ export function StepHeader({ step, title, description, actions }: { step?: StepI
     <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div className="flex min-w-0 flex-col gap-1">
         {step !== undefined ? (
-          <p className="m-0 text-xs font-semibold uppercase tracking-wider text-primary">
+          <p className="m-0 text-sm font-semibold uppercase tracking-wider text-primary">
             Paso {step + 1} de {STEPS.length}
           </p>
         ) : null}

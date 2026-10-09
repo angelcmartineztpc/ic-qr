@@ -60,7 +60,7 @@ test.describe("dos pestañas: un solo escritor (AC: la segunda queda en solo lec
       await a.goto("/editor");
       await expect(a.getByRole("heading", { name: "Aún no hay piezas" })).toBeVisible();
       await b.goto("/editor");
-      await expect(b.getByText(/abierto en otra pestaña \(solo lectura\)/)).toBeVisible();
+      await expect(b.getByText(/abierto en otra pestaña y aquí solo puedes verlo/)).toBeVisible();
       await expect(b.getByRole("button", { name: "+ Agregar nuevo" }).first()).toBeDisabled();
 
       // A trabaja y guarda mientras B (con el proyecto vacío cargado) sigue abierta.
@@ -73,7 +73,7 @@ test.describe("dos pestañas: un solo escritor (AC: la segunda queda en solo lec
       await b.getByRole("button", { name: "Tomar el control" }).click();
       await expect(b.getByTestId("counter-all")).toHaveText("Total: 1", { timeout: 10_000 });
       await expect(b.getByRole("button", { name: "+ Agregar nuevo" }).first()).toBeEnabled();
-      await expect(a.getByText(/abierto en otra pestaña \(solo lectura\)/)).toBeVisible();
+      await expect(a.getByText(/abierto en otra pestaña y aquí solo puedes verlo/)).toBeVisible();
       await expect(a.getByRole("button", { name: "+ Agregar nuevo" }).first()).toBeDisabled();
 
       // Lo que escribe B se suma al trabajo de A (no lo sustituye).
@@ -102,7 +102,7 @@ test.describe("rendimiento con 1000 piezas (AC: cambiar de página <100 ms, sin 
     await expect(page.getByText(/1000 piezas abiertas/)).toBeVisible({ timeout: 30_000 });
     await page.getByRole("link", { name: "Continuar" }).click();
     await expect(page.getByTestId("counter-all")).toHaveText("Total: 1000");
-    await page.getByRole("button", { name: "Vista de rejilla" }).click();
+    await page.getByRole("button", { name: /^Todas/ }).click();
     await expect(page.getByTestId("page-position")).toHaveText("Página 1 de 42");
     await expect(page.getByTestId("record-card")).toHaveCount(24); // solo la página visible, no las 1000
 

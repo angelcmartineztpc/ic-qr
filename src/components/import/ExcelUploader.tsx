@@ -35,9 +35,20 @@ export function ExcelUploader({ disabled, onFile }: ExcelUploaderProps) {
     >
       <UploadFileIcon color="primary" sx={{ fontSize: 48 }} aria-hidden />
       <p className="m-0 text-lg">Arrastra aquí tu archivo .xlsx o .csv</p>
-      <p id={hintId} className="m-0 text-sm text-muted">
-        o elígelo desde tu equipo. Máximo 10 MB y 5000 filas. Si es un .csv, puede separar con coma, punto y coma o tabulador. Columnas: Área, Estación, Mesa, Sub-grupo, Concepto, Link del menú y Link del QR.
-      </p>
+      <div id={hintId} className="flex max-w-2xl flex-col gap-1 text-sm text-muted">
+        <p className="m-0">o elígelo desde tu equipo.</p>
+        <ul className="m-0 list-none p-0">
+          <li>
+            <strong className="font-semibold text-foreground">Columnas obligatorias:</strong> Área, Mesa y Link del menú.
+          </li>
+          <li>
+            <strong className="font-semibold text-foreground">Opcionales:</strong> Estación, Sub-grupo, Concepto y Link del QR.
+          </li>
+          <li>
+            <strong className="font-semibold text-foreground">Límite:</strong> 10 MB y 5000 filas. Un .csv puede separar con coma, punto y coma o tabulador.
+          </li>
+        </ul>
+      </div>
       <Button variant="contained" onClick={() => input.current?.click()} disabled={disabled} aria-describedby={hintId}>
         Seleccionar archivo
       </Button>

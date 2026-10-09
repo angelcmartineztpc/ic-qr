@@ -19,6 +19,9 @@ import type { QRRecord } from "@/types";
 import { TilePreview } from "@/components/preview/TilePreview";
 
 import type { BuilderActions } from "./builder-actions";
+import { qrBadge } from "@/lib/records/qr-badge";
+import { useSession } from "@/lib/state/StoreProvider";
+
 import { QrStatusBadge } from "./QrStatusBadge";
 import { RecordQrActions } from "./RecordQrActions";
 
@@ -35,7 +38,12 @@ interface Props {
   onNext(): void;
 }
 
-const EMPTY = <span className="text-muted">—</span>;
+const EMPTY = (
+  <span className="text-muted">
+    <span aria-hidden>—</span>
+    <span className="sr-only">Sin dato</span>
+  </span>
+);
 
 function Field({ name, children }: { name: string; children: React.ReactNode }) {
   return (
@@ -49,6 +57,8 @@ function Field({ name, children }: { name: string; children: React.ReactNode }) 
 /** Vista de una pieza (spec §12): «Pieza N de M», vista previa grande y todos sus datos. */
 export function RecordDetail({ record, position, total, readOnly, actions, onEdit, onMove, onPrevious, onNext }: Props) {
   const issues = record.validationErrors.filter((i) => i.severity !== "info");
+  const inFlight = useSession((s) => s.inFlight.includes(record.id));
+  const qrExplanation = qrBadge(record, inFlight).tooltip;
   const link = (url: string | undefined) =>
     url ? (
       <Link href={url} target="_blank" rel="noopener noreferrer" underline="hover">
@@ -85,7 +95,7 @@ export function RecordDetail({ record, position, total, readOnly, actions, onEdi
               Mover
             </Button>
             <Button variant="outlined" startIcon={<DownloadIcon />} onClick={() => void actions.downloadPieceSvg(record.id)}>
-              SVG
+              Descargar SVG
             </Button>
             <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => void actions.remove([record.id])} disabled={readOnly}>
               Eliminar
@@ -98,6 +108,7 @@ export function RecordDetail({ record, position, total, readOnly, actions, onEdi
         <div className="flex flex-wrap items-center gap-2">
           <QrStatusBadge record={record} size="medium" />
         </div>
+        {qrExplanation ? <p className="m-0 text-sm text-muted">{qrExplanation}</p> : null}
         <RecordQrActions record={record} actions={actions} />
 
         <dl className="m-0 grid grid-cols-2 gap-x-5 gap-y-3.5">

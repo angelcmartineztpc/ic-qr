@@ -62,3 +62,31 @@
 .skip-link:focus {
   top: 1rem;
 }
+
+/*
+ * Foco del teclado visible en TODOS los controles (WCAG 2.4.7 / 2.4.13). Va sin capa
+ * a propósito: las reglas de MUI (capa mui) ponen `outline: 0` en botones y toggles y
+ * ganarían a una regla dentro de una capa.
+ */
+:focus-visible {
+  outline: 3px solid var(--mui-palette-primary-main);
+  outline-offset: 2px;
+}
+/* Los campos de texto ya marcan el foco con el borde grueso del contorno; no se duplica. */
+.MuiInputBase-input:focus-visible {
+  outline: none;
+}
+/* El input del interruptor es invisible: el contorno se dibuja en el interruptor completo. */
+.MuiSwitch-root:has(input:focus-visible) {
+  outline: 3px solid var(--mui-palette-primary-main);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+.MuiSwitch-root input:focus-visible {
+  outline: none;
+}
+
+/* El pie fijo del paso no debe tapar el control que recibe el foco al navegar con Tab. */
+html {
+  scroll-padding-bottom: 6rem;
+}

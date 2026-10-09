@@ -74,7 +74,7 @@ export function createBuilderActions(deps: ActionDeps) {
   function announce(summary: ResolveQrSummary, retry: () => void): void {
     const parts: string[] = [];
     if (summary.generated > 0) parts.push(plural(summary.generated, "QR generado", "QR generados"));
-    if (summary.reused > 0) parts.push(plural(summary.reused, "QR reutilizado (ya existía)", "QR reutilizados (ya existían)"));
+    if (summary.reused > 0) parts.push(plural(summary.reused, "QR ya generado antes (se usó el mismo)", "QR ya generados antes (se usaron los mismos)"));
     if (summary.verified > 0) parts.push(plural(summary.verified, "QR existente verificado", "QR existentes verificados"));
     if (summary.failed > 0) {
       const detail = summary.networkError ? `: ${summary.networkError}` : "";
@@ -369,7 +369,7 @@ export function createBuilderActions(deps: ActionDeps) {
       const { summary } = opened;
       const notes = [plural(summary.records, "pieza abierta", "piezas abiertas")];
       if (summary.acksCleared > 0) notes.push(`${plural(summary.acksCleared, "pieza necesita", "piezas necesitan")} confirmar de nuevo su QR`);
-      if (summary.quarantined > 0) notes.push(`${plural(summary.quarantined, "registro no se pudo leer", "registros no se pudieron leer")}`);
+      if (summary.quarantined > 0) notes.push(`${plural(summary.quarantined, "pieza no se pudo leer", "piezas no se pudieron leer")}`);
       notify({ message: notes.join(" · "), severity: summary.acksCleared + summary.quarantined > 0 ? "warning" : "success", group: "persistence" });
       return true;
     },

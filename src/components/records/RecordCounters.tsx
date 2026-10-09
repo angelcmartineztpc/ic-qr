@@ -25,6 +25,7 @@ export function RecordCounters({ onFilter }: { onFilter(filter: CounterFilter): 
 
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Resumen de piezas">
+      <span className="text-sm text-muted">Filtrar por:</span>
       {items.map((item) => (
         <Chip
           key={item.key}
