@@ -31,7 +31,7 @@ export function createEmptyProject(now: string, options: { id?: string; name?: s
     templateId: template.id,
     templateOverrides: structuredClone(EMPTY_TEMPLATE_OVERRIDES) as ProjectState["templateOverrides"],
     layout: { templateId: template.id, base: template.defaultLayout, overrides: {} },
-    exportOptions: { fileName: "", formats: ["pdf"], pdf: { ...PDF_DEFAULTS, pageSize: { ...PDF_DEFAULTS.pageSize }, margins: { ...PDF_DEFAULTS.margins } }, svg: { textMode: "outlined", cutLine: false }, zipNaming: "index" },
+    exportOptions: { fileName: "", formats: ["pdf"], pdf: { ...PDF_DEFAULTS, pageSize: { ...PDF_DEFAULTS.pageSize }, margins: { ...PDF_DEFAULTS.margins } }, svg: { textMode: "live", cutLine: false }, zipNaming: "index" },
     fileNameTouched: false,
     duplicateKey: { ...DEFAULT_DUPLICATE_KEY, fields: [...DEFAULT_DUPLICATE_KEY.fields] },
     revision: 0,

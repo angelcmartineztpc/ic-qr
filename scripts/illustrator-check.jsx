@@ -63,7 +63,7 @@
     log("");
     log("Fuentes del texto vivo:");
     for (var name in fonts) log("  - " + name);
-    log("  (si aparecen como no disponibles, instala Gotham para editar el texto)");
+    log("  (si aparecen como no disponibles, instala Address Sans Pro Cd Semibold para editar el texto)");
   }
 
   log("");

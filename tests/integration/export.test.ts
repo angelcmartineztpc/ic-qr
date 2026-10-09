@@ -81,7 +81,7 @@ function request(records: ExportRecord[], options: Partial<ExportRequestInput["o
     templateId: template.id,
     templateOverrides: structuredClone(EMPTY_TEMPLATE_OVERRIDES) as ExportRequestInput["templateOverrides"],
     layout: { templateId: template.id, base: template.defaultLayout, overrides: {} },
-    options: { fileName: "Mesas LBLC", formats: ["pdf"], pdf: { ...PDF_DEFAULTS, pageSize: { ...PDF_DEFAULTS.pageSize }, margins: { ...PDF_DEFAULTS.margins } }, svg: { textMode: "outlined", cutLine: false }, zipNaming: "index", ...options },
+    options: { fileName: "Mesas LBLC", formats: ["pdf"], pdf: { ...PDF_DEFAULTS, textMode: "outlined", pageSize: { ...PDF_DEFAULTS.pageSize }, margins: { ...PDF_DEFAULTS.margins } }, svg: { textMode: "outlined", cutLine: false }, zipNaming: "index", ...options },
   } as ExportRequestInput;
 }
 
@@ -134,6 +134,27 @@ afterAll(async () => {
 });
 
 describe.skipIf(!HAS_PIECE_FONT)("POST /api/export (requiere la fuente de las piezas: bun run fonts:setup)", () => {
+  it("con los valores por defecto el texto es vivo (editable en Illustrator) y sigue sin imágenes", async () => {
+    expect(PDF_DEFAULTS.textMode).toBe("live");
+    const records = [...(await generated(["a", "b"]))];
+    const input = request(records, { formats: ["pdf", "svgZip"], pdf: { ...PDF_DEFAULTS, pageSize: { ...PDF_DEFAULTS.pageSize }, margins: { ...PDF_DEFAULTS.margins } }, svg: { textMode: "live", cutLine: false } });
+    const response = await run(input);
+    if (response.status !== 200) throw new Error(JSON.stringify(await response.json()));
+    const out = await collect(response);
+    expect(out.error).toBeUndefined();
+
+    const pdf = out.files["pdf"] as Uint8Array;
+    const report = await inspectPdf(pdf);
+    expect(report).toMatchObject({ imageObjects: 0 });
+    expect(report.fontFiles).toBeGreaterThan(0); // la fuente va incrustada
+    const [content] = await pageContents(pdf);
+    expect(content).toMatch(/\bBT\b/); // texto real, no trazos
+
+    const svg = new TextDecoder().decode(unzipSync(out.files["zip"] as Uint8Array)["001.svg"]);
+    expect(svg).toMatch(/<text [^>]*font-family="Address Sans Pro Cd"/);
+    expect(svg).not.toMatch(/<image|<script/);
+  });
+
   it("PDF vectorial y ZIP de SVG numerado 001…; el stream trae progreso, metadatos, chunks y DONE", async () => {
     const records = [...(await generated(["a", "b", "c"])), await existing("d")];
     const response = await run(request(records, { formats: ["pdf", "svgZip"] }));

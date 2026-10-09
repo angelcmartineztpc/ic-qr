@@ -19,7 +19,7 @@ export const ExportOptionsSchema = z.strictObject({
   pdf: PDFOptionsSchema,
   svg: z
     .strictObject({ textMode: z.enum(["outlined", "live"]), cutLine: z.boolean() })
-    .default({ textMode: "outlined", cutLine: false }),
+    .default({ textMode: "live", cutLine: false }),
   zipNaming: z.enum(["index", "index-area-mesa"]).default("index"),
 });
 

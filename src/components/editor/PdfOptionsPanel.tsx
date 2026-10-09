@@ -82,9 +82,9 @@ export function PdfOptionsPanel({ options, tile, count, disabled, onChange, form
           <FormControlLabel control={<Switch checked={options.center} disabled={disabled} onChange={(e) => onChange({ center: e.target.checked })} />} label="Centrar las piezas en la hoja" />
         </>
       ) : null}
-      <TextField select size="small" label="Texto en el PDF" value={options.textMode} disabled={disabled} helperText={options.textMode === "live" ? "Texto editable: requiere la fuente instalada al abrirlo en Illustrator" : "Contornos: se ve igual en cualquier equipo"} onChange={(e) => onChange({ textMode: e.target.value as PDFOptions["textMode"] })}>
-        <MenuItem value="outlined">Convertido a contornos (recomendado)</MenuItem>
-        <MenuItem value="live">Texto vivo</MenuItem>
+      <TextField select size="small" label="Texto en el PDF" value={options.textMode} disabled={disabled} helperText={options.textMode === "live" ? "Texto editable en Illustrator: necesita Address Sans Pro Cd Semibold instalada (Adobe Fonts) al abrir el archivo" : "Contornos: se ve igual en cualquier equipo, pero el texto ya no se puede editar"} onChange={(e) => onChange({ textMode: e.target.value as PDFOptions["textMode"] })}>
+        <MenuItem value="live">Texto vivo (editable en Illustrator)</MenuItem>
+        <MenuItem value="outlined">Convertido a contornos (para fabricación)</MenuItem>
       </TextField>
       <FormControlLabel control={<Switch checked={options.includeQrBackground} disabled={disabled} onChange={(e) => onChange({ includeQrBackground: e.target.checked })} />} label="Fondo blanco bajo el QR" />
       <FormControlLabel

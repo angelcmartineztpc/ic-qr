@@ -5,7 +5,7 @@
  *   bun run render:sample        (o: npm run render:sample)
  *
  * Archivos:
- *   sample-sheet.pdf        hoja A4 con 15 piezas, texto en contornos (por defecto)
+ *   sample-sheet.pdf        hoja A4 con 15 piezas, texto en contornos (para fabricación)
  *   sample-single.pdf       una pieza por página (50 × 50 mm = una mesa de trabajo por pieza)
  *   sample-live.pdf         texto vivo (fuente incrustada; instálala para editarlo)
  *   sample-cmyk-cutline.pdf CMYK + línea de corte CutContour (tinta plana)
@@ -75,8 +75,8 @@ async function writePdf(name: string, pdf: PDFOptions, outlined: boolean) {
   console.log(`✓ out/${name} (${(bytes.length / 1024).toFixed(0)} KB)`);
 }
 
-await writePdf("sample-sheet.pdf", pdfOptions(), true);
-await writePdf("sample-single.pdf", pdfOptions({ mode: "single" }), true);
+await writePdf("sample-sheet.pdf", pdfOptions({ textMode: "outlined" }), true);
+await writePdf("sample-single.pdf", pdfOptions({ mode: "single", textMode: "outlined" }), true);
 await writePdf("sample-live.pdf", pdfOptions({ textMode: "live" }), false);
 await writePdf("sample-cmyk-cutline.pdf", pdfOptions({ colorSpace: "cmyk", cutLine: "spot" }), true);
 

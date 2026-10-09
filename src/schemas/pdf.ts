@@ -17,7 +17,7 @@ export const PDF_DEFAULTS = {
   gapMm: 5,
   bleedMm: 0,
   center: true,
-  textMode: "outlined",
+  textMode: "live",
   cutLine: "none",
   colorSpace: "rgb",
   includeQrBackground: true,
