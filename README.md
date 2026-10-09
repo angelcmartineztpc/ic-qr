@@ -37,7 +37,7 @@ bun run fonts:setup             # copia Gotham a assets/fonts/gotham (o: npm run
 
 ### Fuentes
 
-Gotham tiene **licencia comercial** (Hoefler & Co.), así que sus archivos **no se versionan**. `bun run fonts:setup` los copia desde `~/Library/Fonts`. Para usar otra carpeta, define `FONTS_SOURCE_DIR=/ruta`. El script verifica el sha256 contra [`assets/fonts/gotham/manifest.json`](assets/fonts/gotham/manifest.json).
+Gotham tiene **licencia comercial** (Hoefler & Co.), así que sus archivos **no se versionan**. `bun run fonts:setup` las busca por nombre PostScript en `~/Library/Fonts` y en la caché de Adobe Fonts, las convierte a `.woff2` si hace falta y verifica el sha256 contra [`assets/fonts/gotham/manifest.json`](assets/fonts/gotham/manifest.json). Para usar otra carpeta, define `FONTS_SOURCE_DIR=/ruta`. En Address Sans comprueba además una huella de anchos: rechaza «Address Sans Pro SemiBold» (ancho normal), que no es la **Cd** condensada de las piezas (ver [`assets/fonts/address-sans/README.md`](assets/fonts/address-sans/README.md)).
 
 La **interfaz** usa Gotham (decisión del 2026-10-07; se publica en `/_next/static`, así que la licencia debe cubrir uso web). Los `.woff2` no se versionan: `bun run fonts:setup` los copia antes de `dev`/`build`. La tipografía de las **piezas** NO es Gotham: es **Address Sans Pro Cd Semibold**, la de la referencia `QR_Tropical_1M_Alimentos.pdf` (`assets/fonts/address-sans`, tampoco versionada; `bun run fonts:setup` instala ambas). La pieza `tropical-table` mide **70 × 70 mm** y reproduce el PDF de referencia. Las vistas previas de las piezas reciben el texto ya convertido en contornos desde el servidor.
 

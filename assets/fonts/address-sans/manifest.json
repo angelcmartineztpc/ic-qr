@@ -5,8 +5,17 @@
   "files": {
     "AddressSansPro-CdSemibold.woff2": {
       "weight": 600,
-      "sha256": ""
+      "sha256": "",
+      "postscriptName": "AddressSansPro-CdSemibold",
+      "advances": {
+        "M": 613,
+        "T": 358,
+        "O": 450,
+        "A": 415,
+        "0": 450,
+        "1": 286
+      }
     }
   },
-  "note": "PENDIENTE: falta el archivo real de Address Sans Pro Cd Semibold (PostScript: AddressSansPro-CdSemibold). Los archivos address-sans-pro-semibold.* de la carpeta _Fonts del diseño son Address Sans Pro SemiBold de ancho normal y NO sirven. Huella tomada de QR_Alimentos.ai (subconjunto incrustado), avances por 1000 em: M 613, T 358, O 450, A 415, 0 450, 1 286; «CONSULTA EL MENU Y ORDENA EN LÍNEA» a 13.2 pt mide 58.6 mm sin tracking y 54.7 mm con tracking −25. Con el archivo correcto, ejecuta 'bun run fonts:setup --write-manifest' para fijar su sha256."
+  "note": "La huella de anchos (advances, por 1000 em) viene de la fuente incrustada en QR_Alimentos.ai. fonts:setup rechaza cualquier archivo que no la cumpla: p. ej. address-sans-pro-semibold (ancho normal) NO es la Cd. Referencia: «CONSULTA EL MENU Y ORDENA EN LÍNEA» a 13.2 pt mide 58.6 mm sin tracking y 54.7 mm con tracking −25."
 }

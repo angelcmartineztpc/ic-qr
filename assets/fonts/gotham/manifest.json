@@ -5,19 +5,23 @@
   "files": {
     "Gotham-Book.woff2": {
       "weight": 400,
-      "sha256": "25f621303f7908ef34bd3e567ec8e6ba2871b2d9ddf41b915f425166448307d9"
+      "sha256": "25f621303f7908ef34bd3e567ec8e6ba2871b2d9ddf41b915f425166448307d9",
+      "postscriptName": "Gotham-Book"
     },
     "Gotham-Medium.woff2": {
       "weight": 500,
-      "sha256": "ed114f43e17da00f39ecdb5a4ed25cbbb9871b04ba4888ffbbb3d30097385afa"
+      "sha256": "ed114f43e17da00f39ecdb5a4ed25cbbb9871b04ba4888ffbbb3d30097385afa",
+      "postscriptName": "Gotham-Medium"
     },
     "Gotham-Bold.woff2": {
       "weight": 700,
-      "sha256": "b66819dd3960cf4a33565fba9ea692b73ed433458ba9984334aeaba71c67121b"
+      "sha256": "b66819dd3960cf4a33565fba9ea692b73ed433458ba9984334aeaba71c67121b",
+      "postscriptName": "Gotham-Bold"
     },
     "Gotham-Black.woff2": {
       "weight": 800,
-      "sha256": "a64825a75e24b8f252b98d99aaff8a5276f38dd5bf9ad5dd59be87dc5cc64afd"
+      "sha256": "a64825a75e24b8f252b98d99aaff8a5276f38dd5bf9ad5dd59be87dc5cc64afd",
+      "postscriptName": "Gotham-Black"
     }
   }
 }

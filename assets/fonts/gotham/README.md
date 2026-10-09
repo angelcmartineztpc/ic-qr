@@ -6,9 +6,11 @@ Los archivos `.woff2` **no se versionan**: Gotham tiene licencia comercial de Ho
 Para instalarlos en tu copia local:
 
 ```bash
-bun run fonts:setup                              # copia desde ~/Library/Fonts
+bun run fonts:setup                              # busca por nombre PostScript en ~/Library/Fonts y la caché de Adobe Fonts
 FONTS_SOURCE_DIR=/ruta/a/gotham bun run fonts:setup
 ```
+
+Si encuentra la fuente en otf/ttf la convierte a `.woff2`; si ya es `.woff2`, la copia.
 
 `manifest.json` (sí versionado) fija el sha256 de cada archivo, así todos los entornos
 usan exactamente la misma versión. Si cambias de versión de Gotham, ejecuta

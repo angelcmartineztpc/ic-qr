@@ -47,7 +47,7 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 
 **Estilos:** MUI pinta los componentes solo a través del tema; Tailwind se usa para layout, espaciado y responsive. Sin literales de color en `sx`/`style` dentro de `src/components/**`; los tokens se definen una sola vez (tema MUI → `globals.css`). Referencia visual: `DESIGN.md` y `PRODUCT.md`.
 
-**Fuentes:** Gotham (interfaz) y Address Sans Pro Cd (piezas) tienen licencia comercial: **no se versionan**. `bun run fonts:setup` las instala desde la máquina local y verifica su sha256 contra el `manifest.json` de cada familia; un archivo que no coincide con el manifiesto no debe usarse para producir piezas.
+**Fuentes:** Gotham (interfaz) y Address Sans Pro Cd (piezas) tienen licencia comercial: **no se versionan**. `bun run fonts:setup` las instala desde la máquina local y verifica su sha256 contra el `manifest.json` de cada familia; un archivo que no coincide con el manifiesto —o con la huella de anchos de Address Sans Pro **Cd**, que no es lo mismo que «SemiBold» de ancho normal— no debe usarse para producir piezas. Los archivos se guardan en `.woff2`.
 
 **Código heredado:** la rama `qr-api-created` (`app/`, `lib/`, `data/`, `qrcode`, `pdf-lib`, `archiver`, `tailwind.config.js`) fue absorbida y reemplazada por `src/`; no se reintroduce.
 
