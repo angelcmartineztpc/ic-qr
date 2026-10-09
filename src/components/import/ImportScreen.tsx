@@ -22,6 +22,7 @@ import type { DuplicateStrategy } from "@/types";
 import { PersistenceBanners } from "@/components/records/PersistenceBanners";
 import { useBuilderActions } from "@/components/records/useBuilderActions";
 
+import { ResortLinkPicker } from "@/components/forms/ResortLinkPicker";
 import { ColumnMappingDialog } from "./ColumnMappingDialog";
 import { DuplicateKeyDialog } from "./DuplicateKeyDialog";
 import { ExcelUploader } from "./ExcelUploader";
@@ -83,9 +84,10 @@ export function ImportScreen() {
 
       {imp.status === "idle" || imp.status === "error" ? (
         <>
+          <ResortLinkPicker disabled={readOnly || !hydrated} onPick={setDefaultMenu} />
           <TextField
             label="Link del menú para las filas que no lo traen (opcional)"
-            helperText="Si tu archivo no tiene la columna «Link del menú» o la trae vacía, se usa este link en esas filas."
+            helperText="Elige Resort y Servicio arriba: el QR de todas las filas sin link usará el link estable de ese resort. Si tu archivo no trae la columna «Link del menú» o la trae vacía, se usa este link en esas filas."
             placeholder="https://menu.ejemplo.com/hotel"
             value={defaultMenu}
             onChange={(e) => setDefaultMenu(e.target.value)}

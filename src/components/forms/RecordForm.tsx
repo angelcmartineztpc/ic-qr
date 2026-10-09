@@ -20,6 +20,7 @@ import { EMPTY_FORM, formValuesOf, validateForm, type FormValues } from "@/lib/v
 import { FIELD_LABELS } from "@/lib/validation/messages.es";
 import type { FieldKey, QRRecord } from "@/types";
 
+import { ResortLinkPicker } from "./ResortLinkPicker";
 import { TilePreview } from "@/components/preview/TilePreview";
 import { QrStatusBadge } from "@/components/records/QrStatusBadge";
 import type { RecordDraft } from "@/types";
@@ -120,6 +121,7 @@ function RecordFormBody({ formId, record, busy, setBusy, onClose, onSubmit }: Bo
       <DialogContent dividers>
         <div className="grid gap-6 md:grid-cols-[1fr_16rem]">
           <form id={formId} onSubmit={submit} noValidate className="grid gap-4">
+            <ResortLinkPicker disabled={busy} onPick={(url) => setValues((v) => ({ ...v, menuUrl: url }))} />
             {FIELDS.map((field, index) => (
               <TextField
                 key={field.name}
