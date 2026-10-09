@@ -18,6 +18,7 @@ La arquitectura completa, las decisiones y el plan por fases están en [`docs/AR
 | 8 | Editor visual (`/preview`) | ✓ |
 | 9 | Exportación en el servidor (`POST /api/export`) | ✓ |
 | 10 | Descarga con progreso y cancelación | ✓ |
+| — | Link estable del QR por resort y servicio (`/api/qr/{resort}/{servicio}`) | ✓ (integrado desde `qr-api-created`; ver «Link estable del QR») |
 | 11–12 | Testing integral, pulido | pendiente (siguiente: **Fase 11, testing integral y endurecimiento**) |
 
 ## Requisitos
@@ -74,6 +75,7 @@ Todas están documentadas en [`.env.example`](.env.example). Las más importante
 | `APP_ORIGINS`, `APP_ALLOWED_HOSTS` | localhost por defecto | **obligatorias** (CSRF y anti DNS-rebinding) |
 | `STORAGE_PROVIDER` | `local` | `s3` (AWS S3, Cloudflare R2, Supabase, MinIO) |
 | `STORAGE_PUBLIC_BASE_URL` | `http://localhost:3000/api/storage` | dominio público del bucket |
+| `NEXT_PUBLIC_QR_DOMAIN` | vacío (usa el origen de la app) | **dominio permanente** que se graba en los QR; se fija al compilar |
 
 Al arrancar, la configuración se valida con Zod (`src/server/config/env-schema.ts`). Si falta algo o es inseguro, el proceso termina mostrando **todos** los problemas a la vez. Los secretos admiten la variante `*_FILE` (Docker/Kubernetes secrets).
 
@@ -97,14 +99,25 @@ src/
   components/   UI (MUI + Tailwind), islas cliente
   lib/          núcleo isomórfico (dominio, QR, escena, SVG) — sin servidor ni React
   server/       solo Node: entorno, guardas HTTP, storage, Excel, PDF
+  lib/resorts/  resorts, servicios y destinos del link estable del QR
   schemas/      Zod      types/  tipos de dominio      templates/  plantillas de pieza
 assets/fonts/   Gotham (no versionada) + manifest
 scripts/        utilidades (fuentes, contraseña, SheetJS)
 tests/          integración, e2e, helpers
-docs/           ARCHITECTURE.md
+docs/           ARCHITECTURE.md, ILLUSTRATOR.md
+specs/          features F001–F004 (ver specs/README.md)
+.specify/       Spec Kit: constitución (memory/constitution.md), plantillas y scripts
 ```
 
 Las reglas de capas (por ejemplo, que `components` y `lib` no puedan importar `server`) se imponen con ESLint.
+
+## Link estable del QR
+
+El QR se graba en metal y no se puede reimprimir barato, así que **no codifica el destino**: codifica `{dominio}/api/qr/{resortCode}/{servicio}` (por ejemplo `/api/qr/TGPC/pool`). Esa ruta responde `302` al destino vigente de [`src/lib/resorts/properties.ts`](src/lib/resorts/properties.ts), con `Cache-Control: no-store`; un resort o servicio desconocido da `404`. Cambiar un destino es editar ese archivo, sin reimprimir.
+
+- En el formulario de pieza y en la importación, el selector **Resort + Servicio** rellena el «Link del menú» con esa URL estable.
+- `NEXT_PUBLIC_QR_DOMAIN` debe ser el dominio **definitivo**: queda grabado en cada pieza. Vacío, se usa el origen actual de la app (solo para desarrollo).
+- Es la única ruta `/api` pública (la abren los huéspedes al escanear); no acepta destinos arbitrarios, solo los de la lista.
 
 ## Seguridad (resumen)
 

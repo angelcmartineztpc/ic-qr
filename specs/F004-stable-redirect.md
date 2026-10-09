@@ -2,6 +2,8 @@
 
 **Status:** Implemented · **Owner:** Angel C. Martinez · **Scope:** lógica + API, sin UI · **Depende de:** F001, F003
 
+> Integrada en `src/` (ver [specs/README.md](README.md)): las rutas `app/`, `data/` y la variable `QR_DOMAIN` del texto de abajo son hoy `src/app/`, `src/lib/resorts/` y `NEXT_PUBLIC_QR_DOMAIN`.
+
 ## Problem
 El QR se graba en láser y no se puede reimprimir barato. Si el link de destino cambia, el QR no debe cambiar.
 
