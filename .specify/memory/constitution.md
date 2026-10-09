@@ -17,7 +17,7 @@ Cada concepto tiene un único dueño: plantilla = datos Zod + `TemplateOverrides
 - **El servidor no confía en el cliente:** recalcula la exportabilidad y la identidad de cada QR. Los fallos son siempre por pieza y nunca provocan una generación de respaldo.
 
 ### III. El QR codifica un link estable
-El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{dominio}/api/qr/{resortCode}/{service}`, y esa ruta redirige (302, `Cache-Control: no-store`) al destino vigente de `src/lib/resorts/properties.ts`. Cambiar un destino no cambia el QR. El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente. Esta ruta es la **única** pública y sin autenticación (la abren los huéspedes al escanear); no debe aceptar parámetros de destino arbitrarios.
+El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{dominio}/api/qr/{resortCode}/{service}`, y esa ruta redirige (302, `Cache-Control: no-store`) al destino vigente de `src/lib/resorts/properties.ts`. Cambiar un destino no cambia el QR. El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente. Esta ruta es pública y sin autenticación (la abren los huéspedes al escanear); no debe aceptar parámetros de destino arbitrarios. Las otras rutas `/api` sin guardas son `GET /api/health` y, solo con storage local, `GET /api/storage/**`.
 
 ### IV. Salida vectorial verificable
 - El PDF es vectorial: 0 imágenes, páginas y piezas con medidas exactas en mm, QR como un único path, texto en contornos (o vivo con la fuente incrustada).
@@ -30,7 +30,7 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 - Toda transformación o descarte produce un `Issue` o `Warning` visible. Los mensajes al usuario van en español.
 
 ### VI. Seguridad por defecto
-- Todo Route Handler se declara con `withApiGuards` (host → auth → Content-Type y origen → rate limit → concurrencia → tamaño); las páginas se autentican en `src/proxy.ts`. La única excepción es el redirect de III.
+- Todo Route Handler se declara con `withApiGuards` (host → auth → Content-Type y origen → rate limit → concurrencia → tamaño); las páginas se autentican en `src/proxy.ts`. Las únicas excepciones son el redirect de III, `GET /api/health` y `GET /api/storage/**` (este último solo con storage local).
 - Con `AUTH_MODE=none` el servidor **no arranca** en producción. Los secretos nunca se versionan (`.env*`, salvo `.env.example`); admiten la variante `*_FILE`.
 - Toda descarga externa pasa por `safeFetch` (https, IP públicas, tamaños y tiempos acotados); todo SVG externo se sanea con lista blanca y se rechaza, no se ignora.
 - Los QR generados nunca se versionan en git.
@@ -53,7 +53,7 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 
 ## Flujo de trabajo
 
-- **Spec primero:** toda feature nueva pasa por Spec Kit (`/speckit-specify` → `clarify` → `plan` → `tasks` → `implement`, con `analyze` antes de implementar). Las features previas están documentadas en [`specs/`](../../specs/) (F001–F004) y las fases del proyecto en `docs/ARCHITECTURE.md` §G.
+- **Spec primero:** toda feature nueva pasa por Spec Kit (`/speckit-specify` → `clarify` → `plan` → `tasks` → `implement`, con `analyze` antes de implementar). Las features existentes están documentadas en [`specs/`](../../specs/) (`001`–`008`, más las anteriores F001–F004) y las fases del proyecto en `docs/ARCHITECTURE.md` §G.
 - **Commits** en español, con prefijo convencional (`feat:`, `fix:`, `docs:`, `chore:`, `merge:`), uno por cambio coherente. Las ramas largas se integran con `merge`, nunca descartando trabajo del otro lado sin dejarlo dicho en el mensaje.
 - Los cambios en la regla del QR (II), el link estable (III) o el pipeline vectorial (IV) se revisan contra esta constitución antes de fusionarse.
 

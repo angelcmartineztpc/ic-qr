@@ -2,7 +2,7 @@
   "name": "ic-qr",
   "version": "0.1.0",
   "private": true,
-  "description": "QR Production Generator: piezas de 50 × 50 mm con QR vectorial, SVG y PDF compatibles con Illustrator",
+  "description": "QR Production Generator: piezas de 70 × 70 mm con QR vectorial, SVG y PDF compatibles con Illustrator",
   "scripts": {
     "dev": "next dev",
     "build": "next build && node scripts/copy-standalone-assets.mjs",

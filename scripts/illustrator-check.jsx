@@ -31,10 +31,10 @@
   var first = doc.artboards[0].artboardRect;
   var w = mm(first[2] - first[0]);
   var h = mm(first[1] - first[3]);
-  var isTile = Math.abs(w - 50) < 0.05 && Math.abs(h - 50) < 0.05;
+  var isTile = (Math.abs(w - 70) < 0.05 && Math.abs(h - 70) < 0.05) || (Math.abs(w - 50) < 0.05 && Math.abs(h - 50) < 0.05);
   var isA4 = Math.abs(w - 210) < 0.1 && Math.abs(h - 297) < 0.1;
   var isLetter = Math.abs(w - 215.9) < 0.1 && Math.abs(h - 279.4) < 0.1;
-  if (!(isTile || isA4 || isLetter)) failures.push("La mesa de trabajo no mide 50×50 (pieza), 210×297 (A4) ni 215.9×279.4 (Carta): " + w + " × " + h + " mm");
+  if (!(isTile || isA4 || isLetter)) failures.push("La mesa de trabajo no mide 70×70 ni 50×50 (pieza), 210×297 (A4) ni 215.9×279.4 (Carta): " + w + " × " + h + " mm");
 
   // Debe ser vectorial: ninguna imagen, ni incrustada ni vinculada.
   var raster = doc.rasterItems.length;

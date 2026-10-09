@@ -5,8 +5,8 @@
  *   bun run render:sample        (o: npm run render:sample)
  *
  * Archivos:
- *   sample-sheet.pdf        hoja A4 con 15 piezas, texto en contornos (para fabricación)
- *   sample-single.pdf       una pieza por página (50 × 50 mm = una mesa de trabajo por pieza)
+ *   sample-sheet.pdf        hojas A4 con 15 piezas en total (6 por hoja), texto en contornos (para fabricación)
+ *   sample-single.pdf       una pieza por página (70 × 70 mm = una mesa de trabajo por pieza)
  *   sample-live.pdf         texto vivo (fuente incrustada; instálala para editarlo)
  *   sample-cmyk-cutline.pdf CMYK + línea de corte CutContour (tinta plana)
  *   sample.svg              una pieza, texto en contornos

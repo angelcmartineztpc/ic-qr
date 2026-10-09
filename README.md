@@ -1,6 +1,6 @@
 # QR Production Generator
 
-Herramienta interna para crear piezas físicas de metal de **50 × 50 mm** con datos de restaurante, mesa y un **QR vectorial**, y exportarlas como **PDF vectorial compatible con Adobe Illustrator** (y SVG por pieza).
+Herramienta interna para crear piezas físicas de metal de **70 × 70 mm** con datos de restaurante, mesa y un **QR vectorial**, y exportarlas como **PDF vectorial compatible con Adobe Illustrator** (y SVG por pieza).
 
 La arquitectura completa, las decisiones y el plan por fases están en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Ese documento es normativo; su sección final, «Registro de decisiones», prevalece sobre el resto.
 
@@ -117,7 +117,7 @@ El QR se graba en metal y no se puede reimprimir barato, así que **no codifica 
 
 - En el formulario de pieza y en la importación, el selector **Resort + Servicio** rellena el «Link del menú» con esa URL estable.
 - `NEXT_PUBLIC_QR_DOMAIN` debe ser el dominio **definitivo**: queda grabado en cada pieza. Vacío, se usa el origen actual de la app (solo para desarrollo).
-- Es la única ruta `/api` pública (la abren los huéspedes al escanear); no acepta destinos arbitrarios, solo los de la lista.
+- Es pública (la abren los huéspedes al escanear), igual que `/api/health` y, con storage local, `/api/storage/**`; no acepta destinos arbitrarios, solo los de la lista.
 
 ## Seguridad (resumen)
 

@@ -5,8 +5,8 @@ import { PreviewError, renderPreviewTiles } from "@/server/preview/render-tiles"
 import { getStorage } from "@/server/storage";
 
 /**
- * POST /api/preview/tiles — piezas ya dibujadas (contornos de Gotham) para la
- * vista previa. Gotham es una fuente comercial que solo vive en el servidor:
+ * POST /api/preview/tiles — piezas ya dibujadas (contornos de Address Sans Pro Cd) para la
+ * vista previa. Address Sans Pro Cd es una fuente comercial que solo vive en el servidor:
  * el navegador recibe SVG, nunca la fuente.
  */
 export const POST = withApiGuards(
