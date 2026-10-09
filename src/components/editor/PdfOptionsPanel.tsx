@@ -77,7 +77,7 @@ export function PdfOptionsPanel({ options, tile, count, disabled, onChange, form
             {margin("left", "Margen izquierdo")}
             {margin("right", "Margen derecho")}
             <NumberField key={`gap-${options.gapMm}`} label="Separación" unit="mm" step={1} value={options.gapMm} disabled={disabled} onCommit={(v) => (between(0, 50, v).ok ? (onChange({ gapMm: v }), ok) : between(0, 50, v))} />
-            <NumberField key={`bleed-${options.bleedMm}`} label="Sangrado (margen extra para el corte)" unit="mm" step={0.5} value={options.bleedMm} disabled={disabled} onCommit={(v) => (between(0, 5, v).ok ? (onChange({ bleedMm: v }), ok) : between(0, 5, v))} />
+            <NumberField key={`bleed-${options.bleedMm}`} label="Sangrado (corte)" unit="mm" step={0.5} value={options.bleedMm} disabled={disabled} onCommit={(v) => (between(0, 5, v).ok ? (onChange({ bleedMm: v }), ok) : between(0, 5, v))} />
           </div>
           <FormControlLabel control={<Switch checked={options.center} disabled={disabled} onChange={(e) => onChange({ center: e.target.checked })} />} label="Centrar las piezas en la hoja" />
         </>
