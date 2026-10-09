@@ -62,3 +62,8 @@ package-lock.json
 # Libros reales para probar la importación (pueden traer datos del cliente)
 /tests/fixtures/real/*.xlsx
 /tests/fixtures/real/*.csv
+
+# Cloudflare Workers (OpenNext)
+.dev.vars
+.open-next/
+.wrangler/

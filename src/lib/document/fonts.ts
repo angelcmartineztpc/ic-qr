@@ -29,6 +29,8 @@ export interface LoadedFont {
   shape(text: string): ShapedGlyph[];
   /** Archivo en disco (el PDF en modo texto vivo lo incrusta). */
   readonly filePath?: string;
+  /** Bytes de la fuente cuando no hay disco (Cloudflare Workers): el PDF los incrusta igual. */
+  readonly bytes?: Uint8Array;
 }
 
 export type FontResolver = (font: FontRef) => LoadedFont;

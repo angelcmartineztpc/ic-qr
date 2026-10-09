@@ -33,3 +33,10 @@ Resumen de lo que salió al escribir las specs `001`–`008` (2026-10-09). Cada 
 - `/preview` en móvil: la arquitectura dice solo lectura; el código no lo impone (006).
 - `PdfViewer` usa colores literales en clases de Tailwind; la constitución habla de `sx` y `style` (006).
 - `playwright.config.ts` arranca con `npm`, mientras la constitución prefiere Bun (008).
+
+## Cloudflare Workers (009)
+- **Sin publicar:** funciona en `wrangler dev`; falta `wrangler login`, crear el bucket R2, subir la fuente con `bun run cf:fonts -- --remote` y desplegar.
+- **No verificado en producción:** límites de memoria y CPU con exportaciones grandes, y el comportamiento de R2 real (`onlyIf.etagDoesNotMatch`).
+- **No disponible allí:** verificar un QR existente (Link del QR); falla con un error visible. Opción futura: `resvg-wasm`.
+- **Licencias:** subir Address Sans Pro Cd a Cloudflare es uso en servidor; falta confirmarlo con compras o legal.
+- **Middleware de Next (`src/proxy.ts`):** OpenNext lo marca como experimental en Cloudflare; el 401 sin credenciales se comprobó en local.

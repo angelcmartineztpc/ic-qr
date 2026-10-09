@@ -5,13 +5,14 @@ import { contentTypeForKey, isValidKey } from "@/server/storage/keys";
 const notFound = () => new Response("No encontrado", { status: 404, headers: { "Cache-Control": "no-store" } });
 
 /**
- * GET /api/storage/qr/v1/{sha256}.svg — SOLO con STORAGE_PROVIDER=local.
+ * GET /api/storage/qr/v1/{sha256}.svg — SOLO con STORAGE_PROVIDER=local o r2.
  * Es público y no pide autenticación (los qrUrl deben abrirse fuera de la app);
  * solo sirve claves con la forma exacta de un QR o una instantánea. Con un
- * proveedor S3 el bucket sirve los archivos y esta ruta no existe.
+ * proveedor S3 el bucket sirve los archivos y esta ruta no existe; con r2 el bucket es privado
+ * y esta ruta es la que sirve los archivos.
  */
 export async function GET(request: Request, ctx: RouteContext<"/api/storage/[...key]">) {
-  if (getEnv().STORAGE_PROVIDER !== "local") return notFound();
+  if (getEnv().STORAGE_PROVIDER === "s3") return notFound();
   const { key: parts } = await ctx.params;
   const key = parts.join("/");
   if (!isValidKey(key)) return notFound();

@@ -119,6 +119,31 @@ El QR se graba en metal y no se puede reimprimir barato, así que **no codifica 
 - `NEXT_PUBLIC_QR_DOMAIN` debe ser el dominio **definitivo**: queda grabado en cada pieza. Vacío, se usa el origen actual de la app (solo para desarrollo).
 - Es pública (la abren los huéspedes al escanear), igual que `/api/health` y, con storage local, `/api/storage/**`; no acepta destinos arbitrarios, solo los de la lista.
 
+## Cloudflare Workers
+
+La app también corre como Worker de Cloudflare con el adaptador [OpenNext](https://opennext.js.org/cloudflare) (`open-next.config.ts`, `wrangler.jsonc`). **Docker/Node sigue siendo la referencia**; el Worker es una segunda forma de desplegarla. Qué cambia allí:
+
+- **Almacenamiento:** `STORAGE_PROVIDER=r2` guarda los QR en el bucket R2 `QR_BUCKET` (binding, sin claves). Los archivos se sirven por `/api/storage/**`, que solo entrega claves de QR.
+- **Fuentes de las piezas:** no hay disco. Se suben una vez al prefijo privado `fonts/` del mismo bucket con `bun run cf:fonts` y el servidor las carga en memoria. Nunca son públicas. Gotham (interfaz) va dentro del build.
+- **Importación de Excel:** sin hilos, se lee dentro de la petición; el aislamiento lo da la plataforma.
+- **Verificar un QR existente (Link del QR) no está disponible:** necesita `sharp`, que no existe en Workers. La pieza muestra un error visible y no se genera nada. Los QR nuevos, la exportación y la vista previa funcionan igual.
+- **Requisitos:** plan de pago de Workers (el paquete pesa ≈ 4.3 MB comprimido; el gratuito admite 3 MB) y las licencias de las fuentes revisadas para subirlas a Cloudflare.
+
+```bash
+cp .dev.vars.example .dev.vars   # y pon el sha256 de tu clave
+bun run fonts:setup && bun run cf:fonts      # fuente de las piezas → R2 local simulado
+bun run cf:build && bun run cf:preview       # http://localhost:8787 (Workers en local)
+
+# Publicar (requiere tu cuenta; no se hace desde el repositorio sin tu permiso)
+bunx wrangler login
+bunx wrangler r2 bucket create qr-production-generator-qr
+bun run cf:fonts -- --remote
+bunx wrangler secret put BASIC_AUTH_PASSWORD_SHA256   # y AUTH_MODE, BASIC_AUTH_USER, APP_ORIGINS, APP_ALLOWED_HOSTS, STORAGE_PUBLIC_BASE_URL
+bun run cf:deploy
+```
+
+Detalle y decisiones en [`specs/009-cloudflare-workers/`](specs/009-cloudflare-workers/spec.md).
+
 ## Seguridad (resumen)
 
 Todo Route Handler se declara con `withApiGuards` (`src/server/http`), que comprueba en este orden:

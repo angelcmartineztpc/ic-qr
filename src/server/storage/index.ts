@@ -5,13 +5,16 @@ import { getEnv } from "../env";
 import { AsyncLimiter } from "../util/limiter";
 import { LocalStorageProvider } from "./local";
 import { limitStorage } from "./limited";
+import { cloudflareBucket, R2StorageProvider } from "./r2";
 import { S3StorageProvider } from "./s3";
 import type { StorageProvider } from "@/types";
 
 /** Construye el proveedor según el entorno (sin singleton: facilita las pruebas). */
 export function createStorage(env: Env): StorageProvider {
   const provider =
-    env.STORAGE_PROVIDER === "s3"
+    env.STORAGE_PROVIDER === "r2"
+      ? new R2StorageProvider({ bucket: () => cloudflareBucket(), publicBase: env.STORAGE_PUBLIC_BASE_URL })
+      : env.STORAGE_PROVIDER === "s3"
       ? new S3StorageProvider({
           bucket: env.STORAGE_BUCKET ?? "",
           region: env.STORAGE_REGION,

@@ -34,6 +34,7 @@ class FontkitLoadedFont implements LoadedFont {
   constructor(
     private readonly font: fontkit.Font,
     readonly filePath: string,
+    readonly bytes?: Uint8Array,
   ) {}
 
   get unitsPerEm() {
@@ -73,8 +74,37 @@ class FontkitLoadedFont implements LoadedFont {
  */
 export class NodeFontRegistry implements FontRegistry {
   private readonly cache = new Map<string, FontkitLoadedFont>();
+  private loading: Promise<void> | undefined;
 
-  constructor(private readonly baseDir: string) {}
+  constructor(
+    private readonly baseDir: string,
+    /** Origen alternativo al disco (Cloudflare Workers): devuelve [ruta relativa «familia/archivo», bytes]. */
+    private readonly remote?: () => Promise<Array<[string, Uint8Array]>>,
+  ) {}
+
+  /**
+   * Con origen remoto, carga las fuentes una sola vez (el resto del código es síncrono y las
+   * encuentra ya en memoria). Sin origen remoto no hace nada: las fuentes se leen del disco.
+   */
+  ready(): Promise<void> {
+    if (!this.remote) return Promise.resolve();
+    this.loading ??= this.remote().then(
+      (files) => {
+        for (const [relative, bytes] of files) this.addBytes(join(this.baseDir, relative), bytes);
+      },
+      (error: unknown) => {
+        this.loading = undefined; // permite reintentar en la siguiente petición
+        throw error;
+      },
+    );
+    return this.loading;
+  }
+
+  addBytes(path: string, bytes: Uint8Array): void {
+    const opened = fontkit.create(Buffer.from(bytes));
+    if (!("layout" in opened)) throw new Error(`${path} es una colección de fuentes; se esperaba un archivo individual`);
+    this.cache.set(path, new FontkitLoadedFont(opened, path, bytes));
+  }
 
   private load(path: string): FontkitLoadedFont {
     const cached = this.cache.get(path);

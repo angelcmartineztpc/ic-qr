@@ -1,7 +1,7 @@
 import "server-only";
 
 import { decodeQR } from "qr/decode.js";
-import sharp from "sharp";
+import type SharpModule from "sharp";
 
 import { externalGeometryToSvg } from "@/lib/qr/external";
 import { externalSnapshotKey } from "@/lib/qr/hash-input";
@@ -12,7 +12,25 @@ import { SafeFetchError, type SafeFetchResult } from "../net/safe-fetch";
 import { sha256Hex } from "./hash";
 import { sanitizeExternalSvg, SvgRejectedError } from "./sanitize-svg";
 
-sharp.concurrency(1); // la verificación no debe acaparar CPU del servidor
+type Sharp = typeof SharpModule;
+
+/**
+ * `sharp` es un módulo nativo: se carga solo al verificar un QR existente y no al importar la
+ * ruta. En Node (Docker) siempre está; en Cloudflare Workers no existe, y ahí generar QR nuevos
+ * sigue funcionando mientras que verificar uno existente avisa con un error visible.
+ */
+let sharpLoader: Promise<Sharp | null> | undefined;
+function loadSharp(): Promise<Sharp | null> {
+  sharpLoader ??= import("sharp")
+    .then((module) => {
+      module.default.concurrency(1); // la verificación no debe acaparar CPU del servidor
+      return module.default;
+    })
+    .catch(() => null);
+  return sharpLoader;
+}
+
+const RASTER_UNAVAILABLE = Symbol("raster-unavailable");
 
 export interface VerifyDeps {
   storage: StorageProvider;
@@ -73,7 +91,9 @@ async function download(qrUrl: string, deps: VerifyDeps): Promise<{ bytes: Uint8
 }
 
 /** Rasteriza NUESTRO SVG re-emitido (nunca el original) y lo decodifica. */
-async function decodeGeometry(geometry: ExternalSnapshot["geometry"], timeoutMs: number): Promise<string | undefined> {
+async function decodeGeometry(geometry: ExternalSnapshot["geometry"], timeoutMs: number): Promise<string | undefined | typeof RASTER_UNAVAILABLE> {
+  const sharp = await loadSharp();
+  if (!sharp) return RASTER_UNAVAILABLE;
   const svg = externalGeometryToSvg(geometry, { sizePx: 1024 });
   const work = (async () => {
     const { data, info } = await sharp(Buffer.from(svg), { limitInputPixels: 4_194_304 }).flatten({ background: "#ffffff" }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -122,6 +142,9 @@ export async function verifyExistingQr(qrUrl: string, deps: VerifyDeps): Promise
 
   const assetSha256 = sha256Hex(bytes);
   const decodedPayload = await decodeGeometry(geometry, deps.rasterTimeoutMs ?? 3000);
+  if (decodedPayload === RASTER_UNAVAILABLE) {
+    return fail("unsupported-type", "Verificar un QR existente no está disponible en este despliegue. Usa un QR generado por la herramienta o abre la versión en Docker/Node");
+  }
 
   const snapshotKey = externalSnapshotKey(assetSha256, deps.keyPrefix);
   const snapshot: ExternalSnapshot = { v: 1, assetSha256, geometry };

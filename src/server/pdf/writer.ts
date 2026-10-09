@@ -54,6 +54,9 @@ export class PdfSheetWriter {
     this.doc = new PDFDocument({
       autoFirstPage: false,
       margin: 0,
+      // Sin fuente por defecto: pdfkit cargaría Helvetica (un módulo que no existe en Cloudflare Workers)
+      // y nunca la usamos: el texto va con la fuente de la plantilla o en contornos.
+      font: null as unknown as string,
       compress: options.compress ?? true,
       pdfVersion: "1.7",
       info: {
@@ -114,11 +117,11 @@ export class PdfSheetWriter {
     const resolver = this.options.fonts;
     if (!resolver) throw new Error("El modo de texto vivo necesita las fuentes (opción `fonts`)");
     const loaded = resolver(ref);
-    if (!loaded.filePath) throw new Error("La fuente no tiene archivo en disco para incrustar");
+    if (!loaded.filePath && !loaded.bytes) throw new Error("La fuente no tiene archivo ni bytes para incrustar");
     const key = `${ref.family}-${ref.weight}-${ref.style}`;
     if (!this.registeredFonts.has(key)) {
-      this.doc.registerFont(key, loaded.filePath);
-      this.registeredFonts.set(key, loaded.filePath);
+      this.doc.registerFont(key, loaded.bytes ? Buffer.from(loaded.bytes) : (loaded.filePath as string));
+      this.registeredFonts.set(key, loaded.filePath ?? key);
     }
     return key;
   }

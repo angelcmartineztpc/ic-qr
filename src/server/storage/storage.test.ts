@@ -4,11 +4,13 @@ import { join } from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { createFakeR2Bucket } from "../../../tests/helpers/fake-r2-bucket";
 import { startFakeS3, type FakeS3 } from "../../../tests/helpers/fake-s3-server";
 import type { StorageProvider } from "@/types";
 
 import { isValidKey, keyFromPublicUrl, publicUrlFor, StorageError } from "./keys";
 import { LocalStorageProvider } from "./local";
+import { R2StorageProvider } from "./r2";
 import { S3StorageProvider } from "./s3";
 
 const HASH = "a".repeat(64);
@@ -132,6 +134,22 @@ contract("S3 (SDK real contra servidor local)", async () => {
     publicBase: "https://cdn.example.com",
   });
   return { storage, cleanup: () => s3.close() };
+});
+
+const r2Bucket = createFakeR2Bucket();
+contract("R2 (binding simulado)", async () => ({ storage: new R2StorageProvider({ bucket: async () => r2Bucket, publicBase: "https://qr.example.com/api/storage" }) }));
+
+describe("R2 — comportamiento específico", () => {
+  it("usa la condición nativa «solo si no existe» y guarda los metadatos personalizados", () => {
+    const put = r2Bucket.puts.find((p) => p.key === KEY);
+    expect(put?.onlyIf).toEqual({ etagDoesNotMatch: "*" });
+    expect(r2Bucket.objects.get(KEY)?.customMetadata["svg-sha256"]).toBe("c".repeat(64));
+  });
+
+  it("si falta el binding avisa con un error de almacenamiento, no con un fallo genérico", async () => {
+    const storage = new R2StorageProvider({ bucket: async () => Promise.reject(new StorageError("unavailable", "Falta el binding R2")), publicBase: "https://qr.example.com/api/storage" });
+    await expect(storage.upload(KEY, SVG, OPTS)).rejects.toMatchObject({ code: "unavailable" });
+  });
 });
 
 describe("disco local — detalles", () => {

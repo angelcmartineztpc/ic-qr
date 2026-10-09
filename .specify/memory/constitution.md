@@ -43,7 +43,7 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 
 ## Restricciones adicionales
 
-**Stack:** Next.js 16 (App Router, `output: standalone`), React 19, TypeScript, MUI + Tailwind v4, Zod 4, `qr` (matriz del QR), pdfkit, fontkit, SheetJS (`xlsx` desde su CDN), zustand + IndexedDB. Bun gestiona dependencias y ejecuta scripts; build y runtime corren en **Node 24**. `bun.lock` es el único lockfile versionado. Añadir una dependencia nueva requiere justificarla en el plan de la feature.
+**Stack:** Next.js 16 (App Router, `output: standalone`), React 19, TypeScript, MUI + Tailwind v4, Zod 4, `qr` (matriz del QR), pdfkit, fontkit, SheetJS (`xlsx` desde su CDN), zustand + IndexedDB. Bun gestiona dependencias y ejecuta scripts; build y runtime corren en **Node 24** (Docker es la referencia). La app también se puede desplegar como **Worker de Cloudflare** (OpenNext, almacenamiento R2; ver `specs/009-cloudflare-workers/`), con lo que no está disponible allí: verificar un QR existente. `bun.lock` es el único lockfile versionado. Añadir una dependencia nueva requiere justificarla en el plan de la feature.
 
 **Estilos:** MUI pinta los componentes solo a través del tema; Tailwind se usa para layout, espaciado y responsive. Sin literales de color en `sx`/`style` dentro de `src/components/**`; los tokens se definen una sola vez (tema MUI → `globals.css`). Referencia visual: `DESIGN.md` y `PRODUCT.md`.
 
@@ -61,4 +61,4 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 
 Esta constitución prevalece sobre otras prácticas del repositorio; `docs/ARCHITECTURE.md` detalla el *cómo*. Una enmienda se propone con `/speckit-constitution`, indica qué principio cambia y por qué, actualiza esta versión y migra los documentos afectados en el mismo cambio. Toda revisión debe verificar el cumplimiento de los principios I–VII; la complejidad añadida se justifica en el plan de la feature. Guía de ejecución para agentes: `AGENTS.md` y `CLAUDE.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-09 | **Last Amended**: 2026-10-09
+**Version**: 1.1.0 | **Ratified**: 2026-10-09 | **Last Amended**: 2026-10-09

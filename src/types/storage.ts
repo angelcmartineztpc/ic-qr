@@ -22,7 +22,7 @@ export interface StorageCapabilities {
 }
 
 export interface StorageProvider {
-  readonly id: "local" | "s3";
+  readonly id: "local" | "s3" | "r2";
   readonly capabilities: StorageCapabilities;
   upload(key: string, body: Uint8Array | string, options: PutOptions): Promise<PutResult>;
   get(key: string, signal?: AbortSignal): Promise<{ body: Uint8Array; contentType?: string; etag?: string } | null>;

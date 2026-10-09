@@ -45,7 +45,7 @@ export const EnvSchema = z
     ALLOW_UNAUTHENTICATED: bool(false),
 
     // --- Storage ---
-    STORAGE_PROVIDER: z.enum(["local", "s3"]).default("local"),
+    STORAGE_PROVIDER: z.enum(["local", "s3", "r2"]).default("local"),
     STORAGE_BUCKET: optionalSecret,
     STORAGE_REGION: z.string().default("auto"),
     STORAGE_ENDPOINT: optionalSecret,

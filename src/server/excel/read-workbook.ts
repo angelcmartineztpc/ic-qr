@@ -5,6 +5,7 @@ import { Worker } from "node:worker_threads";
 
 import type { RawSheet } from "@/lib/excel/types";
 
+import { readSheet, scanWorkbook } from "./parse-core.mjs";
 import { ImportRejection } from "./upload-guard";
 
 const WORKER_FILE = "src/server/excel/parse-worker.mjs";
@@ -19,12 +20,42 @@ export interface WorkbookReader {
   close(): void;
 }
 
+/** Cloudflare Workers no tiene `worker_threads`: ahí el libro se lee dentro de la propia petición. */
+function supportsWorkerThreads(): boolean {
+  return !(typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers");
+}
+
+/**
+ * Sin hilo no se puede matar una lectura colgada ni limitar su memoria; ahí lo hacen los límites de
+ * la plataforma (CPU y memoria por petición, aislada de las demás) y los de upload-guard (tamaño,
+ * celdas e inflado) que se comprueban antes de leer.
+ */
+function openWorkbookInline(zip: Uint8Array): WorkbookReader {
+  const guard = <T>(read: () => T): T => {
+    try {
+      return read();
+    } catch {
+      throw new ImportRejection("ZIP_CORRUPT", "SheetJS no pudo leer el libro");
+    }
+  };
+  return {
+    async scan(rows) {
+      return guard(() => scanWorkbook(zip.slice(), rows) as RawSheet[]);
+    },
+    async read(sheet, rows) {
+      return guard(() => readSheet(zip.slice(), sheet, rows) as RawSheet);
+    },
+    close() {},
+  };
+}
+
 /**
  * Abre un worker con límite de memoria y un temporizador global: si algo se
  * cuelga o se come la memoria, se mata el hilo y la importación se rechaza
  * con PARSE_TIMEOUT; el servidor sigue atendiendo.
  */
 export function openWorkbook(zip: Uint8Array, options: { timeoutMs?: number } = {}): WorkbookReader {
+  if (!supportsWorkerThreads()) return openWorkbookInline(zip);
   const worker = new Worker(/* turbopackIgnore: true */ path.join(process.cwd(), WORKER_FILE), { resourceLimits: { maxOldGenerationSizeMb: MAX_OLD_GENERATION_MB } });
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   let closed = false;

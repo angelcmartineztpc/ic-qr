@@ -11,7 +11,7 @@ const noServerImports = {
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**", "next-env.d.ts", "scripts/*.jsx", ".claude/**", ".github/**", ".agents/**", ".impeccable/**", ".specify/**"]),
+  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**", "next-env.d.ts", "scripts/*.jsx", ".claude/**", ".github/**", ".agents/**", ".impeccable/**", ".specify/**", ".open-next/**", ".wrangler/**"]),
 
   // Calidad (§43 / §S13)
   {

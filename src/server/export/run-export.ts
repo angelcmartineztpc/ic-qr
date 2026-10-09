@@ -1,7 +1,5 @@
 import "server-only";
 
-import { setImmediate as nextTick } from "node:timers/promises";
-
 import type { FontRegistry } from "@/lib/document/fonts";
 import { outlineScene } from "@/lib/document/outline";
 import { buildScene } from "@/lib/document/scene";
@@ -20,6 +18,9 @@ import { PdfSheetWriter } from "../pdf/writer";
 import { verifyQrIdentity, QrIdentityError } from "../qr/identity";
 import { materializeQrGeometry, MaterializeError } from "../qr/materialize";
 import { buildZip } from "./zip";
+
+/** Cede el turno al bucle de eventos. `setTimeout` existe en Node y en Workers; el `setImmediate` de `node:timers/promises` no funciona en Workers. */
+const nextTick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 /** Error de exportación con el código HTTP/`AppErrorPayload` que le corresponde. */
 export class ExportError extends Error {

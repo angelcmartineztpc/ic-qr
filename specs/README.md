@@ -2,7 +2,7 @@
 
 Documentación del proyecto en formato [Spec Kit](../.specify/): una carpeta por funcionalidad con `spec.md` (qué y por qué), `plan.md` (cómo, con el Constitution Check contra [la constitución](../.specify/memory/constitution.md)) y `tasks.md` (qué se hizo, con evidencia). Algunas llevan `data-model.md` y `contracts/` con los endpoints.
 
-Las ocho carpetas `001`–`008` son **retrospectivas**: se escribieron el 2026-10-09 a partir del código ya implementado y de [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md), no antes de construirlo. Las tareas con `[x]` citan un archivo existente y un test o commit; las `[ ]` son trabajo pendiente real o verificaciones manuales. Lo que no se pudo comprobar está en la sección «Pendientes» de cada `spec.md` y resumido en [`PENDIENTES.md`](PENDIENTES.md).
+Las carpetas `001`–`008` son **retrospectivas**: se escribieron el 2026-10-09 a partir del código ya implementado y de [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md), no antes de construirlo. Las tareas con `[x]` citan un archivo existente y un test o commit; las `[ ]` son trabajo pendiente real o verificaciones manuales. Lo que no se pudo comprobar está en la sección «Pendientes» de cada `spec.md` y resumido en [`PENDIENTES.md`](PENDIENTES.md).
 
 | # | Funcionalidad | Fases de ARCHITECTURE | Estado |
 |---|---|---|---|
@@ -14,6 +14,7 @@ Las ocho carpetas `001`–`008` son **retrospectivas**: se escribieron el 2026-1
 | [006](006-editor-visual-y-flujo-en-tres-pasos/spec.md) | Editor visual de la plantilla y flujo Piezas → Diseño → Exportar | 8 | Implemented |
 | [007](007-link-estable-del-qr/spec.md) | Link estable del QR por resort y servicio | — (venía de `qr-api-created`) | Implemented |
 | [008](008-plataforma-seguridad-y-despliegue/spec.md) | Entorno, guardas HTTP, autenticación, Docker, fuentes, tests | 2, 11 | Implemented |
+| [009](009-cloudflare-workers/spec.md) | Despliegue como Worker de Cloudflare (R2, fuentes, Excel sin hilos) | — | Implemented (sin publicar) |
 
 ## Especificaciones anteriores (F001–F004)
 
@@ -34,4 +35,4 @@ Diferencias respecto al texto de las F00x:
 
 ## Cómo seguir
 
-Las features nuevas se crean con Spec Kit (`/speckit-specify` → `clarify` → `plan` → `tasks` → `implement`). Estas carpetas son el modelo de formato; los números continúan en `009`.
+Las features nuevas se crean con Spec Kit (`/speckit-specify` → `clarify` → `plan` → `tasks` → `implement`). Estas carpetas son el modelo de formato; los números continúan en `010`.

@@ -1,6 +1,6 @@
 import { PreviewRequestSchema } from "@/schemas/preview";
 import { HttpError, getLimits, withApiGuards } from "@/server/http";
-import { getFontRegistry } from "@/server/fonts";
+import { getReadyFontRegistry } from "@/server/fonts";
 import { PreviewError, renderPreviewTiles } from "@/server/preview/render-tiles";
 import { getStorage } from "@/server/storage";
 
@@ -16,7 +16,7 @@ export const POST = withApiGuards(
       throw new HttpError(400, "VALIDATION_FAILED", "Petición de vista previa no válida", parsed.error.issues.slice(0, 10).map((i) => ({ path: i.path.join("."), message: i.message })));
     }
     try {
-      return Response.json(await renderPreviewTiles(parsed.data, { fonts: getFontRegistry(), storage: getStorage() }), { headers: { "Cache-Control": "no-store" } });
+      return Response.json(await renderPreviewTiles(parsed.data, { fonts: await getReadyFontRegistry(), storage: getStorage() }), { headers: { "Cache-Control": "no-store" } });
     } catch (error) {
       if (error instanceof PreviewError) throw new HttpError(400, "VALIDATION_FAILED", error.message);
       if (error instanceof Error && /Falta el archivo de fuente/.test(error.message)) {

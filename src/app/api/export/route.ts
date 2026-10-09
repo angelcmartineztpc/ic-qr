@@ -2,7 +2,7 @@ import { encodeFrame } from "@/lib/export/frames";
 import { ExportRequestSchema } from "@/schemas/export";
 import { getEnv } from "@/server/env";
 import { ExportError, prepareExport, runExport } from "@/server/export/run-export";
-import { getFontRegistry } from "@/server/fonts";
+import { getReadyFontRegistry } from "@/server/fonts";
 import { HttpError, getLimits, withApiGuards } from "@/server/http";
 import { log } from "@/server/log";
 import { getStorage } from "@/server/storage";
@@ -33,7 +33,7 @@ export const POST = withApiGuards(
     if (request.records.length > env.EXPORT_MAX_RECORDS) throw new HttpError(400, "VALIDATION_FAILED", `Máximo ${env.EXPORT_MAX_RECORDS} piezas por exportación`);
 
     const storage = getStorage();
-    const deps = { fonts: getFontRegistry(), storage, keyPrefix: env.STORAGE_KEY_PREFIX, warn: (message: string, fields: Record<string, string>) => log.warn(message, fields) };
+    const deps = { fonts: await getReadyFontRegistry(), storage, keyPrefix: env.STORAGE_KEY_PREFIX, warn: (message: string, fields: Record<string, string>) => log.warn(message, fields) };
     let prepared;
     try {
       prepared = prepareExport(request, deps);
