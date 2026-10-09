@@ -5,15 +5,15 @@
   "files": {
     "AddressSansPro-CdSemibold.woff2": {
       "weight": 600,
-      "sha256": "",
+      "sha256": "a8d0d3dabb9c9ead3299645d4ef193717cf2cb284b7402fa7e02b51b1a5992b4",
       "postscriptName": "AddressSansPro-CdSemibold",
       "advances": {
+        "0": 450,
+        "1": 286,
         "M": 613,
         "T": 358,
         "O": 450,
-        "A": 415,
-        "0": 450,
-        "1": 286
+        "A": 415
       }
     }
   },

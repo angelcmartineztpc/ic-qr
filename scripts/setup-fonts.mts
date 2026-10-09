@@ -80,11 +80,15 @@ for (const family of FAMILIES) {
     const target = join(targetDir, file);
     const label = `${family}/${file}`;
 
-    // Ya instalada y correcta (sha256 fijado y huella de anchos).
+    // Ya instalada y correcta (nombre, huella de anchos y, si está fijado, sha256).
     const installedProblem = existsSync(target) ? problemWith(readFileSync(target), entry) : "no instalada";
-    const installedOk = installedProblem === null && (entry.sha256 === "" || sha256(target) === entry.sha256);
-    if (installedOk && !writeManifest) {
-      console.log(`✓ ${label} (ya instalada)`);
+    if (installedProblem === null && writeManifest) {
+      entry.sha256 = sha256(target);
+      console.log(`✓ ${label} (sha256 fijado)`);
+      continue;
+    }
+    if (installedProblem === null && (entry.sha256 === "" || sha256(target) === entry.sha256)) {
+      console.log(`✓ ${label} (ya instalada${entry.sha256 === "" ? "; sin sha256 fijado: usa --write-manifest" : ""})`);
       continue;
     }
 
