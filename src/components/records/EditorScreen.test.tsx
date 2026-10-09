@@ -245,30 +245,24 @@ describe("descargas y avisos con acciones (§S6)", () => {
     return applyResolutions(base, [resolution], new Map([["r1", { menuUrl: MENU }]]), NOW).state;
   }
 
-  it("«Descargar SVG» de una pieza con el QR pendiente avisa en lugar de descargar", async () => {
+  it("«Descargar SVG» (menú de la tarjeta) de una pieza con el QR pendiente avisa en lugar de descargar", async () => {
     const user = userEvent.setup();
     renderApp(<EditorScreen />, { initialProject: seeded(1) });
-    await user.click(await screen.findByRole("button", { name: "Descargar SVG" }));
+    await user.click(await screen.findByRole("button", { name: "Más acciones de M1 · Tropical" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Descargar SVG" }));
     expect(await screen.findByText(/Resuelve el QR y los errores de M1 · Tropical antes de descargar su SVG/)).toBeTruthy();
     expect(downloads).toHaveLength(0);
   });
 
-  it("«Descargar SVG» de una pieza lista descarga el SVG dibujado por el servidor, con su nombre", async () => {
-    const user = userEvent.setup();
-    renderApp(<EditorScreen />, { initialProject: withGeneratedQr() });
-    await user.click(await screen.findByRole("button", { name: "Descargar SVG" }));
-    await waitFor(() => expect(downloads).toHaveLength(1));
-    expect(downloads[0]?.name).toBe("M1-Tropical.svg");
-    expect(await (downloads[0] as { blob: Blob }).blob.text()).toContain("<title>M1</title>"); // el SVG que devolvió el servidor
-    expect(await screen.findByText("SVG descargado: M1-Tropical.svg")).toBeTruthy();
-  });
-
-  it("también desde el menú de la tarjeta", async () => {
+  it("«Descargar SVG» (menú de la tarjeta) de una pieza lista descarga el SVG dibujado por el servidor, con su nombre", async () => {
     const user = userEvent.setup();
     renderApp(<EditorScreen />, { initialProject: withGeneratedQr() });
     await user.click(await screen.findByRole("button", { name: "Más acciones de M1 · Tropical" }));
     await user.click(await screen.findByRole("menuitem", { name: "Descargar SVG" }));
-    await waitFor(() => expect(downloads[0]?.name).toBe("M1-Tropical.svg"));
+    await waitFor(() => expect(downloads).toHaveLength(1));
+    expect(downloads[0]?.name).toBe("M1-Tropical.svg");
+    expect(await (downloads[0] as { blob: Blob }).blob.text()).toContain("<title>M1</title>"); // el SVG que devolvió el servidor
+    expect(await screen.findByText("SVG descargado: M1-Tropical.svg")).toBeTruthy();
   });
 
   it("la cuarentena ofrece Ver, Descargar y Descartar", async () => {
