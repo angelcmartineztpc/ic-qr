@@ -55,11 +55,11 @@ describe.skipIf(!HAS_PIECE_FONT)("Address Sans Pro Cd real (requiere bun run fon
     expect(frame).toMatchObject({ type: "rect" });
   });
 
-  it("la tinta de la referencia es #2C2E35 en texto, QR y marco", () => {
+  it("la tinta es negro puro #000000 (RGB) en texto, QR y marco", () => {
     const scene = sampleScene();
     const outlined = JSON.stringify(outlineScene(scene, registry.forTemplate(tropical())).nodes);
-    expect(outlined).toContain("2C2E35");
-    expect(outlined).not.toContain('"#000000"');
+    expect(outlined).toContain('"#000000"');
+    expect(outlined).not.toContain("2C2E35");
   });
 
   it("la línea ES de la referencia mide ≈ 54 mm a 13.2 pt (tracking −25) y cabe en la pieza", () => {

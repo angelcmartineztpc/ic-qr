@@ -25,7 +25,7 @@ Flujo en tres pasos: Piezas → Diseño → Exportar. Importación de Excel/CSV 
 ## Capabilities and Constraints
 
 - Un registro con "Link del QR" nunca genera un QR nuevo; sin link se genera una vez y se reutiliza.
-- Tipografía de las piezas: Address Sans Pro Cd Semibold, tinta #2C2E35, marco 0.5 pt; no modificable.
+- Tipografía de las piezas: Address Sans Pro Cd Semibold, tinta #000000 (negro puro, RGB), marco 0.5 pt; no modificable.
 - Gotham solo para la interfaz; licencia web sin verificar.
 - Interfaz en español.
 

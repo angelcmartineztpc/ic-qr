@@ -3012,3 +3012,7 @@ El paso Exportar sustituye las miniaturas de recuadros por un **visor al estilo 
 - **Virtualizado** (hojas y miniaturas): con 1000 piezas (167 hojas) solo hay unas pocas hojas en el DOM. Las piezas se piden al servidor por lotes (≤48) y se cachean; con zoom bajo se piden en baja definición.
 - **Hallazgo (solo desarrollo):** si se abría o creaba una pieza mientras se leía el almacenamiento (el primer segundo de `next dev`), el autoguardado esperaba a la hidratación y esa pieza no se guardaba; ahora se guarda al terminar de hidratar.
 
+
+### Cambio de tinta (2026-10-09)
+
+La tinta de las piezas pasa de `#2C2E35` (la de la referencia) a **negro puro `#000000`**, en RGB, para texto, QR y marco. Es una sola constante (`PIECE_INK` en `src/templates/address-sans.ts`). Sustituye lo dicho sobre `#2C2E35` en las notas de `tropical-table` v2.0.0; el resto de esa plantilla no cambia. El espacio de color sigue siendo RGB (no se pasa a CMYK).

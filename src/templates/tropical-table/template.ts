@@ -7,7 +7,7 @@ import { PIECE_FONT_DIR, PIECE_FONT_FILES, PIECE_INK, pieceFont } from "../addre
  * Todas las medidas salen de ese PDF (posiciones de cada contorno medidas con pdf.js),
  * no de una estimación; el test `tropical-reference` las vigila.
  *
- *   ┌────────────────────────────┐   marco de 0.5 pt, color #2C2E35
+ *   ┌────────────────────────────┐   marco de 0.5 pt, color #000000
  *   │         TROPICAL           │   17 pt, tracking −50
  *   │       MESA – TABLE         │   11 pt, tracking −40
  *   │            M1              │   22 pt, tracking −50

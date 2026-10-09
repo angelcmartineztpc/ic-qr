@@ -11,5 +11,5 @@ export const pieceFont = () => ({ family: "Address Sans Pro Cd", weight: 600, st
 
 export const PIECE_FONT_FILES: FontFile[] = [{ ...pieceFont(), file: "AddressSansPro-CdSemibold.woff2" }];
 
-/** Color de la referencia (todo el arte es #2C2E35, no negro puro). */
-export const PIECE_INK = "#2C2E35";
+/** Tinta de las piezas: negro puro en RGB (#000000). Decisión del 2026-10-09; la referencia original usaba #2C2E35. */
+export const PIECE_INK = "#000000";
