@@ -22,3 +22,9 @@ dist
 build
 docs
 tests/e2e
+.open-next
+.wrangler
+.dev.vars
+.github
+.specify
+specs

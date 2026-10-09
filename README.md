@@ -89,6 +89,8 @@ docker run --rm -p 3000:3000 --read-only --tmpfs /tmp \
   --env-file .env.production qr-production-generator
 ```
 
+Con Compose (recomendado): `cp .env.docker.example .env.production`, completa los valores y `docker compose up --build -d` (`docker-compose.yml`: volumen, solo lectura, límites y healthcheck).
+
 Bun se usa solo para instalar dependencias; el build y el runtime corren en **Node 24** (`node:24-trixie-slim`, fijada por digest). Next.js solo documenta Node como runtime, y en la imagen `oven/bun`, `node` es un alias de Bun. La imagen corre como usuario `node`, expone `HEALTHCHECK` sobre `/api/health` y solo `/app/.data` es escribible.
 
 ## Estructura
