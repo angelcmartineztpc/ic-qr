@@ -195,6 +195,48 @@ describe.skipIf(!HAS_PIECE_FONT)("POST /api/export (requiere la fuente de las pi
     expect(await storageFiles()).toEqual(before);
   });
 
+  it("estilo del QR: los QR generados se dibujan con estilo y logo; el QR existente se imprime tal cual; el storage no cambia", async () => {
+    const records = [...(await generated(["a", "b"])), await existing("c")];
+    const before = await storageFiles();
+    const input = request(records, { formats: ["pdf", "svgZip"] });
+    input.templateOverrides.qrStyle = {
+      outline: "square",
+      modules: "dots",
+      eyeFrame: "rounded",
+      eyeBall: "circle",
+      colors: { modules: "#274C69", eyeFrame: "#12324A", eyeBall: null, background: null },
+      logo: {
+        geometry: { viewBox: [0, 0, 100, 100], nodes: [{ type: "path", d: "M50 4L96 50L50 96L4 50Z", fill: "#274C69", fillRule: "nonzero" }] },
+        sizePct: 18,
+        marginModules: 1,
+        color: null,
+        fileName: "logo.svg",
+      },
+    };
+    const response = await run(input);
+    if (response.status !== 200) throw new Error(JSON.stringify(await response.json()));
+    const out = await collect(response);
+    expect(out.error).toBeUndefined();
+    expect(out.done).toMatchObject({ pieces: 3 });
+
+    const zip = unzipSync(out.files["zip"] as Uint8Array);
+    const svg = (name: string) => new TextDecoder().decode(zip[name]);
+    for (const styledPiece of ["001.svg", "002.svg"]) {
+      expect(svg(styledPiece)).toContain('id="qr-eye-frame"');
+      expect(svg(styledPiece)).toContain('id="qr-eye-ball"');
+      expect(svg(styledPiece)).toContain('id="qr-logo"');
+      expect(svg(styledPiece)).toContain('fill="#274C69"');
+      expect(svg(styledPiece)).not.toMatch(/<image|<script|<style/);
+    }
+    // La pieza con QR existente conserva su QR: nada de marcos, pupilas ni logo.
+    expect(svg("003.svg")).toContain('id="qr-code"');
+    expect(svg("003.svg")).not.toMatch(/qr-eye-frame|qr-eye-ball|qr-logo/);
+
+    const pdf = out.files["pdf"] as Uint8Array;
+    expect(await inspectPdf(pdf)).toMatchObject({ pageCount: 1, imageObjects: 0 });
+    expect(await storageFiles()).toEqual(before); // estilizar no crea ni cambia ningún QR guardado
+  });
+
   it("la numeración del ZIP es 1…n sobre la lista exportada (las excluidas ni viajan); con nombre por área y mesa", async () => {
     const all = await generated(["a", "b", "c", "d"]);
     const included = all.filter((r) => r.id !== "b");

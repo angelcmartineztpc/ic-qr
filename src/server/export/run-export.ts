@@ -146,7 +146,7 @@ export async function runExport(request: ExportRequest, prepared: PreparedExport
     const layout = resolveLayout(request.layout, record.id);
 
     if (writer) {
-      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, options: { bleedMm: options.pdf.bleedMm, cutLine: options.pdf.cutLine, includeQrBackground: options.pdf.includeQrBackground } });
+      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, qrStyle: request.templateOverrides.qrStyle, options: { bleedMm: options.pdf.bleedMm, cutLine: options.pdf.cutLine, includeQrBackground: options.pdf.includeQrBackground } });
       for (const warning of scene.warnings) {
         warnings++;
         emit(encodeFrame.warning({ recordId: record.id, code: warning.code, message: describeLayoutWarning(warning) }));
@@ -154,7 +154,7 @@ export async function runExport(request: ExportRequest, prepared: PreparedExport
       writer.add(outlinedPdf ? outlineScene(scene, fonts) : scene);
     }
     if (wantsZip) {
-      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, options: { cutLine: options.svg.cutLine ? "rgb" : "none", includeQrBackground: options.pdf.includeQrBackground } });
+      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, qrStyle: request.templateOverrides.qrStyle, options: { cutLine: options.svg.cutLine ? "rgb" : "none", includeQrBackground: options.pdf.includeQrBackground } });
       if (!writer) {
         for (const warning of scene.warnings) {
           warnings++;

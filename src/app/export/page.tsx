@@ -8,8 +8,8 @@ export const metadata: Metadata = { title: "Exportar" };
 
 export default function ExportPage() {
   return (
-    <AppShell step={2}>
-      <StepHeader step={2} title="Exporta el PDF" description="Elige cómo se colocan las piezas en la hoja, ponle nombre y descarga. Los QR pendientes se generan al descargar." />
+    <AppShell step={3}>
+      <StepHeader step={3} title="Exporta el PDF" description="Elige cómo se colocan las piezas en la hoja, ponle nombre y descarga. Los QR pendientes se generan al descargar." />
       <ExportScreen />
     </AppShell>
   );

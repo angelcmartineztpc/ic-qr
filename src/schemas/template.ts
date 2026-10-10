@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { BoxSchema, ColorSchema, LayoutSchema, MmSchema, PtSchema, TemplateIdSchema } from "./geometry";
+import { DEFAULT_QR_STYLE, QrStyleSchema } from "./qr-style";
 import { BindableFieldSchema } from "./record";
 
 /**
@@ -172,6 +173,8 @@ export const TemplateOverridesSchema = z.strictObject({
     .strictObject({ quietZoneModules: z.number().int().min(0).max(8).optional(), foreground: ColorSchema.optional() })
     .default({}),
   tile: z.strictObject({ background: ColorSchema.optional() }).default({}),
+  /** Estilo visual del QR (paso «Estilo del QR»). Ausente en proyectos anteriores: equivale al QR clásico. */
+  qrStyle: QrStyleSchema.default(() => structuredClone(DEFAULT_QR_STYLE)),
 });
 
-export const EMPTY_TEMPLATE_OVERRIDES = { items: {}, qr: {}, tile: {} } as const;
+export const EMPTY_TEMPLATE_OVERRIDES = { items: {}, qr: {}, tile: {}, qrStyle: DEFAULT_QR_STYLE } as const;

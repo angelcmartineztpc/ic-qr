@@ -6,7 +6,10 @@ import Button from "@mui/material/Button";
 import Link from "next/link";
 import { useShallow } from "zustand/react/shallow";
 
+import { blockingStyleWarnings } from "@/components/qr-style/qr-style-model";
+import { describeLayoutWarning } from "@/lib/errors/messages.es";
 import { resolveQrDecision } from "@/lib/records/qr-state";
+import { resolveTemplate } from "@/lib/template/resolve";
 import { orderedRecords } from "@/lib/state/project";
 import { useProject, useSession } from "@/lib/state/StoreProvider";
 import { isGenerating } from "@/lib/state/stores";
@@ -40,6 +43,7 @@ export function ExportScreen() {
   const records = useProject(useShallow((p) => orderedRecords(p)));
   const templateId = useProject((p) => p.templateId);
   const exportOptions = useProject((p) => p.exportOptions);
+  const templateOverrides = useProject((p) => p.templateOverrides);
   const template = getTemplate(templateId);
 
   if (!hydrated) return <p role="status">Cargando…</p>;
@@ -61,11 +65,21 @@ export function ExportScreen() {
   const needQr = included.filter((r) => r.qrError === undefined && ["generate", "check-existing"].includes(resolveQrDecision(r))).length;
   const generating = isGenerating(generation);
   const disabled = readOnly;
+  // Un estilo que deja el QR ilegible (contraste casi nulo, logo demasiado grande) no se fabrica.
+  const resolvedTemplate = resolveTemplate(template, templateOverrides);
+  const styleBlockers = blockingStyleWarnings(templateOverrides.qrStyle, resolvedTemplate.success ? resolvedTemplate.data.qr : template.qr, included);
 
   return (
     <div className="flex flex-col gap-6">
       <PersistenceBanners actions={builder} showRestored={false} />
       {readOnly ? <Alert severity="info">Esta pestaña está en solo lectura: la otra pestaña es la que edita.</Alert> : null}
+      {styleBlockers.length > 0 ? (
+        <Alert severity="error" role="alert" data-testid="style-blocker" action={<Button color="inherit" size="small" component={Link} href="/style">Corregir estilo</Button>}>
+          <ul className="m-0 list-none p-0">
+            {styleBlockers.map((warning, i) => <li key={i}>{describeLayoutWarning(warning)}</li>)}
+          </ul>
+        </Alert>
+      ) : null}
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
@@ -114,7 +128,7 @@ export function ExportScreen() {
         primary={
           <div className="flex flex-wrap items-center justify-end gap-3">
             <GenerationStatus />
-            <Button variant="contained" size="large" startIcon={<DownloadIcon />} disabled={disabled || generating || included.length === 0} onClick={() => void exporter.start()} data-testid="download-pdf">
+            <Button variant="contained" size="large" startIcon={<DownloadIcon />} disabled={disabled || generating || included.length === 0 || styleBlockers.length > 0} onClick={() => void exporter.start()} data-testid="download-pdf">
               {exportOptions.formats.includes("pdf") ? "Descargar PDF" : "Descargar ZIP de SVG"}
             </Button>
           </div>

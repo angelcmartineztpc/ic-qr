@@ -25,5 +25,8 @@ export type LayoutWarning =
   | { code: "OUTSIDE_SAFE_MARGIN"; box: LayoutBoxKey }
   | { code: "QR_MODULE_SMALL"; moduleMm: number; level: "warn" | "block" }
   | { code: "QR_NO_WHITE_BACKGROUND" }
+  | { code: "QR_STYLE_LOW_CONTRAST"; part: "modules" | "eyeFrame" | "eyeBall"; ratio: number; level: "warn" | "block" }
+  | { code: "QR_STYLE_INVERTED"; part: "modules" | "eyeFrame" | "eyeBall" }
+  | { code: "QR_STYLE_LOGO_LARGE"; coverage: number; level: "warn" | "block" }
   | { code: "TEXT_OVERFLOW"; elementId: string; axis: "x" | "y" }
   | { code: "MISSING_GLYPH"; elementId: string; char: string };

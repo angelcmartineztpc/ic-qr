@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { STEPS, type StepIndex } from "./steps";
 
-/** Cabecera de cada pantalla: «Paso N de 3», un título y una sola línea que explica qué se hace aquí. */
+/** Cabecera de cada pantalla: «Paso N de 4», un título y una sola línea que explica qué se hace aquí. */
 export function StepHeader({ step, title, description, actions }: { step?: StepIndex; title: string; description?: string; actions?: ReactNode }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
