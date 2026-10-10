@@ -1,0 +1,92 @@
+/*
+ * Orden de capas: las utilidades de Tailwind ganan sobre los estilos de MUI,
+ * que Emotion emite dentro de @layer mui (AppRouterCacheProvider enableCssLayer).
+ */
+@layer theme, base, mui, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+/* Sin el preflight de Tailwind: CssBaseline de MUI hace el reset (evita dos resets). */
+
+/*
+ * Tokens: el tema MUI (cssVariables: true) es la única fuente. Tailwind solo
+ * los referencia, para que layout y componentes compartan valores.
+ * Breakpoints iguales a los de MUI (xs <600, sm 600, md 900, lg 1200, xl 1536).
+ */
+@theme inline {
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 900px;
+  --breakpoint-lg: 1200px;
+  --breakpoint-xl: 1536px;
+
+  /* --spacing se queda en 4px (Tailwind): MUI spacing(1) = 8px = utilidad "2". */
+  --font-sans: var(--font-ui), system-ui, sans-serif;
+
+  --color-background: var(--mui-palette-background-default);
+  --color-surface: var(--mui-palette-background-paper);
+  --color-foreground: var(--mui-palette-text-primary);
+  --color-muted: var(--mui-palette-text-secondary);
+  --color-divider: var(--mui-palette-divider);
+  --color-primary: var(--mui-palette-primary-main);
+  --color-error: var(--mui-palette-error-main);
+  --color-warning: var(--mui-palette-warning-main);
+  --color-success: var(--mui-palette-success-main);
+}
+
+/* Respeta la preferencia de movimiento reducido del sistema. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Enlace «Saltar al contenido»: solo visible al enfocarlo con el teclado. */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -4rem;
+  z-index: 2000;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: var(--mui-palette-primary-main);
+  color: var(--mui-palette-primary-contrastText);
+  text-decoration: none;
+  font-weight: 500;
+  transition: top 150ms ease-out;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/*
+ * Foco del teclado visible en TODOS los controles (WCAG 2.4.7 / 2.4.13). Va sin capa
+ * a propósito: las reglas de MUI (capa mui) ponen `outline: 0` en botones y toggles y
+ * ganarían a una regla dentro de una capa.
+ */
+:focus-visible {
+  outline: 3px solid var(--mui-palette-primary-main);
+  outline-offset: 2px;
+}
+/* Los campos de texto ya marcan el foco con el borde grueso del contorno; no se duplica. */
+.MuiInputBase-input:focus-visible {
+  outline: none;
+}
+/* El input del interruptor es invisible: el contorno se dibuja en el interruptor completo. */
+.MuiSwitch-root:has(input:focus-visible) {
+  outline: 3px solid var(--mui-palette-primary-main);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+.MuiSwitch-root input:focus-visible {
+  outline: none;
+}
+
+/* El pie fijo del paso no debe tapar el control que recibe el foco al navegar con Tab. */
+html {
+  scroll-padding-bottom: 6rem;
+}

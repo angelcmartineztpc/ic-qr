@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!.env.docker.example
 
 # vercel
 .vercel
@@ -39,3 +41,30 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# QR Production Generator
+/.data/
+/playwright-report/
+/test-results/
+/out/
+# npm es compatible pero el lockfile canónico es bun.lock (docs/ARCHITECTURE.md §D.3)
+package-lock.json
+# Gotham: licencia comercial, no se versiona (scripts/setup-fonts.ts)
+/assets/fonts/gotham/*.otf
+/assets/fonts/gotham/*.ttf
+/assets/fonts/gotham/*.woff2
+/assets/fonts/gotham/*.woff
+# Address Sans Pro Cd (piezas): licencia de Adobe Fonts, no se versiona
+/assets/fonts/address-sans/*.otf
+/assets/fonts/address-sans/*.ttf
+/assets/fonts/address-sans/*.woff2
+/assets/fonts/address-sans/*.woff
+
+# Libros reales para probar la importación (pueden traer datos del cliente)
+/tests/fixtures/real/*.xlsx
+/tests/fixtures/real/*.csv
+
+# Cloudflare Workers (OpenNext)
+.dev.vars
+.open-next/
+.wrangler/

@@ -1,0 +1,28 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "qr-production-generator",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-10-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	// Una exportación de 5000 piezas puede pasar de los 30 s de CPU por defecto (plan de pago).
+	"limits": { "cpu_ms": 120000 },
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"r2_buckets": [
+		{
+			// Aquí se guardan los QR generados (qr/v1/{sha256}.svg). Créalo antes de desplegar:
+			//   bunx wrangler r2 bucket create qr-production-generator-qr
+			"binding": "QR_BUCKET",
+			"bucket_name": "qr-production-generator-qr"
+		}
+	],
+	"services": [
+		{
+			// Autorreferencia que exige OpenNext (el nombre debe coincidir con "name").
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "qr-production-generator"
+		}
+	]
+}
