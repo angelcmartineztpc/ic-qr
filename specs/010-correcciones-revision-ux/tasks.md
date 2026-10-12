@@ -35,3 +35,10 @@ Cada tarea cubre un riesgo (R1–R6) del spec. Marcar `[x]` solo cuando la verif
 
 - [ ] **T-070** Completar la entrada de `CHANGELOG.md` con los resultados reales de la verificación.
 - [ ] **T-071** Commit en `ux-correcciones`. No se hace push ni PR sin confirmación del usuario (ver pendiente de D1 en `plan.md`).
+
+## Fase 6 · Fusión en `main` (D7)
+
+- [x] **T-080** Registrar D7 en `plan.md`, `tasks.md` y `CHANGELOG.md` antes de fusionar. Cubre: R6.
+- [ ] **T-081** Fusionar el PR #2 con `gh pr merge 2 --merge`. Verificación: `origin/main` contiene `3737989` y el registro D7. Cubre: R1–R5.
+- [ ] **T-082** Fusionar `ux-correcciones` en `mejoras-ux` y publicar. Verificación: `git merge-base --is-ancestor ux-correcciones mejoras-ux`. Cubre: R6.
+- [ ] **T-083** Actualizar la descripción del PR #1 al paso «Estilo del QR». Cubre: R6.

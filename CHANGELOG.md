@@ -14,3 +14,4 @@ Formato: `[fecha] · [autor] · [riesgo] · [archivo] · [acción]`. Spec de ref
 - [2026-10-12] · angelcmartineztpc · R4 · docs/AUDITORIA-UX.md, docs/ARCHITECTURE.md, src/components/records/builder-actions.test.ts · Frase canónica «Cambios sin descargar» en código, documentación y pruebas.
 - [2026-10-12] · angelcmartineztpc · R5 · src/components/records/RecordDetail.tsx · Imports agrupados sin línea en blanco intermedia.
 - [2026-10-12] · angelcmartineztpc · Verificación · todo · typecheck pasa; test:unit 804 pruebas pasan; dom 57 pasan; lint 0 errores y 4 advertencias (las mismas); e2e completo 78 pasan, 12 omitidas, 0 fallos.
+- [2026-10-12] · angelcmartineztpc · R6 · specs/010-correcciones-revision-ux/plan.md (D7) · Decisión: fusionar el PR #2 (`ux-correcciones`) en `main` con merge commit; `9d28551` queda fuera y se integra con el PR #1.
