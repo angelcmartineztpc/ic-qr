@@ -1,0 +1,10 @@
+# Copia a .dev.vars para `bun run cf:preview` (wrangler dev). NO lo subas: .dev.vars está en .gitignore.
+# Contraseña de ejemplo: una-clave-larga  →  printf 'una-clave-larga' | shasum -a 256
+AUTH_MODE=basic
+BASIC_AUTH_USER=demo
+BASIC_AUTH_PASSWORD_SHA256=REEMPLAZA_CON_EL_SHA256_DE_TU_CLAVE
+APP_ORIGINS=http://localhost:8787
+APP_ALLOWED_HOSTS=localhost:8787
+STORAGE_PROVIDER=r2
+STORAGE_PUBLIC_BASE_URL=http://localhost:8787/api/storage
+LOG_FORMAT=json

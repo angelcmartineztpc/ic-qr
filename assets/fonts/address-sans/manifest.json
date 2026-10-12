@@ -1,0 +1,21 @@
+{
+  "family": "Address Sans Pro Cd",
+  "version": "Adobe Fonts (2019, Alejandro Paul)",
+  "license": "Adobe Fonts. Confirmar que la licencia cubre incrustar contornos en PDF/SVG y su uso en servidor. No versionar el .woff2.",
+  "files": {
+    "AddressSansPro-CdSemibold.woff2": {
+      "weight": 600,
+      "sha256": "a8d0d3dabb9c9ead3299645d4ef193717cf2cb284b7402fa7e02b51b1a5992b4",
+      "postscriptName": "AddressSansPro-CdSemibold",
+      "advances": {
+        "0": 450,
+        "1": 286,
+        "M": 613,
+        "T": 358,
+        "O": 450,
+        "A": 415
+      }
+    }
+  },
+  "note": "La huella de anchos (advances, por 1000 em) viene de la fuente incrustada en QR_Alimentos.ai. fonts:setup rechaza cualquier archivo que no la cumpla: p. ej. address-sans-pro-semibold (ancho normal) NO es la Cd. Referencia: «CONSULTA EL MENU Y ORDENA EN LÍNEA» a 13.2 pt mide 58.6 mm sin tracking y 54.7 mm con tracking −25."
+}
