@@ -64,3 +64,11 @@ Antes de la medición, Playwright necesita instalar Chromium 1243 (en caché sol
 3. **Correcciones**: R2, R3, R4, R5 y R1 según la medición.
 4. **Verificación**: typecheck, unit, lint y e2e completas.
 5. **Cierre**: entrada en `CHANGELOG.md`, commit en `ux-correcciones`. Sin push ni PR hasta confirmación.
+
+## D7 · Fusión en `main` (2026-10-12)
+
+- **Alcance**: se fusiona `ux-correcciones` (PR #2) en `main`. `mejoras-ux` (PR #1, con `9d28551`) **no** entra en esta fusión.
+- **Estado previo**: R1–R5 corregidos y verificados; R6 resuelto como «solo UX». El PR #2 está `MERGEABLE` y `CLEAN`; `origin/main` es ancestro de `ux-correcciones`, así que no hay conflictos.
+- **Método**: merge commit (`gh pr merge 2 --merge`), no squash. `mejoras-ux` contiene a `ux-correcciones`; un squash reescribiría esos commits y dejaría conflictos o commits repetidos en el PR #1.
+- **Después**: `mejoras-ux` incorpora este commit de registro con un merge normal, para seguir apilada sin divergencias; el PR #1 conserva `main` como base y se actualiza su descripción al paso «Estilo del QR».
+- **Qué no cubre**: `9d28551` se integra con el PR #1 y su revisión dedicada; siguen abiertos los hallazgos 3 (geometría del logo sin re-sanear), 4 (bloqueo de exportación solo en la interfaz) y 5 (objeto por defecto compartido).
