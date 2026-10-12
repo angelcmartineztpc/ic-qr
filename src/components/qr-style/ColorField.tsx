@@ -35,6 +35,12 @@ export function ColorField({
   const [draft, setDraft] = useState<string>(value);
   const [text, setText] = useState<string>(value);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // Cambio aún sin confirmar: si el campo se desmonta antes de los 150 ms, se confirma en vez de perderse.
+  const pending = useRef<string | null>(null);
+  const latestOnChange = useRef(onChange);
+  useEffect(() => {
+    latestOnChange.current = onChange;
+  });
 
   // Si el valor cambia desde fuera (deshacer, restablecer), el campo lo sigue.
   const [seen, setSeen] = useState<string>(value);
@@ -43,16 +49,23 @@ export function ColorField({
     setDraft(value);
     setText(value);
   }
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current);
+      if (pending.current !== null) latestOnChange.current(pending.current.toUpperCase() as HexColor);
+    },
+    [],
+  );
 
   const commit = (next: string) => {
     setDraft(next);
     setText(next);
     clearTimeout(timer.current);
-    timer.current = setTimeout(
-      () => onChange(next.toUpperCase() as HexColor),
-      150,
-    );
+    pending.current = next;
+    timer.current = setTimeout(() => {
+      pending.current = null;
+      onChange(next.toUpperCase() as HexColor);
+    }, 150);
   };
 
   return (

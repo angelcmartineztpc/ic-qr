@@ -7,7 +7,7 @@ import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
 import Switch from "@mui/material/Switch";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/app/api-client";
 import { checkLogoBeforeUpload, uploadLogo } from "@/lib/app/qr-style-client";
@@ -20,6 +20,11 @@ import { ColorField } from "./ColorField";
 export function LogoControls({ logo, disabled, onChange }: { logo: QrLogo | null; disabled: boolean; onChange(next: QrLogo | null): void }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  // El logo vigente al terminar la subida: si moviste un control mientras subía, no se pisa con el valor de antes.
+  const latest = useRef(logo);
+  useEffect(() => {
+    latest.current = logo;
+  });
   const [error, setError] = useState<string | null>(null);
   // Mientras se arrastra se muestra el valor en vivo; solo al soltar se guarda (una entrada de deshacer y una petición de vista previa).
   const [dragSize, setDragSize] = useState<number | null>(null);
@@ -33,7 +38,8 @@ export function LogoControls({ logo, disabled, onChange }: { logo: QrLogo | null
     setError(null);
     try {
       const geometry = await uploadLogo(file);
-      onChange({ geometry, sizePct: logo?.sizePct ?? 20, marginModules: logo?.marginModules ?? 1, color: logo?.color ?? null, fileName: file.name.slice(0, 120) });
+      const current = latest.current;
+      onChange({ geometry, sizePct: current?.sizePct ?? 20, marginModules: current?.marginModules ?? 1, color: current?.color ?? null, fileName: file.name.slice(0, 120) });
     } catch (e) {
       setError(e instanceof ApiError || e instanceof Error ? e.message : "No se pudo subir el logo");
     } finally {
