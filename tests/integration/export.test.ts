@@ -10,6 +10,7 @@ import { readFrames, type DonePayload, type FileMetaPayload, type Frame, type Pr
 import type { ExportRequestInput } from "@/schemas/export";
 import { PDF_DEFAULTS } from "@/schemas/pdf";
 import { EMPTY_TEMPLATE_OVERRIDES } from "@/schemas/template";
+import { DEFAULT_QR_STYLE } from "@/schemas/qr-style";
 import { getTemplate } from "@/templates";
 import type { QrSourceInfo } from "@/types";
 
@@ -285,6 +286,22 @@ describe.skipIf(!HAS_PIECE_FONT)("POST /api/export — bloqueos (400 con detalle
     expect(ids).toEqual(new Set(["pending", "stale", "broken"]));
     expect(body.details?.find((d) => d.recordId === "stale")?.message).toMatch(/desactualizado/);
     expect(await storageFiles()).toEqual(await storageFiles()); // sigue sin escribir
+  });
+
+  it("un estilo que deja el QR ilegible (contraste casi nulo) se rechaza aunque la petición llegue directa", async () => {
+    const before = await storageFiles();
+    const input = request(await generated(["a"]));
+    input.templateOverrides.qrStyle = { ...DEFAULT_QR_STYLE, colors: { modules: "#F5F5F5", eyeFrame: null, eyeBall: null, background: null } };
+    const response = await run(input);
+    expect(response.status).toBe(400);
+    expect((await detail(response)).message).toMatch(/El estilo del QR no se puede fabricar/);
+    expect(await storageFiles()).toEqual(before);
+  });
+
+  it("un estilo con aviso pero sin bloqueo (contraste justo) sí se exporta", async () => {
+    const input = request(await generated(["a"]));
+    input.templateOverrides.qrStyle = { ...DEFAULT_QR_STYLE, colors: { modules: "#8A8A8A", eyeFrame: null, eyeBall: null, background: null } };
+    expect((await run(input)).status).toBe(200);
   });
 
   it("un QR desactualizado CON confirmación válida sí se exporta", async () => {

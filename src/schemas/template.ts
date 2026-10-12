@@ -177,4 +177,4 @@ export const TemplateOverridesSchema = z.strictObject({
   qrStyle: QrStyleSchema.default(() => structuredClone(DEFAULT_QR_STYLE)),
 });
 
-export const EMPTY_TEMPLATE_OVERRIDES = { items: {}, qr: {}, tile: {}, qrStyle: DEFAULT_QR_STYLE } as const;
+export const EMPTY_TEMPLATE_OVERRIDES = { items: {}, qr: {}, tile: {}, qrStyle: structuredClone(DEFAULT_QR_STYLE) } as const;

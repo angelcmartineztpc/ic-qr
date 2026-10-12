@@ -91,3 +91,5 @@ Las omisiones son `test.skip` por proyecto de Playwright, no pruebas desactivada
 - `builder-acceptance.spec.ts:53` y `:91`: dos pestañas y rendimiento con 1000 piezas, solo escritorio.
 - `export-1000.spec.ts:9`: carga de 1000 piezas, solo escritorio.
 - `stepper.spec.ts:74`: comportamiento del paso en móvil, solo móvil.
+
+Conteo confirmado con `bun run test:e2e --reporter=list` en `mejoras-ux` (90 pasan, 12 omitidas, 0 fallos): 8 en `preview.spec.ts` [mobile] (el `skip` de la línea 44 cubre un bloque de pruebas, más el de rendimiento), 2 en `builder-acceptance.spec.ts` [mobile], 1 en `export-1000.spec.ts` [mobile] y 1 en `stepper.spec.ts` [desktop]. Todas corresponden a un `test.skip` declarado con su motivo.

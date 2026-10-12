@@ -28,6 +28,10 @@ export const QrLogoGeometrySchema = z
   })
   .refine((geometry) => geometry.nodes.reduce((sum, node) => sum + (node.type === "path" ? node.d.length : 0), 0) <= LOGO_MAX_PATH_CHARS, {
     error: "El logo es demasiado detallado: simplifícalo antes de subirlo",
+  })
+  // El PDF solo dibuja relleno; un trazo se vería en el SVG y no en el PDF. El saneado de la subida ya los quita.
+  .refine((geometry) => geometry.nodes.every((node) => node.type !== "path" || (node.stroke === undefined && node.strokeWidth === undefined)), {
+    error: "El logo solo puede tener relleno: convierte los trazos a contornos",
   });
 
 export const QrLogoSchema = z.strictObject({

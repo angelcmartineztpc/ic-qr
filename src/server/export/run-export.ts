@@ -8,6 +8,7 @@ import { describeLayoutWarning } from "@/lib/errors/messages.es";
 import { zipEntryName } from "@/lib/export/file-name";
 import { CHUNK_BYTES, encodeFrame, type FileName } from "@/lib/export/frames";
 import { resolveLayout } from "@/lib/layout/resolve-layout";
+import { blockingQrStyleWarnings } from "@/lib/qr-style";
 import { renderSceneSvg } from "@/lib/svg/render-scene";
 import { resolveTemplate } from "@/lib/template/resolve";
 import type { ExportRequest } from "@/schemas/export";
@@ -68,6 +69,10 @@ export function prepareExport(request: ExportRequest, deps: Pick<ExportDeps, "fo
   const resolved = resolveTemplate(base, request.templateOverrides);
   if (!resolved.success) throw new ExportError(400, "VALIDATION_FAILED", `Los ajustes de la plantilla no son válidos: ${resolved.error.issues[0]?.message ?? ""}`);
   const template = resolved.data;
+
+  // Misma regla que la pantalla Exportar: un estilo que deja el QR ilegible no se fabrica aunque la petición llegue directa.
+  const styleBlockers = blockingQrStyleWarnings(request.templateOverrides.qrStyle, template.qr, request.records.flatMap((r) => (r.qr.source === "generated" ? [r.qr.payload] : [])));
+  if (styleBlockers.length > 0) throw new ExportError(400, "VALIDATION_FAILED", `El estilo del QR no se puede fabricar: ${styleBlockers.map(describeLayoutWarning).join(" ")}`);
 
   const fonts = deps.fonts.forTemplate(template);
   try {

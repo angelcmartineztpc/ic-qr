@@ -1,5 +1,5 @@
 import { encodeMatrix } from "@/lib/qr/encode";
-import { qrStyleWarnings, resolveStyleColors, type StyleColors } from "@/lib/qr-style";
+import { blockingQrStyleWarnings, qrStyleWarnings, resolveStyleColors, type StyleColors } from "@/lib/qr-style";
 import type { QrStyle } from "@/schemas/qr-style";
 import { MenuUrlSchema } from "@/schemas/url";
 import type { LayoutWarning, QRRecord, QrMatrix, Template } from "@/types";
@@ -43,18 +43,11 @@ export function styleWarningsFor(style: QrStyle, qr: Template["qr"], modules: nu
   return { colors, warnings: qrStyleWarnings(style, colors, modules) };
 }
 
-/**
- * Para bloquear la exportación: avisos «block» del estilo en el peor caso del proyecto.
- * El contraste no depende de la pieza; el tapado del logo es mayor cuanto menos módulos tenga el QR,
- * y eso lo da el Link del menú más corto.
- */
+/** Para bloquear la exportación: avisos «block» del estilo en el peor caso del proyecto (la misma regla que aplica el servidor). */
 export function blockingStyleWarnings(style: QrStyle, qr: Template["qr"], records: readonly QRRecord[]): LayoutWarning[] {
   const payloads = records.flatMap((record) => {
     const payload = stylablePayload(record);
     return payload === null ? [] : [payload];
   });
-  if (payloads.length === 0) return []; // todas las piezas usan su propio QR: el estilo no se aplica
-  const shortest = payloads.reduce((a, b) => (b.length < a.length ? b : a));
-  const modules = style.logo ? matrixOf(shortest)?.length : undefined;
-  return styleWarningsFor(style, qr, modules).warnings.filter((w) => "level" in w && w.level === "block");
+  return blockingQrStyleWarnings(style, qr, payloads);
 }

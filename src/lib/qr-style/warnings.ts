@@ -1,7 +1,8 @@
+import { encodeMatrix } from "@/lib/qr/encode";
 import type { QrStyle } from "@/schemas/qr-style";
-import type { HexColor, LayoutWarning } from "@/types";
+import type { HexColor, LayoutWarning, Template } from "@/types";
 
-import { logoPlacement, type StyleColors } from "./style-qr";
+import { logoPlacement, resolveStyleColors, type StyleColors } from "./style-qr";
 
 /** Luminancia relativa (WCAG) de un #RRGGBB. */
 export function luminance(hex: HexColor): number {
@@ -42,4 +43,25 @@ export function qrStyleWarnings(style: QrStyle, colors: StyleColors, modules?: n
     }
   }
   return warnings;
+}
+
+/**
+ * Avisos «block» del estilo en el peor caso del proyecto: los que impiden fabricar. Los usan la pantalla
+ * Exportar (para desactivar la descarga) y `/api/export` (para rechazar la petición), así que no se pueden contradecir.
+ * `payloads` son los contenidos de las piezas cuyo QR se estiliza; el contraste no depende de la pieza,
+ * y el logo tapa más cuanto menos módulos tiene el QR, que lo da el contenido más corto.
+ */
+export function blockingQrStyleWarnings(style: QrStyle, qr: Pick<Template["qr"], "invert" | "foreground" | "background">, payloads: readonly string[]): LayoutWarning[] {
+  if (payloads.length === 0) return []; // todas las piezas usan su propio QR: el estilo no se aplica
+  const colors = resolveStyleColors(style, { dark: qr.invert ? qr.background : qr.foreground, light: qr.invert ? qr.foreground : qr.background });
+  let modules: number | undefined;
+  if (style.logo) {
+    const shortest = payloads.reduce((a, b) => (b.length < a.length ? b : a));
+    try {
+      modules = encodeMatrix(shortest).length;
+    } catch {
+      modules = undefined;
+    }
+  }
+  return qrStyleWarnings(style, colors, modules).filter((warning) => "level" in warning && warning.level === "block");
 }

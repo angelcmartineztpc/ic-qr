@@ -46,8 +46,8 @@ Cada tarea cubre un riesgo (R1–R6) del spec. Marcar `[x]` solo cuando la verif
 ## Fase 7 · Hallazgos 3–5 y pruebas omitidas (D8)
 
 - [x] **T-090** Registrar R7–R10, D8 y estas tareas antes de tocar código. Cubre: R7–R10.
-- [ ] **T-091** `EMPTY_TEMPLATE_OVERRIDES.qrStyle` como copia; prueba de que no comparte referencia. Cubre: R9.
-- [ ] **T-092** `QrLogoGeometrySchema` rechaza trazos; prueba que falla sin la corrección. Cubre: R7.
-- [ ] **T-093** `blockingQrStyleWarnings` en `@/lib/qr-style`; `qr-style-model.ts` y `prepareExport` la usan; prueba de integración: `/api/export` con contraste bajo responde 400. Cubre: R8.
-- [ ] **T-094** Documentar el motivo de las omisiones e2e (sección «Pruebas omitidas» de `plan.md`) y confirmar el conteo con el reporte. Cubre: R10.
-- [ ] **T-095** typecheck, test:unit, dom, lint e integración; e2e completo en `mejoras-ux`. Cubre: R7–R10.
+- [x] **T-091** `EMPTY_TEMPLATE_OVERRIDES.qrStyle` como copia; prueba de que no comparte referencia. Cubre: R9.
+- [x] **T-092** `QrLogoGeometrySchema` rechaza trazos; prueba que falla sin la corrección. Cubre: R7.
+- [x] **T-093** `blockingQrStyleWarnings` en `@/lib/qr-style`; `qr-style-model.ts` y `prepareExport` la usan; prueba de integración: `/api/export` con contraste bajo responde 400. Cubre: R8.
+- [x] **T-094** Documentar el motivo de las omisiones e2e (sección «Pruebas omitidas» de `plan.md`) y confirmar el conteo con el reporte. Cubre: R10.
+- [x] **T-095** typecheck, test:unit, dom, lint e integración; e2e completo en `mejoras-ux`. Cubre: R7–R10.
