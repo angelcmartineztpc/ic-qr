@@ -32,6 +32,9 @@ test("1000 piezas: se resuelven los QR, se genera y se descarga un PDF de 167 p�
   console.log(`DESCARGA 1000 piezas: ${seconds.toFixed(1)} s (con QR) · ${(size / 1024 / 1024).toFixed(1)} MB`);
   const head = (await readFile(path)).subarray(0, 5).toString();
   expect(head).toBe("%PDF-");
+  // Umbral de cordura, no el tamaño esperado: con texto vivo (valor por defecto desde 3055c2e) el PDF
+  // medido pesó 0.9 MiB (≈944 KB, specs/010 plan.md «Medición R1»). 500 KB deja margen y aun así
+  // detecta un PDF vacío o truncado.
   expect(size).toBeGreaterThan(500_000);
   await expect(page.getByTestId("last-export")).toContainText("1000 piezas en 167 páginas");
 });

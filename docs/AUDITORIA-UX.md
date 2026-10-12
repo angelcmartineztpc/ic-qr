@@ -119,7 +119,7 @@ Y un texto breve junto a los botones: «El QR que ya imprimiste no cambia. Crear
 | Clave de duplicados | Abstracto | Qué campos hacen que dos piezas cuenten como la misma |
 | Cuarentena / Registros que no se pudieron leer | Opaco | Piezas dañadas apartadas |
 | Tomar el control | ¿De qué? | Editar aquí (la otra pestaña pasará a solo lectura) |
-| Cambios sin exportar | «Exportar» sin contexto | Aún no has descargado el PDF |
+| Cambios sin exportar | «Exportar» sin contexto | Cambios sin descargar (adoptado; ver specs/010 D4) |
 | Guardado en este navegador | No dice el riesgo | Guardado en este navegador (si borras los datos del navegador se pierde: guarda también un archivo de proyecto) |
 | QR reutilizado (ya existía) | Aviso confuso | Este QR ya estaba generado y se usó el mismo |
 | Páginas / Rejilla | No es obvio | Una por una / Todas a la vez |

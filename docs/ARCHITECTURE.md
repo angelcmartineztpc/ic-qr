@@ -107,7 +107,7 @@ Formato: **Ambigüedad** · *Por qué importa* · Opciones · **Recomendación**
      - **SVG:** se acepta. Se sanea con una lista blanca, se reemite solo la geometría y se inserta tal cual, escalado a la caja. Se verifica decodificándolo y se avisa si el QR está hecho con trazos (*stroke*).
      - **PNG/JPG/WebP:** estado `error` con código `raster-only`. Bloquea la exportación y ofrece estas acciones explícitas:
        1. Subir el SVG original.
-       2. "Reemplazar por QR generado por la app", con confirmación.
+       2. "Cambiar por un QR nuevo de esta app", con confirmación.
        3. *(post-MVP)* "Vectorización exacta": reconstruye la matriz original bit a bit, algo VERIFICADO en el lab con JPEG q40. Se etiqueta como "QR existente vectorizado".
        4. *(opcional, desactivado por defecto)* "Usar el raster tal cual": se incrusta la imagen con el aviso permanente "No vectorial" en la tarjeta, el resumen y el diálogo de exportación. El spec admite raster "salvo necesidad", pero rompe §18/§44, así que exige activación explícita por proyecto.
      - **PDF:** no se admite en el MVP.
@@ -125,7 +125,7 @@ Formato: **Ambigüedad** · *Por qué importa* · Opciones · **Recomendación**
    - *El QR seguiría apuntando a la URL antigua: es el error más caro posible.*
    - **Recomendación:**
      - Si `qr.source==='generated'` y `payload !== menuUrl`, el estado es `stale` (derivado, no editable).
-     - El badge muestra "QR desactualizado" con las acciones [Regenerar QR] (nueva clave; el archivo anterior se conserva) y [Mantener QR anterior].
+     - El badge muestra "QR desactualizado" con las acciones [Crear un QR nuevo con el link actual] (nueva clave; el archivo anterior se conserva) y [Imprimir el QR anterior (apunta al link viejo)].
      - "Mantener" guarda un **ack ligado** `qrAck = {kind:'stale', menuUrl, qrFingerprint: payload, at}`. Es válido **solo** mientras `menuUrl` y `payload` sigan siendo esos; cualquier nueva edición de `menuUrl` lo invalida y vuelve a bloquear. Al abrir un `.qrproj.json` se **borran todos los acks** y se listan los registros afectados.
      - Si `qr.source==='existing'`, editar `menuUrl` **no toca** el QR. La discrepancia se **deriva** en cada render y exportación (`decodedPayload !== menuUrl`), no se guarda. Un existente que no coincide (`mismatch`) o que no se puede decodificar (`undecodable`) **bloquea la exportación** igual que `stale`, salvo ack ligado (`kind:'mismatch'|'undecodable'`, huella = `assetSha256`).
      - La exportación se bloquea mientras haya algún bloqueo sin resolver; el diálogo de §1.2-22 los lista.
@@ -600,7 +600,7 @@ flowchart TD
   SN --> MM{decodedPayload === menuUrl? derivado en cada render}
   MM -->|sí| OKE[✓ QR existente verificado]
   MM -->|no / ilegible| MB[QR existente no coincide o ilegible — bloquea exportación]
-  MB -->|Usar de todos modos| ACK2[qrAck ligado a menuUrl + assetSha256]
+  MB -->|"Usar este QR aunque apunta a otra dirección"| ACK2[qrAck ligado a menuUrl + assetSha256]
   D4 -->|PNG/JPG| RE[error raster-only: bloquea exportación, acciones explícitas]
   D4 -->|HTML u otro| NE[error not-an-image]
   D3 -->|timeout / 4xx / 5xx| UE[error unreachable + Reintentar — NUNCA generar]
@@ -608,8 +608,8 @@ flowchart TD
   B -->|generated| G{payload === menuUrl?}
   G -->|sí| OKG[✓ QR generado — reutilizar]
   G -->|no| ST[STALE: QR desactualizado — bloquea exportación]
-  ST -->|Regenerar QR| H
-  ST -->|Mantener QR anterior| ACK[qrAck ligado a menuUrl + payload · otra edición lo invalida]
+  ST -->|"Crear un QR nuevo con el link actual"| H
+  ST -->|"Imprimir el QR anterior (apunta al link viejo)"| ACK[qrAck ligado a menuUrl + payload · otra edición lo invalida]
 
   B -->|none: Link QR vacío| H[cliente: AbortController por registro + expectedRevision]
   H --> SRV{servidor: ¿ítem trae qrUrl o qr?}
@@ -683,7 +683,7 @@ stateDiagram-v2
   existing --> error: unreachable / raster-only / not-an-image / unsafe-url / host-not-allowed
   error --> existing: Reintentar OK / usuario cambia qrUrl
   generated --> stale: menuUrl editado (payload ≠ menuUrl)
-  stale --> generating: Regenerar QR
+  stale --> generating: Crear un QR nuevo con el link actual
   stale --> generated: menuUrl vuelve al payload
   stale --> stale: Mantener (ack ligado · sigue siendo stale pero exportable)
   existing --> pending: usuario vacía Link QR (confirmación)
@@ -2094,7 +2094,7 @@ export function canApplyResolution(current: QRRecord, sent: { revision: number; 
 - **Un solo escritor entre pestañas:** `navigator.locks.request('qr-project', {mode:'exclusive', ifAvailable:true})`. La pestaña que obtiene el bloqueo escribe; las demás quedan en **solo lectura** con el banner "Este proyecto está abierto en otra pestaña · [Tomar el control]" (que pide el bloqueo con `steal:true`). Web Locks exige contexto seguro (§1.2-31); si no existe, se vuelve al aviso con `BroadcastChannel('qr-project')`. El borrador solo avisaba y dejaba a las dos pestañas escribir la misma clave (la última ganaba en silencio).
 - **Archivo de proyecto:** "Guardar proyecto" descarga `{fileName}.qrproj.json` y "Abrir proyecto" lo procesa así: tamaño ≤ 20 MB (si no, mensaje claro), `JSON.parse` en un `try`, `ProjectFileSchema.safeParse` de la envoltura, migración por `schemaVersion` (una versión mayor que la de la app → rechazo "Archivo creado con una versión más reciente"), validación tolerante por registro con cuarentena, y **borrado de todos los `qrAck`** con un resumen ("4 piezas necesitan confirmar de nuevo su QR"). Como incluye `storageKey`, `qrUrl` y `qr`, reabrir **nunca regenera** QR; la exportación vuelve a comprobar su identidad en el servidor.
 - **"Sin guardar":** `dirty = revision !== savedRevision`.
-  - Indicadores: chip de autoguardado local y chip "Cambios sin exportar".
+  - Indicadores: chip de autoguardado local y chip "Cambios sin descargar".
   - Guard de navegación: `GuardedLink` (`<Link onNavigate>` con `e.preventDefault()`, VERIFICADO en la doc de la versión 16.3.8) solo en los enlaces que salen del proyecto o lo reinician; `useGuardedRouter`; `beforeunload` solo si `dirty || generando`.
   - La navegación interna no pierde datos, así que no se protege.
   - **Diálogos de confirmación** (`ConfirmDialog`; título fijo "Tienes cambios sin guardar." cuando `dirty`, como pide §38):
@@ -2174,10 +2174,10 @@ Los textos viven en `lib/errors/messages.es.ts` y `lib/validation/messages.es.ts
 | `generated` reutilizado | ✓ QR reutilizado | `CheckCircle` / success | "Ya existía en el almacenamiento" |
 | `existing`, `unchecked` | QR existente · verificando | `Sync` / info | — |
 | `existing`, decodifica a `menuUrl` | ✓ QR existente | `CheckCircle` / success | Abrir `qrUrl` |
-| `existing`, decodifica a otra URL, sin ack | ⚠ QR existente apunta a otra URL | `Warning` / warning (bloquea) | [Usar de todos modos] [Reemplazar] |
-| `existing`, ilegible, sin ack | ⚠ QR existente ilegible | `Warning` / warning (bloquea) | [Usar de todos modos] [Re-verificar] |
+| `existing`, decodifica a otra URL, sin ack | ⚠ QR existente apunta a otra URL | `Warning` / warning (bloquea) | [Usar este QR aunque apunte a otra dirección] [Reemplazar] |
+| `existing`, ilegible, sin ack | ⚠ QR existente ilegible | `Warning` / warning (bloquea) | [Usar este QR aunque apunte a otra dirección] [Re-verificar] |
 | `existing` con ack | QR existente (confirmado por el usuario) | `Info` / warning | Fecha del ack |
-| `stale`, sin ack | ⚠ QR desactualizado | `Warning` / warning (bloquea) | [Regenerar QR] [Mantener QR anterior] |
+| `stale`, sin ack | ⚠ QR desactualizado | `Warning` / warning (bloquea) | [Crear un QR nuevo con el link actual] [Imprimir el QR anterior (apunta al link viejo)] |
 | `stale` con ack | QR anterior mantenido | `Info` / warning | Fecha del ack |
 | `error` | ✕ Error de QR: {código} | `Error` / error (bloquea) | Mensaje según el código + [Reintentar] |
 | `existing` raster con opción 4 | QR raster (no vectorial) | `Image` / warning | Aviso permanente |
@@ -2823,7 +2823,7 @@ Cambio de orden respecto al spec (D10): el **núcleo vectorial** (spec 7 + 9) se
 | # | Pregunta | Opción por defecto recomendada |
 |---|---|---|
 | 1 | ¿"Link del QR" es la URL de un **archivo de imagen de QR** existente (SVG preferido)? | Sí: archivo de imagen. Si fuera una URL de destino, se añadiría un campo aparte |
-| 2 | ¿Qué hacer con un QR existente PNG/JPG? | Bloquear con estado `raster-only` y pedir el SVG o "Reemplazar por QR generado" (explícito). "Usar el raster tal cual" (no vectorial, con aviso permanente) solo si se activa por proyecto. La vectorización exacta queda para después del MVP |
+| 2 | ¿Qué hacer con un QR existente PNG/JPG? | Bloquear con estado `raster-only` y pedir el SVG o "Cambiar por un QR nuevo de esta app" (explícito). "Usar el raster tal cual" (no vectorial, con aviso permanente) solo si se activa por proyecto. La vectorización exacta queda para después del MVP |
 | 3 | ¿Se aprueban las claves `qr/v1/{sha256}.svg` en lugar de `/qr/{recordId}.svg` (D1)? | Sí |
 | 4 | Si se edita el Link del menú de una pieza con QR generado, o un QR existente apunta a otra URL o es ilegible, ¿bloquear la exportación hasta una decisión explícita, con un ack que caduca si el Link vuelve a cambiar? | Sí |
 | 5 | ¿Un `qrUrl` presente pero inválido, inaccesible o raster **nunca** cae a generación automática (D8)? | Sí: error visible con acciones; solo vaciar el campo (con confirmación) genera |
@@ -2907,7 +2907,7 @@ La Fase 6 quedó implementada en `a9d8456` y se cerró contra sus criterios de a
 - **«Descargar SVG de esta pieza»** sale del **servidor** (el mismo SVG de la vista previa), no del cliente como decía §E.9: era otra consecuencia de R2. Solo se descarga si la pieza es **exportable**; con QR pendiente, error o desactualizado sin confirmar se avisa en lugar de entregar un archivo que podría llegar a fabricación por descuido. Si la pieza tiene avisos de composición (p. ej. módulos del QR por debajo del umbral), el aviso lo dice.
 - **Rejilla paginada (24 por página), no virtualizada.** Con paginación solo hay 24–48 tarjetas en el DOM. Medido en Chromium con 1000 piezas: **10–16 ms** por cambio de página y **ninguna tarea larga** (criterio: <100 ms y <200 ms). `@tanstack/react-virtual` queda reservado para `PDFPreview` (Fase 8).
 - **Sin `GuardedLink` ni `useGuardedRouter`.** Ningún enlace reinicia el proyecto: la navegación interna conserva el estado en memoria y en IndexedDB, y salir de la pestaña con cambios o QR en curso muestra el diálogo nativo (`beforeunload`). «Ordenar por…» vive en el menú del proyecto (no hay un `SortMenu` aparte).
-- **Autoguardado a 200 ms** (antes 500) y «Guardando…» desde el instante del cambio, no al empezar a escribir. **Limitación conocida:** si se cierra o recarga la pestaña en esos ~200 ms, el último cambio depende de que IndexedDB termine durante `pagehide`, que los navegadores no garantizan; por eso existe el chip «Cambios sin exportar» y «Guardar proyecto».
+- **Autoguardado a 200 ms** (antes 500) y «Guardando…» desde el instante del cambio, no al empezar a escribir. **Limitación conocida:** si se cierra o recarga la pestaña en esos ~200 ms, el último cambio depende de que IndexedDB termine durante `pagehide`, que los navegadores no garantizan; por eso existe el chip «Cambios sin descargar» y «Guardar proyecto».
 - **Tomar el control de una pestaña recarga lo guardado.** Hallazgo de esta revisión: una pestaña en solo lectura seguía con el proyecto que cargó al abrirse y, al tomar el control, habría **pisado** lo que la otra pestaña guardó entretanto. Ahora, al pasar de solo lectura a escritora, recarga el proyecto de IndexedDB (tras 300 ms, para dejar que la pestaña anterior termine su último guardado, que hace al perder el bloqueo). Verificado con dos pestañas reales.
 - **Cuarentena y copia de seguridad.** El aviso es permanente mientras haya registros apartados (se guardan con el proyecto) y ofrece **Ver**, **Descargar** y **Descartar** (con confirmación); al fallar la lectura del proyecto guardado se ofrece **Descargar copia**. Cumple §S6.
 - **Observación de UX, sin cambiar (decisión pendiente):** los avisos se muestran de uno en uno (§S7), así que tras acciones encadenadas la respuesta a un clic puede tardar hasta ~8 s en verse («Pieza agregada» → «1 QR generado» → «SVG descargado»). Si molesta, la opción es que un aviso nuevo sustituya al visible cuando este sea transitorio (éxito/info), manteniendo los errores hasta que se cierren.
@@ -2984,7 +2984,7 @@ La descarga con progreso y cancelación está implementada y verificada con el s
 - **Errores con mensaje propio:** `STREAM_TRUNCATED` («La descarga se interrumpió», con [Reintentar]; también un archivo cuyo tamaño final no coincide con el de `FILE_META`), `NETWORK` («Revisa tu conexión…»), 400 con las piezas que bloquean (se abre el diálogo), `QR_IDENTITY_MISMATCH`/`QR_UNRESOLVED` (con el nombre de la pieza), 429/ocupado (aviso con el tiempo de espera del servidor), tiempo máximo y errores genéricos («Error al generar el PDF: …»).
 - **Cancelar** aborta la petición (`AbortController`): «Descarga cancelada» y nada se descarga; durante la resolución de QR detiene esa resolución. En el servidor la cancelación y la liberación del cupo están probadas (Fase 9).
 - **`beforeunload`** también durante la generación (`isGenerating`), no solo con cambios sin guardar o QR en curso.
-- **`savedRevision`**: tras entregar el archivo, `markSaved` (el chip «Cambios sin exportar» desaparece).
+- **`savedRevision`**: tras entregar el archivo, `markSaved` (el chip «Cambios sin descargar» desaparece).
 - **ZIP:** el PDF se descarga solo y el ZIP queda en `session.generation.result` con «Descargar ZIP» (aviso y botón de la última exportación). Con solo ZIP (sin PDF) se descarga directamente.
 - **Cambio de política de avisos (decisión pendiente desde la Fase 6, ahora aplicada):** un aviso nuevo **toma el sitio de uno pasajero** (éxito/info) sin esperar; los avisos y errores visibles no se pisan (el siguiente espera). Motivo: «2 QR generados» retenía 4 s a un error de exportación que sí importaba (y rompía pruebas en móvil). Cada grupo sigue reemplazando a su propia cola.
 - **El aviso «Hay N piezas con errores…» es el título del diálogo de bloqueos**, no un aviso en cola: el diálogo es modal y lleva ya las dos salidas.

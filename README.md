@@ -317,7 +317,7 @@ En `/preview`, **Descargar PDF**:
 2. Si alguna pieza bloquea (QR con error, desactualizado sin confirmar, datos con errores), un diálogo la **lista con su motivo** y ofrece **Ir a corregir** o **Excluir N piezas de esta exportación**. Las excluidas no viajan y el resto se numera 1…n; «Volver a incluirlas» las recupera.
 3. Si el QR se solapa con el texto en alguna pieza, **pide confirmación**.
 4. Muestra el progreso real: «Generando PDF…» (piezas), «Preparando descarga…» y «Descargando…» (MB), con **Cancelar**. El PDF se descarga solo; con «También un ZIP con un SVG por pieza», el ZIP se ofrece aparte («Descargar ZIP»).
-5. Al terminar el proyecto cuenta como exportado («Cambios sin exportar» desaparece). Si la descarga se corta: «La descarga se interrumpió» con **Reintentar**; sin conexión, un mensaje claro.
+5. Al terminar el proyecto cuenta como exportado («Cambios sin descargar» desaparece). Si la descarga se corta: «La descarga se interrumpió» con **Reintentar**; sin conexión, un mensaje claro.
 
 Mientras se genera, cerrar o recargar la pestaña pide confirmación al navegador.
 

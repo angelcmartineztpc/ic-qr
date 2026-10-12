@@ -274,7 +274,7 @@ describe("acciones sobre el QR de una pieza", () => {
     expect(t.state().recordsById[id]?.qrAck).toMatchObject({ kind: "stale", menuUrl: "https://menu.example.com/nuevo" });
   });
 
-  it("«Usar de todos modos» confirma el desajuste o la ilegibilidad según el caso", async () => {
+  it("«Usar este QR aunque apunte a otra dirección» confirma el desajuste o la ilegibilidad según el caso", async () => {
     const t = setup({ fetchResolve: async (body) => ({ results: (body.verify ?? []).map((v): QrResolution => ({ recordId: v.recordId, outcome: "existing-ok", qr: existingSource({ decodedPayload: "https://otra.example.com" }) })), created: 0, reused: 0, failed: 0 }) });
     const { id } = await t.actions.add(draft({ qrUrl: "https://qr.cliente.com/m1.svg" }));
     await flush();
