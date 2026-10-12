@@ -17,3 +17,4 @@ Formato: `[fecha] · [autor] · [riesgo] · [archivo] · [acción]`. Spec de ref
 - [2026-10-12] · angelcmartineztpc · R6 · specs/010-correcciones-revision-ux/plan.md (D7) · Decisión: fusionar el PR #2 (`ux-correcciones`) en `main` con merge commit; `9d28551` queda fuera y se integra con el PR #1.
 - [2026-10-12] · angelcmartineztpc · R1–R5 · origin/main · PR #2 fusionado con merge commit (`9e72ca6`). `main` contiene `3737989` y el registro D7.
 - [2026-10-12] · angelcmartineztpc · R6 · mejoras-ux, PR #1 · `main` fusionado en `mejoras-ux` (sigue apilada, sin divergencias); descripción del PR #1 actualizada al paso «Estilo del QR» (49 archivos contra `main`). `9d28551` sigue fuera de `main`.
+- [2026-10-12] · angelcmartineztpc · R7–R10 · specs/010-correcciones-revision-ux · Registro de los hallazgos 3–5 de la revisión del paso «Estilo del QR» y de las pruebas e2e omitidas, con D8 y tareas T-090 a T-095. `ux-correcciones` (local y remota) borrada: ya estaba en `main`.

@@ -72,3 +72,22 @@ Antes de la medición, Playwright necesita instalar Chromium 1243 (en caché sol
 - **Método**: merge commit (`gh pr merge 2 --merge`), no squash. `mejoras-ux` contiene a `ux-correcciones`; un squash reescribiría esos commits y dejaría conflictos o commits repetidos en el PR #1.
 - **Después**: `mejoras-ux` incorpora este commit de registro con un merge normal, para seguir apilada sin divergencias; el PR #1 conserva `main` como base y se actualiza su descripción al paso «Estilo del QR».
 - **Qué no cubre**: `9d28551` se integra con el PR #1 y su revisión dedicada; siguen abiertos los hallazgos 3 (geometría del logo sin re-sanear), 4 (bloqueo de exportación solo en la interfaz) y 5 (objeto por defecto compartido).
+
+## D8 · Hallazgos 3–5 de la revisión del paso «Estilo del QR» y pruebas omitidas (2026-10-12)
+
+Rama: `mejoras-ux` (el código afectado llegó con `9d28551`).
+
+- **R7**: `QrLogoGeometrySchema` añade un `refine` que rechaza `stroke` y `strokeWidth` en los nodos del logo. El sanitizador ya los quitaba al subir; ahora el esquema lo garantiza para cualquier petición.
+- **R8**: se mueve la lógica de bloqueo a `@/lib/qr-style` (`blockingQrStyleWarnings(style, qr, payloads)`), usada por `qr-style-model.ts` (cliente) y por `prepareExport` (servidor, con los `qr.payload` de los registros generados). Si hay avisos «block» el servidor responde 400 con el mensaje de `describeLayoutWarning`. El cliente no cambia de comportamiento.
+- **R9**: `EMPTY_TEMPLATE_OVERRIDES.qrStyle` pasa a `structuredClone(DEFAULT_QR_STYLE)`.
+- **R10**: no se cambia código: se registra el motivo de cada omisión (ver «Pruebas omitidas»).
+- **Orden**: R9 (trivial) → R7 (esquema) → R8 (más amplio) → pruebas → verificación → e2e completo. Cada corrección lleva su prueba, que debe fallar sin la corrección.
+
+## Pruebas omitidas (R10)
+
+Las omisiones son `test.skip` por proyecto de Playwright, no pruebas desactivadas:
+
+- `preview.spec.ts:44` y `:151`: arrastre fino y rendimiento, solo escritorio.
+- `builder-acceptance.spec.ts:53` y `:91`: dos pestañas y rendimiento con 1000 piezas, solo escritorio.
+- `export-1000.spec.ts:9`: carga de 1000 piezas, solo escritorio.
+- `stepper.spec.ts:74`: comportamiento del paso en móvil, solo móvil.
