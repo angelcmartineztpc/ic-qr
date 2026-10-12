@@ -120,13 +120,13 @@ export function applyQrResolution(record: QRRecord, resolution: QrResolution, no
   }
 }
 
-/** "Regenerar QR" (acción explícita desde 'stale'): el archivo anterior se conserva en el storage. */
+/** "Crear un QR nuevo con el link actual" (acción explícita desde 'stale'): el archivo anterior se conserva en el storage. */
 export function regenerateQr(record: QRRecord, now: string): QRRecord {
   if (record.qr.source !== "generated") return record;
   return withDerived({ ...withoutQrState(withoutQrUrl(record)), qr: { source: "none" }, updatedAt: now });
 }
 
-/** "Mantener QR anterior" / "Usar de todos modos": confirmación ligada al estado actual. */
+/** "Imprimir el QR anterior" / "Usar este QR aunque apunte a otra dirección": confirmación ligada al estado actual. */
 export function acknowledgeQr(record: QRRecord, kind: QrAck["kind"], now: string): QRRecord {
   const ack = makeAck(record, kind, now);
   return ack ? withDerived({ ...record, qrAck: ack, updatedAt: now }) : record;

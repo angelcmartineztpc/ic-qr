@@ -13,15 +13,14 @@ import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 
+import { qrBadge } from "@/lib/records/qr-badge";
+import { useSession } from "@/lib/state/StoreProvider";
 import { FIELD_LABELS } from "@/lib/validation/messages.es";
 import type { QRRecord } from "@/types";
 
 import { TilePreview } from "@/components/preview/TilePreview";
 
 import type { BuilderActions } from "./builder-actions";
-import { qrBadge } from "@/lib/records/qr-badge";
-import { useSession } from "@/lib/state/StoreProvider";
-
 import { QrStatusBadge } from "./QrStatusBadge";
 import { RecordQrActions } from "./RecordQrActions";
 
