@@ -9,6 +9,7 @@ import type { KeyValueStore } from "@/lib/state/persistence";
 import type { LockManagerLike } from "@/lib/state/tab-lock";
 import { ConfirmProvider } from "@/components/ui/ConfirmDialog";
 import { NotificationsProvider } from "@/components/ui/NotificationsProvider";
+import type { ShortenFetcher } from "@/lib/links/shorten-many";
 import type { QrResolution } from "@/types";
 
 import { existingSource, generatedSource } from "./records";
@@ -27,6 +28,9 @@ export const fakeResolve: ResolveFetcher = async (body) => {
   return { results, created: body.items?.length ?? 0, reused: 0, failed: 0 };
 };
 
+/** Acortador falso que no cambia nada (las pruebas que no hablan de links siguen viendo el link que escribieron). */
+export const identityShorten: ShortenFetcher = async (urls) => urls.map((url) => ({ url, status: "kept", shortUrl: url }));
+
 /** Locks falsos para simular otra pestaña que ya escribe. */
 export const heldLocks: LockManagerLike = { request: async (_name, options, callback) => (options.ifAvailable ? callback(null) : undefined) };
 
@@ -35,7 +39,7 @@ export function renderApp(ui: ReactElement, props: Partial<StoreProviderProps> =
     <ThemeProvider theme={theme}>
       <NotificationsProvider>
         <ConfirmProvider>
-          <StoreProvider kv={memoryKv()} locks={null} fetchResolve={fakeResolve} fetchTiles={async (r) => ({ tiles: Object.fromEntries(r.tiles.map((t) => [t.key, { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><title>${t.mesa}</title></svg>`, warnings: [] }])) })} {...props}>
+          <StoreProvider kv={memoryKv()} locks={null} fetchResolve={fakeResolve} fetchShorten={identityShorten} fetchTiles={async (r) => ({ tiles: Object.fromEntries(r.tiles.map((t) => [t.key, { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><title>${t.mesa}</title></svg>`, warnings: [] }])) })} {...props}>
             {ui}
           </StoreProvider>
         </ConfirmProvider>

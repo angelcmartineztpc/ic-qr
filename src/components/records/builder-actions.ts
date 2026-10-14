@@ -6,6 +6,8 @@
 import { resolveQrs, type ResolveQrSummary } from "@/lib/app/resolve-qrs";
 import { tileInputOf } from "@/lib/app/tile-preview-client";
 import { sanitizeFileName } from "@/lib/export/file-name";
+import { fetchRecordsExcel, type ExcelFetcher } from "@/lib/app/records-excel-client";
+import { shortenMany } from "@/lib/links/shorten-many";
 import { findExistingDuplicate } from "@/lib/records/duplicates";
 import { isExportable, resolveQrDecision, qrBlocker } from "@/lib/records/qr-state";
 import type { SortKey } from "@/lib/records/order";
@@ -39,11 +41,13 @@ import type { ConfirmOptions, ConfirmResult } from "@/components/ui/ConfirmDialo
 import type { NotifyOptions } from "@/components/ui/NotificationsProvider";
 
 export interface ActionDeps {
-  runtime: Pick<Runtime, "project" | "session" | "inflight" | "fetchResolve" | "tiles" | "readBackup">;
+  runtime: Pick<Runtime, "project" | "session" | "inflight" | "fetchResolve" | "fetchShorten" | "tiles" | "readBackup">;
   notify(options: NotifyOptions): void;
   confirm(options: ConfirmOptions): Promise<ConfirmResult>;
   now(): string;
   download(fileName: string, blob: Blob): void;
+  /** Excel actualizado del proyecto (para pruebas; por defecto el del servidor). */
+  exportExcel?: ExcelFetcher;
 }
 
 const SORT_LABELS: Record<SortKey, string> = { area: "Área", estacion: "Estación", mesa: "Mesa", sourceRow: "fila de Excel" };
@@ -124,6 +128,43 @@ export function createBuilderActions(deps: ActionDeps) {
     },
     cancelQr(): void {
       runtime.inflight.abortAll();
+    },
+
+    /**
+     * Acorta el Link del menú del borrador antes de guardar (siempre: el QR codifica el link corto, que no cambia).
+     * Devuelve null si no se pudo acortar: no se guarda una pieza con un link largo creyendo que ya se acortó.
+     * Al editar, un link que la persona no tocó se deja como está (cambiarlo desactualizaría un QR ya impreso).
+     */
+    async prepareDraft(draft: RecordDraft, current?: QRRecord): Promise<RecordDraft | null> {
+      if (draft.menuUrl.trim() === "" || (current && current.menuUrl === draft.menuUrl)) return draft;
+      try {
+        const { map } = await shortenMany([draft.menuUrl], runtime.fetchShorten);
+        const short = map.get(draft.menuUrl.trim());
+        return short ? { ...draft, menuUrl: short } : draft;
+      } catch (error) {
+        const detail = error instanceof Error && error.message ? ` (${error.message})` : "";
+        notify({ message: `No se pudo acortar el Link del menú${detail}. Revisa tu conexión e inténtalo de nuevo.`, severity: "error", group: "records" });
+        return null;
+      }
+    },
+
+    /** «Descargar Excel actualizado»: las piezas con el link corto en «Link del menú», listas para volver a importarse. */
+    async downloadExcel(): Promise<boolean> {
+      const records = orderedRecords(project());
+      if (records.length === 0) {
+        notify({ message: "No hay piezas para descargar", severity: "info", group: "records" });
+        return false;
+      }
+      try {
+        const blob = await (deps.exportExcel ?? fetchRecordsExcel)(records);
+        deps.download(`${sanitizeFileName(project().name) || "piezas"}.xlsx`, blob);
+        notify({ message: `Excel actualizado: ${plural(records.length, "pieza", "piezas")}. Reemplaza tu archivo con este para conservar los links cortos.`, severity: "success", group: "records" });
+        return true;
+      } catch (error) {
+        const detail = error instanceof Error && error.message ? `: ${error.message}` : "";
+        notify({ message: `No se pudo generar el Excel${detail}`, severity: "error", group: "records", action: { label: "Reintentar", onClick: () => void actions.downloadExcel() } });
+        return false;
+      }
     },
 
     /** Alta de una pieza (spec §4A). El QR se resuelve al guardar. */

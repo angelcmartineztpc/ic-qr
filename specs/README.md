@@ -15,6 +15,7 @@ Las carpetas `001`–`008` son **retrospectivas**: se escribieron el 2026-10-09 
 | [007](007-link-estable-del-qr/spec.md) | Link estable del QR por resort y servicio | — (venía de `qr-api-created`) | Implemented |
 | [008](008-plataforma-seguridad-y-despliegue/spec.md) | Entorno, guardas HTTP, autenticación, Docker, fuentes, tests | 2, 11 | Implemented |
 | [009](009-cloudflare-workers/spec.md) | Despliegue como Worker de Cloudflare (R2, fuentes, Excel sin hilos) | — | Implemented (sin publicar) |
+| [011](011-acortador-de-links/spec.md) | Acortador de links del menú (`/s/{código}`), Excel actualizado y diseño para Supabase | — | Fase A implementada; Fase B (Supabase) diseñada |
 
 ## Especificaciones anteriores (F001–F004)
 

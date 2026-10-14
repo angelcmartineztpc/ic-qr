@@ -85,7 +85,9 @@ export function EditorScreen() {
   const setPage = (page: number) => patchSession(runtime.session, (s) => ({ selection: { ...s.selection, page } }));
   const setFilter = (next: CounterFilter) => patchSession(runtime.session, (s) => ({ filter: next, selection: { ...s.selection, page: 1 } }));
 
-  const onSubmit = async (draft: RecordDraft): Promise<boolean> => {
+  const onSubmit = async (rawDraft: RecordDraft): Promise<boolean> => {
+    const draft = await actions.prepareDraft(rawDraft, editing && editing !== "new" ? editing : undefined);
+    if (!draft) return false;
     if (editing === "new") {
       patchSession(runtime.session, { filter: "all", query: "" }); // que la pieza nueva sea visible
       await actions.add(draft);

@@ -2,7 +2,7 @@
 
 Herramienta interna para crear piezas físicas de metal de **70 × 70 mm** con datos de restaurante, mesa y un **QR vectorial**, y exportarlas como **PDF vectorial compatible con Adobe Illustrator** (y SVG por pieza).
 
-La arquitectura completa, las decisiones y el plan por fases están en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Ese documento es normativo; su sección final, «Registro de decisiones», prevalece sobre el resto.
+El **charter del proyecto** (objetivos, alcance, requisitos, tecnologías, riesgos y pendientes) está en [`docs/CHARTER.md`](docs/CHARTER.md). La arquitectura completa, las decisiones y el plan por fases están en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Ese documento es normativo; su sección final, «Registro de decisiones», prevalece sobre el resto.
 
 ## Estado
 
@@ -120,6 +120,20 @@ El QR se graba en metal y no se puede reimprimir barato, así que **no codifica 
 - En el formulario de pieza y en la importación, el selector **Resort + Servicio** rellena el «Link del menú» con esa URL estable.
 - `NEXT_PUBLIC_QR_DOMAIN` debe ser el dominio **definitivo**: queda grabado en cada pieza. Vacío, se usa el origen actual de la app (solo para desarrollo).
 - Es pública (la abren los huéspedes al escanear), igual que `/api/health` y, con storage local, `/api/storage/**`; no acepta destinos arbitrarios, solo los de la lista.
+
+## Acortador de links del menú
+
+Un «Link del menú» largo produce un QR denso con módulos diminutos (a partir de ~80 caracteres ya salta el aviso de módulos pequeños y, pasados ~110, la exportación se bloquea). Por eso **todo «Link del menú» se acorta siempre** y el QR codifica `{dominio}/s/{código}` (8 caracteres, p. ej. `/s/ab3de9xk`):
+
+- **Es automático:** al **confirmar una importación** (Excel o CSV) y al **guardar una pieza** a mano. Si el servicio no responde, no se crea ninguna pieza con el link largo y se ofrece reintentar.
+- **No cambia nunca para el mismo link:** el código sale de una huella del link, así que subir otra vez el mismo Excel (o escribir el mismo link en otra pieza) da **el mismo link corto** y no crea registros nuevos.
+- **El destino se cambia sin reimprimir:** en el detalle de la pieza, «Cambiar destino». El código y el QR impreso no cambian; el destino anterior queda en el historial.
+- **Excel actualizado:** tras importar (o desde el menú ⋮ de Piezas) **«Descargar Excel actualizado»** genera un `.xlsx` con los mismos encabezados que reconoce la importación, **el link corto reemplazando a «Link del menú»** y una columna «Link original (referencia)» con el destino. Con ese archivo se puede seguir trabajando: las filas que ya traen link corto se conservan tal cual. «Link del QR» solo se rellena para QR que la persona aportó.
+- **No se acortan** los links propios (`/s/…` y `/api/qr/{resort}/{servicio}`) ni se toca el «Link del QR».
+- `GET /s/{código}` es **público** (lo abren los huéspedes al escanear), responde 302 con `Cache-Control: no-store` y guarda en memoria el destino ~30 s. Crear y cambiar destinos exige sesión (`POST /api/links/shorten`, `GET`/`PATCH /api/links/{código}`, límite `RATE_LIMIT_LINKS_PER_MIN`).
+- Los registros viven como `s/v1/{código}.json` en el mismo almacenamiento que los QR (local, S3, R2 o Supabase Storage) y **nunca se sirven** por `/api/storage`.
+
+**Limitación conocida:** la detección de duplicados compara el «Link del menú»; volver a importar el Excel **original** (con links largos) no reconoce como duplicadas las piezas que ya tienen el link corto. Se continúa con el Excel actualizado. Detalle y diseño para Supabase (Fase B) en [`specs/011-acortador-de-links/`](specs/011-acortador-de-links/spec.md).
 
 ## Cloudflare Workers
 

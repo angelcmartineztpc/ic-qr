@@ -17,7 +17,11 @@ Cada concepto tiene un único dueño: plantilla = datos Zod + `TemplateOverrides
 - **El servidor no confía en el cliente:** recalcula la exportabilidad y la identidad de cada QR. Los fallos son siempre por pieza y nunca provocan una generación de respaldo.
 
 ### III. El QR codifica un link estable
-El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{dominio}/api/qr/{resortCode}/{service}`, y esa ruta redirige (302, `Cache-Control: no-store`) al destino vigente de `src/lib/resorts/properties.ts`. Cambiar un destino no cambia el QR. El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente. Esta ruta es pública y sin autenticación (la abren los huéspedes al escanear); no debe aceptar parámetros de destino arbitrarios. Las otras rutas `/api` sin guardas son `GET /api/health` y, solo con storage local, `GET /api/storage/**`.
+El QR grabado en el material no puede reimprimirse barato. Por eso **nunca codifica el destino**: codifica un link estable que redirige (302, `Cache-Control: no-store`) al destino vigente. Hay dos:
+- **Por resort y servicio:** `{dominio}/api/qr/{resortCode}/{service}`, con destinos en `src/lib/resorts/properties.ts`.
+- **Link corto del menú:** `{dominio}/s/{código}` (8 caracteres). **Todo «Link del menú» se acorta siempre**; el código sale de una huella del link, así que el mismo link da el mismo código, y el destino se cambia desde la aplicación sin tocar el QR (`specs/011-acortador-de-links/`). Los links propios (`/s/…` y `/api/qr/…`) no se vuelven a acortar.
+
+El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente. Estas rutas son públicas y sin autenticación (las abren los huéspedes al escanear); no aceptan destinos arbitrarios: el resort y el servicio salen de una lista cerrada y los destinos de un link corto solo los crea o cambia una persona autenticada, validados (`http(s)`, sin credenciales, nunca otro link corto propio). Las otras rutas `/api` sin guardas son `GET /api/health` y, solo con storage local, `GET /api/storage/**`.
 
 ### IV. Salida vectorial verificable
 - El PDF es vectorial: 0 imágenes, páginas y piezas con medidas exactas en mm, QR como un único path, texto en contornos (o vivo con la fuente incrustada).
@@ -30,7 +34,7 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 - Toda transformación o descarte produce un `Issue` o `Warning` visible. Los mensajes al usuario van en español.
 
 ### VI. Seguridad por defecto
-- Todo Route Handler se declara con `withApiGuards` (host → auth → Content-Type y origen → rate limit → concurrencia → tamaño); las páginas se autentican en `src/proxy.ts`. Las únicas excepciones son el redirect de III, `GET /api/health` y `GET /api/storage/**` (este último solo con storage local).
+- Todo Route Handler se declara con `withApiGuards` (host → auth → Content-Type y origen → rate limit → concurrencia → tamaño); las páginas se autentican en `src/proxy.ts`. Las únicas excepciones son los redirects de III (`/api/qr/{resort}/{servicio}` y `/s/{código}`), `GET /api/health` y `GET /api/storage/**` (este último solo con storage local).
 - Con `AUTH_MODE=none` el servidor **no arranca** en producción. Los secretos nunca se versionan (`.env*`, salvo `.env.example`); admiten la variante `*_FILE`.
 - Toda descarga externa pasa por `safeFetch` (https, IP públicas, tamaños y tiempos acotados); todo SVG externo se sanea con lista blanca y se rechaza, no se ignora.
 - Los QR generados nunca se versionan en git.

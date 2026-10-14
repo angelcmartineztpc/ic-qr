@@ -13,11 +13,13 @@ import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 
+import { shortCodeOf } from "@/lib/links/own-links";
 import { qrBadge } from "@/lib/records/qr-badge";
 import { useSession } from "@/lib/state/StoreProvider";
 import { FIELD_LABELS } from "@/lib/validation/messages.es";
 import type { QRRecord } from "@/types";
 
+import { LinkDestination } from "@/components/links/LinkDestination";
 import { TilePreview } from "@/components/preview/TilePreview";
 
 import type { BuilderActions } from "./builder-actions";
@@ -136,6 +138,7 @@ export function RecordDetail({ record, position, total, readOnly, actions, onEdi
           <Field name={FIELD_LABELS.menuUrl}>{record.menuUrl ? link(record.menuUrl) : EMPTY}</Field>
           <Field name={FIELD_LABELS.qrUrl}>{link(record.qrUrl)}</Field>
         </dl>
+        {shortCodeOf(record.menuUrl) ? <LinkDestination code={shortCodeOf(record.menuUrl) as string} readOnly={readOnly} /> : null}
 
         {issues.length > 0 ? (
           <Alert severity={issues.some((i) => i.severity === "error") ? "error" : "warning"}>

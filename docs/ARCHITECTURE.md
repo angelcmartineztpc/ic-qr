@@ -3029,3 +3029,17 @@ A petición del usuario se añade un paso entre Piezas y Diseño (`/style`): el 
 - **Legibilidad (`lib/qr-style/warnings.ts`):** contraste WCAG entre cada parte y el fondo (< 4.5 avisa, < 3 bloquea), QR invertido (avisa) y cobertura del logo (> 20 % avisa, > 30 % bloquea; la corrección H recupera ~30 %). Los avisos «block» deshabilitan **Descargar** en Exportar (`blockingStyleWarnings`, con el Link del menú más corto como peor caso del logo).
 - **Prueba de que se lee:** `tests/integration/qr-style-scan.test.ts` dibuja cada forma, esquina, color, el contorno circular y el logo con la misma escena y el mismo renderer, los rasteriza con sharp y los decodifica con el lector de `qr`; incluye un control negativo (contraste casi nulo no se lee).
 - **Fuera de alcance por ahora:** degradados y estilos por pieza (el estilo es del proyecto), y logos con `<circle>`, `<ellipse>` o texto (hay que convertirlos a contornos; el mensaje de error lo explica).
+
+### Notas del acortador de links del menú (2026-10-14)
+
+Feature `specs/011-acortador-de-links/`. El QR deja de codificar el «Link del menú» largo y codifica `{dominio}/s/{código}`.
+
+- **Código determinista** (`src/server/links/code.ts`): `sha256(link normalizado)` → 8 caracteres de un alfabeto de 31 (`23456789abcdefghjkmnpqrstuvwxyz`; minúsculas para no colisionar en sistemas de archivos que no distinguen mayúsculas). Un código ocupado por otro link se resuelve con un contador de intento determinista (hasta 10). No hay índice ni base de datos: el mismo link da siempre el mismo código, aunque se pierda el estado del navegador.
+- **Repositorio como interfaz** (`ShortLinkRepository`): hoy `ObjectShortLinkRepository` (`[prefijo/]s/v1/{código}.json` en el `StorageProvider` configurado, creación con `ifNoneMatch`); la Fase B lo sustituye por Postgres de Supabase sin tocar el servicio, las rutas ni la UI.
+- **Claves:** `keys.ts` separa `isValidKey` (QR e instantáneas: lo único que sirven `/api/storage` y `/api/qr/asset`) de `isManagedKey` (además, los links). Un registro de link nunca sale por una ruta pública.
+- **Redirect público** `src/app/s/[code]/route.ts` + `src/proxy.ts` excluye `s/` del `matcher` (si no, la autenticación de páginas bloquearía a los huéspedes). Caché en memoria (`RedirectCache`, ~30 s) que se vacía al cambiar un destino.
+- **Dónde se acorta:** `confirm()` de la importación (antes de crear las piezas; un fallo total aborta sin crear nada) y `prepareDraft()` del formulario (al editar, un link que no se tocó no se vuelve a acortar: cambiarlo desactualizaría un QR ya impreso). `fetchShorten` vive en el `Runtime` como `fetchResolve`, inyectable en las pruebas.
+- **Excel actualizado:** `POST /api/records/excel` (SheetJS `XLSX.write`) con los encabezados de `FIELD_LABELS` + «Link original (referencia)». Un QR generado nunca se escribe en «Link del QR» (convertiría un QR propio en «existente» y se verificaría por red).
+- **Constitución:** III y VI listan `/s/{código}` como ruta pública.
+- **Hallazgos:** (1) `/s/{código}` es una página para Next, así que sin la exclusión del `matcher` el redirect pedía credenciales; (2) la detección de duplicados usa `menuUrl`, por lo que importar el Excel original tras haber importado el actualizado no detecta duplicados (T-090).
+- **Fase B (Supabase):** esquema SQL, RLS, bucket privado e integración de roles en `specs/011-acortador-de-links/plan.md`; pendiente de la integración con la otra plataforma.

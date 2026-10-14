@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { isValidKey, keyFromPublicUrl, publicUrlFor, StorageError } from "@/server/storage/keys";
+import { isManagedKey, keyFromPublicUrl, publicUrlFor, StorageError } from "@/server/storage/keys";
 import type { PutOptions, PutResult, StorageProvider } from "@/types";
 
 export interface StoredObject {
@@ -37,7 +37,7 @@ export class MemoryStorage implements StorageProvider {
 
   async upload(key: string, body: Uint8Array | string, options: PutOptions): Promise<PutResult> {
     this.calls.upload++;
-    if (!isValidKey(key)) throw new StorageError("invalid-key", key);
+    if (!isManagedKey(key)) throw new StorageError("invalid-key", key);
     await this.tick();
     const ref = { key, publicUrl: this.getPublicUrl(key) };
     if (options.ifNoneMatch && this.objects.has(key)) return { status: "exists", object: ref };

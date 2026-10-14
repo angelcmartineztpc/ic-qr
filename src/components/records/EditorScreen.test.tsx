@@ -94,7 +94,8 @@ describe("crear una pieza manualmente (AC1, AC2, AC13, AC17–AC19)", () => {
     await user.click(screen.getByRole("button", { name: "Pieza siguiente" }));
     expect(screen.getByTestId("piece-position").textContent).toBe("Pieza 3 de 3");
     expect((screen.getByRole("button", { name: "Pieza siguiente" }) as HTMLButtonElement).disabled).toBe(true);
-  });
+    // Teclea tres formularios completos: bajo la carga de toda la suite supera los 5 s por defecto.
+  }, 20_000);
 });
 
 describe("editar, duplicar y eliminar (AC3, AC4)", () => {

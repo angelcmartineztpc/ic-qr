@@ -8,6 +8,7 @@ import { authenticate, BASIC_REALM, type AuthConfig } from "./server/http/auth";
 /**
  * Autenticación de páginas. Las rutas /api/* no pasan por aquí: usan
  * withApiGuards, que además comprueba Host, CSRF, límites y cuerpo.
+ * /s/{código} (el link corto que escanean los huéspedes) es público y tampoco pasa por aquí.
  */
 let authConfig: AuthConfig | undefined;
 
@@ -38,5 +39,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api/|_next/static/|_next/image/|favicon\\.ico$|robots\\.txt$).*)"],
+  matcher: ["/((?!api/|s/|_next/static/|_next/image/|favicon\\.ico$|robots\\.txt$).*)"],
 };
