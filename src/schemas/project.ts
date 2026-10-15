@@ -21,6 +21,7 @@ export const StoredExportOptionsSchema = z.strictObject({
   pdf: PDFOptionsSchema,
   svg: z.strictObject({ textMode: z.enum(["outlined", "live"]), cutLine: z.boolean() }),
   zipNaming: z.enum(["index", "index-area-mesa"]),
+  pdfBySection: z.boolean().default(false),
 });
 
 export const QuarantineEntrySchema = z.strictObject({

@@ -35,9 +35,11 @@ export interface PdfOptionsPanelProps {
   formats: Array<"pdf" | "svgZip">;
   zipNaming: "index" | "index-area-mesa";
   onFormats(formats: Array<"pdf" | "svgZip">, zipNaming?: "index" | "index-area-mesa"): void;
+  pdfBySection: boolean;
+  onPdfBySection(value: boolean): void;
 }
 
-export function PdfOptionsPanel({ options, tile, count, disabled, onChange, formats, zipNaming, onFormats }: PdfOptionsPanelProps) {
+export function PdfOptionsPanel({ options, tile, count, disabled, onChange, formats, zipNaming, onFormats, pdfBySection, onPdfBySection }: PdfOptionsPanelProps) {
   const packing = describePacking(tile, options, count);
   const margin = (side: keyof PDFOptions["margins"], label: string) => (
     <NumberField key={`${side}-${options.margins[side]}`} label={label} unit="mm" step={1} value={options.margins[side]} disabled={disabled} onCommit={(v) => (between(0, 100, v).ok ? (onChange({ margins: { ...options.margins, [side]: v } }), ok) : between(0, 100, v))} />
@@ -88,6 +90,7 @@ export function PdfOptionsPanel({ options, tile, count, disabled, onChange, form
       </TextField>
       {options.textMode === "live" ? <Alert severity="info">Para ver bien el texto, instala la fuente Address Sans Pro Cd Semibold (Adobe Fonts) en el equipo donde abras el archivo. Si no la tienes, Illustrator usará otra y el texto cambiará de aspecto.</Alert> : null}
       <FormControlLabel control={<Switch checked={options.includeQrBackground} disabled={disabled} onChange={(e) => onChange({ includeQrBackground: e.target.checked })} />} label="Fondo blanco bajo el QR" />
+      <FormControlLabel control={<Switch checked={pdfBySection} disabled={disabled} onChange={(e) => onPdfBySection(e.target.checked)} />} label="Un PDF por Estación (en un ZIP)" />
       <FormControlLabel
         control={<Switch checked={formats.includes("svgZip")} disabled={disabled} onChange={(e) => onFormats(e.target.checked ? ["pdf", "svgZip"] : ["pdf"])} />}
         label="También un ZIP con un SVG por pieza"

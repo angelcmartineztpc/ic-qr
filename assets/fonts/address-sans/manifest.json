@@ -17,5 +17,5 @@
       }
     }
   },
-  "note": "La huella de anchos (advances, por 1000 em) viene de la fuente incrustada en QR_Alimentos.ai. fonts:setup rechaza cualquier archivo que no la cumpla: p. ej. address-sans-pro-semibold (ancho normal) NO es la Cd. Referencia: «CONSULTA EL MENU Y ORDENA EN LÍNEA» a 13.2 pt mide 58.6 mm sin tracking y 54.7 mm con tracking −25."
+  "note": "La huella de anchos (advances, por 1000 em) viene de la fuente incrustada en QR_Alimentos.ai. fonts:setup rechaza cualquier archivo que no la cumpla: p. ej. address-sans-pro-semibold (ancho normal) NO es la Cd. Referencia: «CONSULTA EL MENÚ Y ORDENA EN LÍNEA» a 13.2 pt mide 58.6 mm sin tracking y 54.7 mm con tracking −25."
 }

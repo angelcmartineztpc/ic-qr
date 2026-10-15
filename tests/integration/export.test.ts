@@ -238,6 +238,19 @@ describe.skipIf(!HAS_PIECE_FONT)("POST /api/export (requiere la fuente de las pi
     expect(await storageFiles()).toEqual(before); // estilizar no crea ni cambia ningún QR guardado
   });
 
+  it("pdfBySection: un PDF por Estación, en el orden del Excel, dentro de un ZIP", async () => {
+    const estaciones = ["Playa Norte", "Terraza Infinity", "Playa Norte", "Flamingos", "Terraza Infinity"];
+    const records = (await generated(["a", "b", "c", "d", "e"])).map((r, i) => ({ ...r, estacion: estaciones[i] as string }));
+    const out = await collect(await run(request(records, { pdfBySection: true })));
+    expect(out.error).toBeUndefined();
+    expect(out.files["pdf"]).toBeUndefined();
+    expect(out.done).toMatchObject({ pages: 3, pieces: 5 });
+    const zip = unzipSync(out.files["zip"] as Uint8Array);
+    expect(Object.keys(zip)).toEqual(["QR_SECCION A_Playa Norte.pdf", "QR_SECCION B_Terraza Infinity.pdf", "QR_SECCION C_Flamingos.pdf"]);
+    const counts = await Promise.all(Object.values(zip).map(async (pdf) => (await pageContents(pdf))[0]?.match(/^f\*$/gm)?.length));
+    expect(counts).toEqual([2, 2, 1]); // piezas por sección, sin mezclar
+  });
+
   it("la numeración del ZIP es 1…n sobre la lista exportada (las excluidas ni viajan); con nombre por área y mesa", async () => {
     const all = await generated(["a", "b", "c", "d"]);
     const included = all.filter((r) => r.id !== "b");

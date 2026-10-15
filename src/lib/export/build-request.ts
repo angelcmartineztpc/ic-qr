@@ -82,7 +82,7 @@ export function buildExportRequest(project: ProjectState, excludedIds: readonly 
       templateId: project.templateId,
       templateOverrides: project.templateOverrides,
       layout: project.layout,
-      options: { fileName: resolveFileName(project, now), formats: exportOptions.formats, pdf: exportOptions.pdf, svg: exportOptions.svg, zipNaming: exportOptions.zipNaming },
+      options: { fileName: resolveFileName(project, now), formats: exportOptions.formats, pdf: exportOptions.pdf, svg: exportOptions.svg, zipNaming: exportOptions.zipNaming, pdfBySection: exportOptions.pdfBySection },
     },
     included,
     blocked,

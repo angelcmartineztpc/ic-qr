@@ -108,7 +108,7 @@ export function ExportScreen() {
           </Panel>
 
           <Panel title="Hoja y formato">
-            <PdfOptionsPanel options={exportOptions.pdf} tile={template.tile} count={included.length} disabled={disabled} onChange={(patch) => editor.setPdfOptions(patch)} formats={exportOptions.formats} zipNaming={exportOptions.zipNaming} onFormats={(formats, naming) => editor.setFormats(formats, naming)} />
+            <PdfOptionsPanel options={exportOptions.pdf} tile={template.tile} count={included.length} disabled={disabled} onChange={(patch) => editor.setPdfOptions(patch)} formats={exportOptions.formats} zipNaming={exportOptions.zipNaming} onFormats={(formats, naming) => editor.setFormats(formats, naming)} pdfBySection={exportOptions.pdfBySection} onPdfBySection={(v) => editor.setPdfBySection(v)} />
           </Panel>
         </div>
 
