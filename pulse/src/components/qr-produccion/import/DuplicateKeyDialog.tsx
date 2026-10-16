@@ -16,15 +16,15 @@ export interface DuplicateKeyDialogProps {
 
 /** DuplicateKeySettings (§S1.8): qué campos definen que dos piezas son «la misma». */
 export function DuplicateKeyDialog({ open, value, onClose, onSave }: DuplicateKeyDialogProps) {
+  const id = useId();
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      {open ? <Body value={value} onClose={onClose} onSave={onSave} /> : null}
+    <Dialog open={open} onClose={onClose} aria-labelledby={`${id}-title`} fullWidth maxWidth="xs">
+      {open ? <Body id={id} value={value} onClose={onClose} onSave={onSave} /> : null}
     </Dialog>
   );
 }
 
-function Body({ value, onClose, onSave }: Pick<DuplicateKeyDialogProps, "value" | "onClose" | "onSave">) {
-  const id = useId();
+function Body({ id, value, onClose, onSave }: Pick<DuplicateKeyDialogProps, "value" | "onClose" | "onSave"> & { id: string }) {
   const [fields, setFields] = useState<BindableField[]>([...value.fields]);
   const [caseInsensitive, setCaseInsensitive] = useState(value.caseInsensitive);
   const [canonicalUrl, setCanonicalUrl] = useState(value.canonicalUrl);

@@ -57,7 +57,7 @@ export function ImportScreen() {
       {busy ? (
         <div role="status" className={styles.busy}>
           <p>Leyendo el archivo…</p>
-          <LinearProgress />
+          <LinearProgress aria-label="Leyendo el archivo" />
           <div><Button size="small" onClick={() => actions.cancelUpload()}>Cancelar</Button></div>
         </div>
       ) : null}

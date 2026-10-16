@@ -19,15 +19,15 @@ export interface ColumnMappingDialogProps {
 
 /** «Columna para Mesa: [Select]»: la persona asigna a mano lo que no se pudo reconocer. */
 export function ColumnMappingDialog({ open, mapping, onClose, onApply }: ColumnMappingDialogProps) {
+  const id = useId();
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      {open ? <Body mapping={mapping} onClose={onClose} onApply={onApply} /> : null}
+    <Dialog open={open} onClose={onClose} aria-labelledby={`${id}-title`} fullWidth maxWidth="sm">
+      {open ? <Body id={id} mapping={mapping} onClose={onClose} onApply={onApply} /> : null}
     </Dialog>
   );
 }
 
-function Body({ mapping, onClose, onApply }: Omit<ColumnMappingDialogProps, "open">) {
-  const id = useId();
+function Body({ id, mapping, onClose, onApply }: Omit<ColumnMappingDialogProps, "open"> & { id: string }) {
   const [choice, setChoice] = useState<Record<string, FieldKey | null>>(() => Object.fromEntries(mapping.map((m) => [m.column, m.field])));
   const used = new Set(Object.values(choice).filter((f): f is FieldKey => f !== null));
   const missing = REQUIRED_FIELDS.filter((field) => !used.has(field));
