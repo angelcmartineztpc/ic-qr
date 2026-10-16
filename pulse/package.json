@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint src",
     "test": "vitest run",
-    "test:db": "eval \"$(supabase status -o env | sed 's/^/export /')\" && vitest run -c vitest.db.config.ts",
+    "test:db": "eval \"$(supabase status -o env | sed 's/^/export /')\" && VITE_SUPABASE_URL=$API_URL vitest run -c vitest.db.config.ts",
     "build:functions": "bun supabase/build-functions.ts"
   },
   "dependencies": {

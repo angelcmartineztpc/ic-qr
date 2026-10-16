@@ -31,7 +31,15 @@ for (const name of names) {
     for (const log of result.logs) console.error(String(log));
     process.exit(1);
   }
+  // El runtime local de Supabase no aplicó el import_map de la función: se escriben ya los especificadores finales (npm:, jsr:, https:).
+  const file = join(root, "dist", name, "index.js");
+  let code = await Bun.file(file).text();
+  for (const [key, target] of Object.entries(libs)) {
+    if (key.endsWith("/")) code = code.replaceAll(new RegExp(`(from\\s*|import\\()"${key.replace(/[/@.]/g, "\\$&")}`, "g"), `$1"${target.replace("npm:/", "npm:")}`);
+    else code = code.replaceAll(new RegExp(`(from\\s*|import\\()"${key.replace(/[/@.]/g, "\\$&")}"`, "g"), `$1"${target}"`);
+  }
+  await Bun.write(file, code);
   console.warn(`✓ ${name}`);
 }
 await mkdir(join(root, "dist"), { recursive: true });
-await writeFile(join(root, "dist/import_map.json"), JSON.stringify({ imports: libs }, null, 2) + "\n");
+await writeFile(join(root, "dist/import_map.json"), JSON.stringify({ imports: {} }, null, 2) + "\n"); // vacío: ya no hace falta
