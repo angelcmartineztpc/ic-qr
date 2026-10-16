@@ -243,10 +243,10 @@ export class RemoteProjectPersistence {
 const COLUMNS = "id, nombre, datos, schema_version, revision, owner_id, updated_at";
 
 /**
- * TODO(sin verificar): este adaptador NUNCA se ejecutó contra Supabase real; las pruebas usan `MemoryProjectTable`.
- * Es lo primero que hay que validar con `supabase start` + patch-qr-produccion.sql: nombres de columna, RLS de
- * `qr_proyectos` (propietario vs rol), el trigger que sube `revision`, `maybeSingle()` cuando el UPDATE no coincide
- * (debe dar null, no error) y el código 23505 del INSERT duplicado.
+ * TODO(falta Supabase REMOTO): este adaptador se validó contra Supabase LOCAL real (supabase/tests/db.integration.test.ts:
+ * columnas, RLS propietario/rol, trigger de `revision`, UPDATE sin coincidencia = null, 23505 en INSERT duplicado), pero
+ * nunca contra un proyecto Supabase remoto de PULSE: allí hay que repetirlo (RLS con los roles reales, ver
+ * `qr_roles_del_usuario()` y PULSE_INTEGRATION.md). Quitar este TODO solo cuando esa prueba pase en el remoto.
  *
  * `qr_proyectos` sobre el cliente singleton de PULSE. Las políticas RLS deciden qué filas se ven y se escriben. */
 export function supabaseProjectTable(client: Pick<SupabaseClient, "from" | "auth">): ProjectTable {

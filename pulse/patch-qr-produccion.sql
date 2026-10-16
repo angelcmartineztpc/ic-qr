@@ -40,9 +40,12 @@ BEGIN
     EXECUTE 'SELECT coalesce(roles::text[], ''{}'') FROM public.profiles WHERE id = $1'
       INTO resultado USING auth.uid();
   END IF;
+  -- TODO: ajustar a esquema real de PULSE. Ver PULSE_INTEGRATION.md
   RETURN coalesce(resultado, '{}');
 END;
 $$;
+
+COMMENT ON FUNCTION public.qr_roles_del_usuario() IS 'TODO: ajustar a esquema real de PULSE. Ver pulse/PULSE_INTEGRATION.md';
 
 -- Admin o «QR Producción»: puede usar el módulo.
 CREATE OR REPLACE FUNCTION public.qr_tiene_acceso()
