@@ -55,6 +55,29 @@ El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente.
 
 **Código heredado:** la rama `qr-api-created` (`app/`, `lib/`, `data/`, `qrcode`, `pdf-lib`, `archiver`, `tailwind.config.js`) fue absorbida y reemplazada por `src/`; no se reintroduce.
 
+## Ámbito del módulo PULSE (`pulse/`) — enmienda 1.2.0
+
+Este apartado aplica **solo** al subárbol `pulse/` (el módulo para la plataforma PULSE; ver [`specs/012-modulo-pulse/`](../../specs/012-modulo-pulse/spec.md)). Fuera de `pulse/` rigen íntegros los apartados anteriores, incluidos «Stack» y «Estilos»: Next.js 16, MUI y Tailwind siguen siendo obligatorios en el resto del repositorio y no se relajan.
+
+### Excepción de stack (solo dentro de `pulse/`)
+Se autoriza Vite 7 + React 19 + react-router 6, CSS Modules con las variables de tema de PULSE, y Supabase (Postgres, Auth, Storage y Edge Functions en Deno). Sustituyen, **dentro de `pulse/`**, a Next.js, MUI + Tailwind y al servidor Node. Motivo: PULSE impone ese stack a los módulos que acepta (guía de integración).
+
+### Reglas que aplican solo dentro de `pulse/`
+Vienen de la guía de integración de PULSE y no cambian el contrato del código fuera de `pulse/`:
+- **DB-first:** se persiste en Supabase **antes** de actualizar el estado local; IndexedDB es caché, no fuente de verdad.
+- **Sin `console.log`** (solo `console.error` y `console.warn`).
+- **Sin MUI, Emotion, Tailwind ni Next** en `pulse/`; solo CSS Modules con variables de tema. Sin literales de color salvo datos del dominio (p. ej. la lámina blanca de la pieza).
+- Tipos en un único `src/types/index.ts`; páginas con `export default`; alias `@/`.
+- **Dependencias nuevas** solo con la justificación y la autorización recogidas en el plan de la 012.
+- Puerta de calidad de `pulse/`: `tsc --noEmit`, `vitest run` y `vite build`; y `bun run test:db` contra Supabase local para SQL, RLS y Edge Functions.
+
+### Cómo se aplican los principios I–VII dentro de `pulse/`
+- **I (capas):** `src/server/**` y `server-only` **no existen** en `pulse/`, y el principio I no aplica allí tal cual. Las Edge Functions de `pulse/supabase/functions/` siguen un esquema de capas propio (Deno + adaptadores en `_shared/`); la lógica pura vive en `pulse/src/services/qr-produccion/**` (sin React) y la de servidor, en `…/backend/**`, que los componentes no importan.
+- **II, IV, V, VI y VII:** aplican sin cambios. En el servidor equivalen: la autenticación es el JWT de Supabase + `qr_tiene_acceso()` (en lugar de `withApiGuards`), la descarga externa pasa por el `safeFetch` de `backend/net`, y las rutas públicas son solo los redirects de III y `GET qr-resolver/storage/{clave}.svg`.
+- **III (link estable):** el dominio se llama `NEXT_PUBLIC_QR_DOMAIN` fuera de `pulse/` y **`VITE_QR_DOMAIN`** (frontend) y `QR_PUBLIC_BASE` (Edge Functions) dentro; conviven, cada uno en su ámbito, y en ambos el dominio se graba para siempre y debe ser permanente.
+- **Código heredado y `pdf-lib`:** la prohibición de reintroducir `qr-api-created` es sobre la **arquitectura** de esa rama (`app/`, `lib/`, `data/`, `archiver`, `tailwind.config.js`), **no sobre la librería `pdf-lib`**: `pdf-lib` puede usarse (ya es devDependency del repositorio y, en `pulse/`, se usa en runtime para unir PDF por lotes en el cliente).
+- **Fuentes y QR generados:** las fuentes comerciales siguen sin versionarse (en `pulse/` van al bucket privado `qr-fuentes`) y los QR generados viven en Storage, nunca en git.
+
 ## Flujo de trabajo
 
 - **Spec primero:** toda feature nueva pasa por Spec Kit (`/speckit-specify` → `clarify` → `plan` → `tasks` → `implement`, con `analyze` antes de implementar). Las features existentes están documentadas en [`specs/`](../../specs/) (`001`–`008`, más las anteriores F001–F004) y las fases del proyecto en `docs/ARCHITECTURE.md` §G.
@@ -65,4 +88,4 @@ El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente.
 
 Esta constitución prevalece sobre otras prácticas del repositorio; `docs/ARCHITECTURE.md` detalla el *cómo*. Una enmienda se propone con `/speckit-constitution`, indica qué principio cambia y por qué, actualiza esta versión y migra los documentos afectados en el mismo cambio. Toda revisión debe verificar el cumplimiento de los principios I–VII; la complejidad añadida se justifica en el plan de la feature. Guía de ejecución para agentes: `AGENTS.md` y `CLAUDE.md`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-09 | **Last Amended**: 2026-10-09
+**Version**: 1.2.0 | **Ratified**: 2026-10-09 | **Last Amended**: 2026-10-16
