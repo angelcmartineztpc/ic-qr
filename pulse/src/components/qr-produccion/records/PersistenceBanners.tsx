@@ -44,6 +44,7 @@ export function PersistenceBanners({ actions, showRestored = true }: { actions: 
   const runtime = useRuntime();
   const writer = useSession((s) => s.writer);
   const status = useSession((s) => s.persistence.status);
+  const remote = useSession((s) => s.remote);
   const notices = useSession((s) => s.notices);
   const hydrated = useSession((s) => s.hydrated);
   const quarantined = useProject((p) => p.quarantine.length);
@@ -67,6 +68,24 @@ export function PersistenceBanners({ actions, showRestored = true }: { actions: 
       {status === "error" ? (
         <Alert severity="error" action={<Button color="inherit" size="small" onClick={actions.saveProjectFile}>Guardar proyecto</Button>}>
           No se pudo guardar en este navegador; exporta el proyecto para no perder los cambios.
+        </Alert>
+      ) : null}
+      {remote.status === "conflict" ? (
+        <Alert
+          severity="warning"
+          action={
+            <>
+              <Button color="inherit" size="small" onClick={() => void runtime.resolveConflict("keep-local")}>Conservar lo mío</Button>
+              <Button color="inherit" size="small" onClick={() => void runtime.resolveConflict("take-remote")}>Usar lo guardado</Button>
+            </>
+          }
+        >
+          Este proyecto cambió en otro lugar mientras lo editabas. Hasta que elijas, tus cambios no se guardan en la nube.
+        </Alert>
+      ) : null}
+      {remote.status === "offline" || remote.status === "error" ? (
+        <Alert severity={remote.status === "offline" ? "warning" : "error"}>
+          {remote.status === "offline" ? "Sin conexión: tus cambios se guardan en este navegador y se subirán al volver." : "No se pudo guardar en la nube; se reintentará. Tus cambios siguen en este navegador."}
         </Alert>
       ) : null}
       {notices.recoveredBackup ? (

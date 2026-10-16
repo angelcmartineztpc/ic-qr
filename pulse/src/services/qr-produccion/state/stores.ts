@@ -7,6 +7,7 @@ import type { DuplicateDecision, DuplicateStrategy, ImportIssue, ImportResult, P
 import type { CounterFilter } from "./counters";
 import { createEmptyProject, type Removed } from "./project";
 import type { SaveStatus } from "./persistence";
+import type { RemoteStatus } from "./remote-persistence";
 import type { WriterRole } from "./tab-lock";
 
 /** Datos del proyecto: se persisten y se guardan en el archivo `.qrproj.json`. */
@@ -72,6 +73,8 @@ export interface SessionState {
   /** Web Locks disponible: sin él no se puede garantizar un único escritor. */
   lockSupported: boolean;
   persistence: { status: SaveStatus | "unavailable" };
+  /** Guardado en la base (Supabase, DB-first). «off» = sin base (pruebas o sin sesión). */
+  remote: { status: RemoteStatus | "off"; detail?: string };
   selection: { currentId: RecordId | null; page: number; pageSize: number; view: ViewMode };
   filter: CounterFilter;
   query: string;
@@ -98,6 +101,7 @@ export const initialSession = (): SessionState => ({
   writer: "owner",
   lockSupported: false,
   persistence: { status: "ok" },
+  remote: { status: "off" },
   selection: { currentId: null, page: 1, pageSize: 24, view: "pages" },
   filter: "all",
   query: "",
