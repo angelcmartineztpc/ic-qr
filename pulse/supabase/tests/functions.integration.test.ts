@@ -7,11 +7,13 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { PDFDocument } from "pdf-lib";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { functionUrl } from "@/services/qr-produccion/app/api-client";
 import { uploadExcel } from "@/services/qr-produccion/app/import-client";
 import { buildExportRequest } from "@/services/qr-produccion/export/build-request";
+import { piecesPerSheet } from "@/services/qr-produccion/export/batch";
 import { runExportJob } from "@/services/qr-produccion/export/client";
 import { createRecord } from "@/services/qr-produccion/records/factory";
 import { createEmptyProject } from "@/services/qr-produccion/state/project";
@@ -213,6 +215,25 @@ run("Edge Functions en Supabase local", () => {
       const ms = Math.round(performance.now() - started);
       console.warn(`[medida] exportar 100 piezas (PDF) en la Edge Function local: ${ms} ms, ${result.files.pdf!.blob.size} bytes`);
       expect(result.files.pdf!.blob.size).toBeGreaterThan(10_000);
+    }, 180_000);
+
+    it("120 piezas: dos llamadas reales a la Edge Function y UN SOLO PDF, igual de paginado que una exportación sin lotes", async () => {
+      if (!fontsOk) return console.warn("Sin tipografía: se omite");
+      const project = await projectWithQrs(120);
+      const request = exportOf(project, ["pdf"]);
+      const batched = await runExportJob(request, {}, undefined, authed, 100); // fuerza lotes: 96 + 24 (múltiplos de la hoja)
+      expect(Object.keys(batched.files)).toEqual(["pdf"]);
+      expect(batched.warnings.filter((w) => w.code === "PDF_MERGE_FAILED")).toEqual([]);
+      const load = async (r: typeof batched) => PDFDocument.load(new Uint8Array(await r.files.pdf!.blob.arrayBuffer()));
+      const b = await load(batched);
+      const perSheet = piecesPerSheet(request);
+      expect(perSheet).toBeGreaterThan(1);
+      expect(b.getPageCount()).toBe(Math.ceil(120 / perSheet)); // las mismas hojas que sin lotes: ninguna a medias entre lotes
+      expect(b.getPageCount()).toBeGreaterThan(1);
+      // (Las cajas TrimBox/BleedBox solo existen en modo «una pieza por hoja con sangrado»; su conservación al unir se prueba en batch.test.ts.)
+      const sizes = new Set([0, b.getPageCount() - 1].map((i) => `${b.getPage(i).getWidth().toFixed(1)}x${b.getPage(i).getHeight().toFixed(1)}`));
+      expect(sizes.size).toBe(1); // todas las hojas del documento unido miden lo mismo
+      expect(batched.done.pieces).toBe(120);
     }, 180_000);
   });
 });

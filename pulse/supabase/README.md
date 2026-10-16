@@ -107,10 +107,12 @@ pared 150 s (gratis) / 400 s (de pago), memoria ≈ **256 MB**, paquete ≈ 20 M
 | Verificar un QR de terceros (sanear + rasterizar + decodificar) | ≈ 15–20 ms |
 
 - **Exportación.** El peor caso (contornos) roza el techo con 200 piezas, así que `EXPORT_MAX_RECORDS` es **100** y el cliente (`export/batch.ts`) parte
-  cualquier exportación mayor en lotes **equilibrados** de ≤ 100, una llamada por lote, y los junta en el navegador en **un ZIP**: un PDF por lote
-  (`nombre-parte-01.pdf`…), o los SVG con su numeración global (`options.batch` de la petición), o, con «un PDF por Estación», una carpeta `parte-NN/` por lote.
-  **Consecuencia de producto:** por encima de 100 piezas el PDF ya no es uno solo (no hay permiso para añadir una librería de unión de PDF y unirlos a mano sobre la salida de pdfkit es frágil). Si imprenta exige un solo PDF, hay que
-  decidirlo (p. ej. fusión con una dependencia autorizada, o un worker fuera de las Edge Functions).
+  cualquier exportación mayor en lotes de ≤ 100 (múltiplos de la hoja, para no dejar hojas a medias), una llamada por lote, y une el resultado en el
+  navegador: los PDF de los lotes en **UN SOLO PDF** con `pdf-lib` (`export/merge-pdf.ts`; copia las páginas tal cual, sin rasterizar), y los SVG
+  con su numeración global (`options.batch`) en un ZIP. Si la unión fallara, se entrega el ZIP de PDF por lote con un aviso (`PDF_MERGE_FAILED`).
+  **Pendiente de producto:** con «un PDF por Estación», una Estación que cruce el límite entre dos lotes queda partida en dos archivos (uno por carpeta `parte-NN/`).
+  Medido en Supabase local real (Deno 2.1): 100 piezas en una llamada ≈ 0,7–1,5 s. El runtime local **no** aplica el límite de CPU de producción: repetir la
+  medición en el proyecto Supabase real antes de fiarse del tope de 100.
   El PDF y el ZIP se acumulan en memoria (≈ 0,1 MB por 100 piezas en texto vivo; ≈ 1 MB en contornos con ZIP): lejos de 256 MB.
 - **Vista previa.** 48 piezas por llamada caben con holgura. El cliente ya agrupa y cachea.
 - **Importación.** SheetJS corre en la propia petición (sin `worker_threads`): lo acotan el guard del ZIP (tamaño, celdas, inflado, ANTES de leer) y el
