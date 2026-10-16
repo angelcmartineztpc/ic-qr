@@ -1,0 +1,23 @@
+.toolbar { display: flex; flex-direction: column; gap: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--bg-card); padding: var(--space-4); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.name { width: 18rem; }
+.status { display: flex; flex-wrap: wrap; gap: 6px; }
+.spacer { flex: 1; }
+.action { white-space: nowrap; }
+.sortIcon { margin-right: 4px; vertical-align: middle; }
+.searchRow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-4); }
+.search { width: 14rem; }
+.viewLabel { margin-left: 4px; }
+.progress { display: flex; align-items: center; gap: var(--space-3); }
+.bar { flex-grow: 1; }
+.progressText { white-space: nowrap; font-size: 0.875rem; color: var(--text-secondary); }
+@media (max-width: 599.95px) {
+  .name { order: 1; width: calc(100% - 3.25rem); }
+  .saveStatus { order: 3; width: 100%; }
+  .spacer { display: none; }
+  .action { order: 4; flex-basis: calc(50% - 0.375rem); }
+  .more { order: 2; }
+  .search { width: 100%; }
+  .viewLabel { display: none; }
+}
+@media (min-width: 600px) { .toolbar { padding: 1.25rem; } }

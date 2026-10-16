@@ -1,0 +1,26 @@
+.field { display: inline-flex; flex-direction: column; gap: var(--space-1); min-width: 0; vertical-align: top; }
+.fullWidth { display: flex; width: 100%; }
+.formControl { display: inline-flex; flex-direction: column; gap: var(--space-1); min-width: 0; border: 0; padding: 0; margin: 0; }
+.label { font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
+.box { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3); background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); transition: border-color 0.15s; }
+.small .box, .selectBox { min-height: 40px; }
+.box:hover { border-color: var(--text-secondary); }
+.box:focus-within { border-color: var(--border-focus); outline: 2px solid var(--border-focus); outline-offset: 0; }
+.error { border-color: var(--status-error); }
+.multiline { align-items: flex-start; padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.control { all: unset; box-sizing: border-box; flex: 1; min-width: 0; width: 100%; min-height: 38px; font: inherit; font-size: 0.9375rem; color: inherit; }
+.control::placeholder { color: var(--text-disabled); }
+textarea.control { min-height: 0; resize: vertical; line-height: 1.5; white-space: pre-wrap; }
+.select { cursor: pointer; padding-right: var(--space-2); }
+.selectSmall { min-height: 38px; }
+.select option { background: var(--bg-card); color: var(--text-primary); }
+.adornment { display: inline-flex; align-items: center; flex: none; color: var(--text-secondary); font-size: 0.875rem; }
+.adStart { margin-right: 0; }
+.adEnd { margin-left: 0; }
+.helper { margin: 0; font-size: 0.75rem; color: var(--text-secondary); }
+.helperError { color: var(--status-error); }
+.disabled { opacity: 0.55; }
+.disabled .control { cursor: not-allowed; }
+.group { display: flex; flex-direction: column; gap: var(--space-1); }
+.row { flex-direction: row; flex-wrap: wrap; gap: var(--space-4); }
+@media (prefers-reduced-motion: reduce) { .box { transition: none; } }

@@ -1,0 +1,16 @@
+.svg { width: 100%; max-height: min(75vh, 44rem); user-select: none; touch-action: none; }
+.ruler { fill: var(--text-secondary); stroke: var(--text-disabled); }
+.paper { fill: var(--bg-elevated); stroke: var(--border-subtle); }
+.grid { stroke: var(--status-info); }
+.safe { fill: none; stroke: var(--text-disabled); }
+.caption { fill: var(--text-secondary); }
+.overlap { fill: var(--status-error); }
+.guide { stroke: var(--status-success); }
+
+.qr { --tone: var(--primary); }
+.content { --tone: var(--status-warning); }
+
+.box { outline: none; }
+.box:focus-visible > rect { stroke-width: 0.7; }
+.boxRect { fill: var(--tone); stroke: var(--tone); }
+.handle { fill: var(--bg-card); stroke: var(--tone); }

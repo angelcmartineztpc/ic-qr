@@ -1,0 +1,7 @@
+.panel { display: flex; flex-direction: column; gap: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--bg-card); padding: var(--space-4); }
+.head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.titles { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.title { margin: 0; font-size: 1.125rem; font-weight: 600; }
+.description { margin: 0; font-size: 0.875rem; color: var(--text-secondary); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+@media (min-width: 600px) { .panel { padding: var(--space-6); } }

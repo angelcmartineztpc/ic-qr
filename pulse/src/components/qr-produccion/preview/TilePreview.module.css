@@ -1,0 +1,8 @@
+/* La pieza es una lámina impresa: su fondo es siempre claro, sea cual sea el tema. */
+.tile { position: relative; aspect-ratio: 1; width: 100%; overflow: hidden; border-radius: var(--radius-sm); background: #fff; box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-subtle); }
+.image { width: 100%; height: 100%; user-select: none; }
+.error { display: flex; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); padding: var(--space-2); text-align: center; font-size: 0.75rem; color: var(--status-error); }
+.skeleton { width: 100%; height: 100%; }
+.warning { position: absolute; left: var(--space-1); top: var(--space-1); }
+.warningIcon { display: inline-flex; border-radius: var(--radius-full); background: var(--bg-card); padding: 2px; color: var(--status-warning); }
+.warningList { margin: 0; padding-left: var(--space-4); list-style: disc; }

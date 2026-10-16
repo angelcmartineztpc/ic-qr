@@ -1,0 +1,17 @@
+.intro {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.missing {
+  margin: var(--space-4) 0 0;
+  font-size: 0.875rem;
+  color: var(--status-error);
+}

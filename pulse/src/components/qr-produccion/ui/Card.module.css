@@ -1,0 +1,7 @@
+.card { background: var(--bg-card); color: var(--text-primary); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+.outlined { box-shadow: none; border: 1px solid var(--border-subtle); }
+.area { all: unset; box-sizing: border-box; display: block; width: 100%; cursor: pointer; text-align: inherit; color: inherit; font: inherit; }
+.area:hover { background: var(--bg-hover); }
+.area:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+.divider { border: 0; border-top: 1px solid var(--border-subtle); margin: var(--space-1) 0; }
+.vertical { border-top: 0; border-left: 1px solid var(--border-subtle); align-self: stretch; margin: 0 var(--space-1); }

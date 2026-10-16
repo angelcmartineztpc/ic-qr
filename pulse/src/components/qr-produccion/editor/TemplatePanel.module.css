@@ -1,0 +1,7 @@
+.panel { display: flex; flex-direction: column; gap: var(--space-4); }
+.fieldset { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); min-width: 0; }
+.legend { padding: 0 var(--space-1); font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-3); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.colors { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.colorLabel { display: flex; align-items: center; gap: var(--space-2); font-size: 0.875rem; color: var(--text-primary); }

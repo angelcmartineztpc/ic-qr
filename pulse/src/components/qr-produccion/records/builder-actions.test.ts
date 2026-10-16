@@ -1,0 +1,546 @@
+import { describe, expect, it } from "vitest";
+
+import type { ResolveFetcher, ResolveResponse } from "@/services/qr-produccion/app/api-client";
+import type { ShortenFetcher } from "@/services/qr-produccion/links/shorten-many";
+import { QrInflight } from "@/services/qr-produccion/app/qr-inflight";
+import { TilePreviewClient } from "@/services/qr-produccion/app/tile-preview-client";
+import { createEmptyProject, isDirty, orderedRecords } from "@/services/qr-produccion/state/project";
+import { createProjectStore, createSessionStore } from "@/services/qr-produccion/state/stores";
+import type { NotifyOptions } from "@/components/qr-produccion/layout/NotificationsProvider";
+import type { ConfirmOptions, ConfirmResult } from "@/components/qr-produccion/layout/ConfirmDialog";
+import type { QrResolution } from "@/types";
+
+import { draft, existingSource, generatedSource, LATER, MENU, NOW } from "@/services/qr-produccion/test-helpers/records";
+import { createBuilderActions } from "./builder-actions";
+
+const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="50mm" height="50mm" viewBox="0 0 500 500"><g id="qr"><path id="qr-code" d="M0 0Z"/></g></svg>';
+
+function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchResolve?: ResolveFetcher; fetchShorten?: ShortenFetcher; fetchTiles?: ConstructorParameters<typeof TilePreviewClient>[0]; backups?: Record<string, unknown> } = {}) {
+  const project = createProjectStore(createEmptyProject(NOW, { id: "p" }));
+  const session = createSessionStore({ hydrated: true });
+  const notifications: NotifyOptions[] = [];
+  const confirms: ConfirmOptions[] = [];
+  const downloads: Array<{ name: string; blob: Blob }> = [];
+  const requests: unknown[] = [];
+
+  const fetchResolve: ResolveFetcher =
+    options.fetchResolve ??
+    (async (body) => {
+      requests.push(body);
+      const results: QrResolution[] = [
+        ...(body.items ?? []).map((i): QrResolution => ({ recordId: i.recordId, outcome: "generated", qrUrl: `https://cdn.example.com/qr/v1/${"a".repeat(64)}.svg`, qr: generatedSource(i.menuUrl) })),
+        ...(body.verify ?? []).map((v): QrResolution => ({ recordId: v.recordId, outcome: "existing-ok", qr: existingSource({ decodedPayload: v.menuUrl }) })),
+      ];
+      return { results, created: body.items?.length ?? 0, reused: 0, failed: 0 } satisfies ResolveResponse;
+    });
+
+  const actions = createBuilderActions({
+    runtime: {
+      project,
+      session,
+      inflight: new QrInflight(),
+      fetchResolve,
+      fetchShorten: options.fetchShorten ?? (async (urls) => urls.map((url) => ({ url, status: "kept" as const, shortUrl: url }))),
+      tiles: new TilePreviewClient(options.fetchTiles ?? (async (r) => ({ tiles: Object.fromEntries(r.tiles.map((tile) => [tile.key, { svg: SVG, warnings: [] }])) })), { batchMs: 1 }),
+      readBackup: async (key) => options.backups?.[key],
+    },
+    notify: (n) => notifications.push(n),
+    confirm: async (o) => (confirms.push(o), options.confirm ? options.confirm(o) : { confirmed: true, checked: false }),
+    now: () => LATER,
+    download: (name, blob) => downloads.push({ name, blob }),
+  });
+  return { actions, project, session, notifications, confirms, downloads, requests, state: () => project.getState().project, ui: () => session.getState() };
+}
+const flush = () => new Promise((r) => setTimeout(r, 0));
+const last = <T,>(items: T[]): T | undefined => items[items.length - 1];
+
+describe("acortar el Link del menú al guardar", () => {
+  const shortener: ShortenFetcher = async (urls) => urls.map((url) => (url.includes("qr.example.com/s/") ? { url, status: "kept" as const, shortUrl: url } : { url, status: "created" as const, shortUrl: "https://qr.example.com/s/ab3de9xk", code: "ab3de9xk" }));
+
+  it("una pieza nueva queda con el link corto", async () => {
+    const t = setup({ fetchShorten: shortener });
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/carta-muy-larga?id=1` }));
+    expect(prepared?.menuUrl).toBe("https://qr.example.com/s/ab3de9xk");
+  });
+
+  it("un link corto propio no se vuelve a acortar", async () => {
+    const t = setup({ fetchShorten: shortener });
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: "https://qr.example.com/s/ab3de9xk" }));
+    expect(prepared?.menuUrl).toBe("https://qr.example.com/s/ab3de9xk");
+  });
+
+  it("al editar sin tocar el link, no se acorta (cambiarlo desactualizaría un QR ya impreso)", async () => {
+    let calls = 0;
+    const t = setup({ fetchShorten: async (urls) => (calls++, shortener(urls)) });
+    const record = await t.actions.add(draft({ menuUrl: `${MENU}/largo?id=7` }));
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/largo?id=7`, mesa: "Otra" }), record);
+    expect(prepared?.menuUrl).toBe(`${MENU}/largo?id=7`);
+    expect(calls).toBe(0);
+  });
+
+  it("al editar CAMBIANDO el link, se acorta el nuevo", async () => {
+    const t = setup({ fetchShorten: shortener });
+    const record = await t.actions.add(draft({ menuUrl: `${MENU}/largo?id=7` }));
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/otro-largo?id=8` }), record);
+    expect(prepared?.menuUrl).toBe("https://qr.example.com/s/ab3de9xk");
+  });
+
+  it("si el servicio falla no se guarda nada: devuelve null y avisa con un error", async () => {
+    const t = setup({ fetchShorten: async () => Promise.reject(new TypeError("Failed to fetch")) });
+    expect(await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/largo` }))).toBeNull();
+    expect(last(t.notifications)).toMatchObject({ severity: "error", message: expect.stringContaining("No se pudo acortar") });
+    expect(orderedRecords(t.state())).toHaveLength(0);
+  });
+
+  it("un link que el servidor marca como inválido se deja como está (su validación ya lo señala)", async () => {
+    const t = setup({ fetchShorten: async (urls) => urls.map((url) => ({ url, status: "invalid" as const, message: "no" })) });
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/x` }));
+    expect(prepared?.menuUrl).toBe(`${MENU}/x`);
+  });
+});
+
+describe("descargar el Excel actualizado", () => {
+  it("manda todas las piezas al servidor y descarga el archivo con el nombre del proyecto", async () => {
+    const t = setup();
+    let sent: unknown[] = [];
+    const actions = createBuilderActions({
+      runtime: { project: t.project, session: t.session, inflight: new QrInflight(), fetchResolve: async () => ({ results: [], created: 0, reused: 0, failed: 0 }), fetchShorten: async () => [], tiles: new TilePreviewClient(async () => ({ tiles: {} }), { batchMs: 1 }), readBackup: async () => undefined },
+      notify: (n) => t.notifications.push(n),
+      confirm: async () => ({ confirmed: true, checked: false }),
+      now: () => LATER,
+      download: (name, blob) => t.downloads.push({ name, blob }),
+      exportExcel: async (records) => ((sent = [...records]), new Blob(["xlsx"])),
+    });
+    await t.actions.add(draft({ mesa: "M1" }));
+    await t.actions.add(draft({ mesa: "M2", menuUrl: `${MENU}?2` }));
+    t.actions.setName("Mesas LBLC");
+    expect(await actions.downloadExcel()).toBe(true);
+    expect(sent).toHaveLength(2);
+    expect(t.downloads.at(-1)?.name).toBe("Mesas LBLC.xlsx");
+    expect(last(t.notifications)).toMatchObject({ severity: "success", message: expect.stringContaining("2 piezas") });
+  });
+
+  it("sin piezas no llama al servidor", async () => {
+    const t = setup();
+    expect(await t.actions.downloadExcel()).toBe(false);
+    expect(last(t.notifications)?.message).toBe("No hay piezas para descargar");
+  });
+});
+
+describe("alta de piezas (AC1, AC2, AC11)", () => {
+  it("agrega una pieza, la selecciona y genera su QR al guardar", async () => {
+    const t = setup();
+    const record = await t.actions.add(draft({ mesa: "M1" }));
+    await flush();
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M1"]);
+    expect(t.ui().selection.currentId).toBe(record.id);
+    expect(t.state().recordsById[record.id]).toMatchObject({ qrStatus: "generated" });
+    expect(isDirty(t.state())).toBe(true);
+    expect(t.notifications.map((n) => n.message)).toEqual(expect.arrayContaining(["Pieza agregada: M1 · Tropical", "1 QR generado"]));
+  });
+
+  it("varias piezas, una tras otra, cada una a continuación de la seleccionada", async () => {
+    const t = setup();
+    for (const mesa of ["M1", "M2", "M3"]) await t.actions.add(draft({ mesa, menuUrl: `${MENU}?${mesa}` }));
+    await flush();
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M1", "M2", "M3"]);
+  });
+
+  it("con Link del QR solo se verifica; no se pide generar (AC12)", async () => {
+    const t = setup();
+    const record = await t.actions.add(draft({ qrUrl: "https://qr.cliente.com/m1.svg" }));
+    await flush();
+    expect(t.requests).toEqual([{ verify: [{ recordId: record.id, qrUrl: "https://qr.cliente.com/m1.svg", menuUrl: MENU }] }]);
+    expect(t.state().recordsById[record.id]).toMatchObject({ qrStatus: "existing", qr: { source: "existing", verification: "decoded" } });
+  });
+
+  it("avisa (sin bloquear) si ya hay una pieza igual", async () => {
+    const t = setup();
+    await t.actions.add(draft());
+    await t.actions.add(draft());
+    expect(t.notifications.some((n) => n.severity === "warning" && /Ya había una igual/.test(n.message))).toBe(true);
+    expect(orderedRecords(t.state())).toHaveLength(2);
+  });
+
+  it("si el servidor falla, el error queda visible y se puede reintentar", async () => {
+    let fail = true;
+    const t = setup({ fetchResolve: async () => (fail ? Promise.reject(new TypeError("Failed to fetch")) : { results: [], created: 0, reused: 0, failed: 0 }) });
+    const record = await t.actions.add(draft());
+    await flush();
+    expect(t.state().recordsById[record.id]).toMatchObject({ qrStatus: "error", qrError: { code: "unreachable" } });
+    const error = t.notifications.find((n) => n.severity === "error");
+    expect(error?.message).toMatch(/No se pudo obtener el QR de 1 pieza/);
+    expect(error?.action?.label).toBe("Reintentar");
+    fail = false;
+    error?.action?.onClick();
+    await flush();
+    expect(t.state().recordsById[record.id]?.qrError).toBeUndefined();
+  });
+});
+
+describe("edición (AC4)", () => {
+  it("guardar cambios actualiza la pieza y avisa", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft({ mesa: "M1" }));
+    await flush();
+    expect(await t.actions.save(id, draft({ mesa: "M7" }))).toBe(true);
+    expect(t.state().recordsById[id]?.mesa).toBe("M7");
+    expect(last(t.notifications)?.message).toMatch(/^Pieza actualizada|1 QR/);
+  });
+
+  it("cambiar el Link del menú de una pieza con QR generado la deja desactualizada y ofrece Regenerar (sin regenerar sola)", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft());
+    await flush();
+    const before = t.requests.length;
+    await t.actions.save(id, draft({ menuUrl: "https://menu.example.com/nuevo" }));
+    await flush();
+    expect(t.state().recordsById[id]?.qrStatus).toBe("stale");
+    expect(t.requests.length).toBe(before); // no se pidió ningún QR nuevo
+    const warning = t.notifications.find((n) => n.severity === "warning" && /desactualizado/.test(n.message));
+    expect(warning?.action?.label).toBe("Regenerar");
+    warning?.action?.onClick();
+    await flush();
+    expect(t.state().recordsById[id]).toMatchObject({ qrStatus: "generated", qr: { payload: "https://menu.example.com/nuevo" } });
+  });
+
+  it("vaciar el Link del QR de una pieza con QR existente pide confirmación; cancelar no cambia nada", async () => {
+    const t = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    const { id } = await t.actions.add(draft({ qrUrl: "https://qr.cliente.com/m1.svg" }));
+    await flush();
+    expect(await t.actions.save(id, draft())).toBe(false);
+    expect(t.confirms[0]).toMatchObject({ title: "¿Vaciar el Link del QR?", message: "Se generará un QR nuevo para esta pieza.", confirmLabel: "Vaciar y generar" });
+    expect(t.state().recordsById[id]?.qrUrl).toBe("https://qr.cliente.com/m1.svg");
+  });
+
+  it("confirmado, se genera un QR nuevo", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft({ qrUrl: "https://qr.cliente.com/m1.svg" }));
+    await flush();
+    expect(await t.actions.save(id, draft())).toBe(true);
+    await flush();
+    expect(t.state().recordsById[id]).toMatchObject({ qrStatus: "generated", qr: { source: "generated" } });
+    expect(t.state().recordsById[id]?.qrUrl).toContain("/qr/v1/");
+  });
+
+  it("escribir un QR propio en una pieza con QR generado también pide confirmación", async () => {
+    const t = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    const { id } = await t.actions.add(draft());
+    await flush();
+    expect(await t.actions.save(id, draft({ qrUrl: "https://qr.cliente.com/propio.svg" }))).toBe(false);
+    expect(t.state().recordsById[id]?.qr.source).toBe("generated");
+  });
+});
+
+describe("eliminar con confirmación y deshacer (AC3, spec §38)", () => {
+  async function three() {
+    const t = setup({ confirm: (o) => ({ confirmed: true, checked: !!o.checkboxLabel && false }) });
+    for (const mesa of ["M1", "M2", "M3"]) await t.actions.add(draft({ mesa, menuUrl: `${MENU}?${mesa}` }));
+    await flush();
+    return t;
+  }
+
+  it("SIEMPRE pregunta antes de borrar; cancelar no borra nada", async () => {
+    const t = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    const { id } = await t.actions.add(draft());
+    expect(await t.actions.remove([id])).toBe(false);
+    expect(t.confirms[0]).toMatchObject({ title: "¿Eliminar la pieza M1 · Tropical?", destructive: true, checkboxLabel: "No volver a preguntar en esta sesión" });
+    expect(orderedRecords(t.state())).toHaveLength(1);
+  });
+
+  it("borrar quita la pieza, deja un aviso con [Deshacer] y deshacer la devuelve a su sitio", async () => {
+    const t = await three();
+    const [, m2] = t.state().order;
+    expect(await t.actions.remove([m2 as string])).toBe(true);
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M1", "M3"]);
+    const notice = last(t.notifications);
+    expect(notice).toMatchObject({ message: "Pieza eliminada", action: { label: "Deshacer" } });
+    notice?.action?.onClick();
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M1", "M2", "M3"]);
+    expect(t.ui().lastDeleted).toBeNull();
+  });
+
+  it("borrado masivo: «¿Eliminar N piezas?» + «Puedes deshacerlo.»", async () => {
+    const t = await three();
+    await t.actions.remove(t.state().order.slice(0, 2));
+    expect(last(t.confirms)).toMatchObject({ title: "¿Eliminar 2 piezas?", message: "Puedes deshacerlo.", confirmLabel: "Eliminar 2 piezas" });
+    expect(last(t.notifications)?.message).toBe("2 piezas eliminadas");
+  });
+
+  it("«No volver a preguntar en esta sesión» solo afecta al borrado individual", async () => {
+    const t = setup({ confirm: () => ({ confirmed: true, checked: true }) });
+    const a = await t.actions.add(draft({ mesa: "M1" }));
+    const b = await t.actions.add(draft({ mesa: "M2", menuUrl: `${MENU}?2` }));
+    const c = await t.actions.add(draft({ mesa: "M3", menuUrl: `${MENU}?3` }));
+    await t.actions.remove([a.id]);
+    expect(t.ui().confirmDeletes).toBe(false);
+    const asked = t.confirms.length;
+    await t.actions.remove([b.id]); // individual: ya no pregunta
+    expect(t.confirms.length).toBe(asked);
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M3"]);
+    await t.actions.add(draft({ mesa: "M4", menuUrl: `${MENU}?4` }));
+    await t.actions.remove([c.id, t.state().order[1] as string]); // masivo: sí pregunta
+    expect(t.confirms.length).toBe(asked + 1);
+  });
+
+  it("al borrar la pieza seleccionada se selecciona otra", async () => {
+    const t = await three();
+    const first = t.state().order[0] as string;
+    t.actions.select(first);
+    await t.actions.remove([first]);
+    expect(t.ui().selection.currentId).toBe(t.state().order[0]);
+  });
+});
+
+describe("duplicar, mover y ordenar (AC23)", () => {
+  it("duplicar crea una copia con el mismo QR, sin pedir otro", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft());
+    await flush();
+    const requests = t.requests.length;
+    const copy = t.actions.duplicate(id);
+    expect(copy?.metadata).toMatchObject({ origin: "duplicate", duplicateOf: id });
+    expect(copy?.qr).toEqual(t.state().recordsById[id]?.qr);
+    expect(t.requests.length).toBe(requests);
+  });
+
+  it("mover pieza a una posición y ordenar con confirmación", async () => {
+    const t = setup();
+    for (const mesa of ["M10", "M2", "M1"]) await t.actions.add(draft({ mesa, menuUrl: `${MENU}?${mesa}` }));
+    await flush();
+    t.actions.move(t.state().order[2] as string, 0);
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M1", "M10", "M2"]);
+    expect(await t.actions.sortBy("mesa")).toBe(true);
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M1", "M2", "M10"]); // orden natural
+    expect(last(t.confirms)).toMatchObject({ title: "¿Ordenar por Mesa?" });
+  });
+
+  it("cancelar el orden no cambia nada", async () => {
+    const t = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    for (const mesa of ["M2", "M1"]) await t.actions.add(draft({ mesa, menuUrl: `${MENU}?${mesa}` }));
+    expect(await t.actions.sortBy("mesa")).toBe(false);
+    expect(orderedRecords(t.state()).map((r) => r.mesa)).toEqual(["M2", "M1"]);
+  });
+});
+
+describe("generar los QR pendientes", () => {
+  it("resuelve todas las piezas pendientes de golpe; sin pendientes lo dice", async () => {
+    const t = setup({ fetchResolve: async () => ({ results: [], created: 0, reused: 0, failed: 0 }) });
+    await t.actions.add(draft({ mesa: "M1" }));
+    await t.actions.add(draft({ mesa: "M2", menuUrl: `${MENU}?2` }));
+    await flush();
+    expect(t.actions.pendingIds()).toHaveLength(2);
+    const ok = setup();
+    await ok.actions.add(draft());
+    await flush();
+    expect(await ok.actions.generatePending()).toBeNull();
+    expect(last(ok.notifications)?.message).toBe("No hay QR pendientes");
+  });
+});
+
+describe("acciones sobre el QR de una pieza", () => {
+  it("mantener el QR anterior desbloquea la pieza stale (confirmación ligada)", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft());
+    await flush();
+    await t.actions.save(id, draft({ menuUrl: "https://menu.example.com/nuevo" }));
+    expect(t.state().recordsById[id]?.qrStatus).toBe("stale");
+    t.actions.keepStale(id);
+    expect(t.state().recordsById[id]?.qrAck).toMatchObject({ kind: "stale", menuUrl: "https://menu.example.com/nuevo" });
+  });
+
+  it("«Usar este QR aunque apunte a otra dirección» confirma el desajuste o la ilegibilidad según el caso", async () => {
+    const t = setup({ fetchResolve: async (body) => ({ results: (body.verify ?? []).map((v): QrResolution => ({ recordId: v.recordId, outcome: "existing-ok", qr: existingSource({ decodedPayload: "https://otra.example.com" }) })), created: 0, reused: 0, failed: 0 }) });
+    const { id } = await t.actions.add(draft({ qrUrl: "https://qr.cliente.com/m1.svg" }));
+    await flush();
+    expect(t.state().recordsById[id]?.qrStatus).toBe("existing");
+    t.actions.useAnyway(id);
+    expect(t.state().recordsById[id]?.qrAck?.kind).toBe("mismatch");
+  });
+
+  it("reemplazar un QR existente por uno generado es explícito y pide confirmación", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft({ qrUrl: "https://qr.cliente.com/m1.svg" }));
+    await flush();
+    expect(await t.actions.replaceWithGenerated(id)).toBe(true);
+    await flush();
+    expect(last(t.confirms)).toMatchObject({ title: "¿Reemplazar el QR existente?" });
+    expect(t.state().recordsById[id]).toMatchObject({ qr: { source: "generated" } });
+  });
+});
+
+describe("proyecto: guardar, abrir, nuevo (spec §38)", () => {
+  it("guardar descarga el .qrproj.json, deja el proyecto sin cambios pendientes y avisa", async () => {
+    const t = setup();
+    t.actions.setName("Tropical Mesas 2026");
+    await t.actions.add(draft());
+    await flush();
+    expect(isDirty(t.state())).toBe(true);
+    t.actions.saveProjectFile();
+    expect(t.downloads[0]?.name).toBe("Tropical Mesas 2026.qrproj.json");
+    expect(isDirty(t.state())).toBe(false);
+    expect(last(t.notifications)).toMatchObject({ message: "Proyecto guardado (Tropical Mesas 2026.qrproj.json)", severity: "success" });
+  });
+
+  it("abrir lo guardado restaura todo sin regenerar ningún QR", async () => {
+    const source = setup();
+    await source.actions.add(draft());
+    await flush();
+    source.actions.saveProjectFile();
+    const text = await source.downloads[0]!.blob.text();
+
+    const target = setup();
+    expect(await target.actions.openProjectFile(text)).toBe(true);
+    expect(orderedRecords(target.state())).toHaveLength(1);
+    expect(orderedRecords(target.state())[0]).toMatchObject({ qrStatus: "generated" });
+    expect(target.requests).toHaveLength(0); // ninguna petición de QR
+    expect(isDirty(target.state())).toBe(false);
+  });
+
+  it("abrir un archivo inválido muestra el error y no toca el proyecto", async () => {
+    const t = setup();
+    await t.actions.add(draft());
+    expect(await t.actions.openProjectFile("esto no es un proyecto")).toBe(false);
+    expect(last(t.notifications)).toMatchObject({ severity: "error" });
+    expect(orderedRecords(t.state())).toHaveLength(1);
+  });
+
+  it("con cambios sin guardar pregunta «Tienes cambios sin guardar.» antes de abrir o empezar de nuevo; cancelar conserva todo", async () => {
+    const t = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    await t.actions.add(draft());
+    expect(await t.actions.newProject()).toBe(false);
+    expect(last(t.confirms)).toMatchObject({ title: "Tienes cambios sin guardar.", message: "Se perderán 1 pieza.", confirmLabel: "Empezar sin guardar", destructive: true });
+    expect(await t.actions.openProjectFile("{}")).toBe(false);
+    expect(last(t.confirms)).toMatchObject({ confirmLabel: "Abrir sin guardar" });
+    expect(orderedRecords(t.state())).toHaveLength(1);
+  });
+
+  it("sin cambios pendientes no molesta; confirmado, empieza un proyecto vacío", async () => {
+    const t = setup();
+    await t.actions.add(draft());
+    t.actions.saveProjectFile();
+    const asked = t.confirms.length;
+    expect(await t.actions.newProject()).toBe(true);
+    expect(t.confirms.length).toBe(asked);
+    expect(orderedRecords(t.state())).toHaveLength(0);
+    expect(t.ui().selection.currentId).toBeNull();
+  });
+
+  it("cambiar de plantilla confirma si se pierden posiciones personalizadas", async () => {
+    const t = setup();
+    expect(await t.actions.switchTemplate("restaurant-default")).toBe(true);
+    expect(t.state().templateId).toBe("restaurant-default");
+    expect(await t.actions.switchTemplate("restaurant-default")).toBe(false);
+    expect(await t.actions.switchTemplate("no-existe")).toBe(false);
+    const { id } = await t.actions.add(draft());
+    t.project.setState({ project: { ...t.state(), layout: { ...t.state().layout, overrides: { [id]: {} } } } });
+    const picky = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    picky.project.setState({ project: { ...picky.state(), layout: { ...picky.state().layout, overrides: { x: {} } } } });
+    expect(await picky.actions.switchTemplate("restaurant-default")).toBe(false);
+    expect(last(picky.confirms)).toMatchObject({ message: "Se perderán 1 posición personalizada." });
+  });
+});
+
+describe("cancelar la generación", () => {
+  it("aborta lo que está en curso y lo comunica", async () => {
+    const t = setup({ fetchResolve: (_b, signal) => new Promise<ResolveResponse>((_r, reject) => signal.addEventListener("abort", () => reject(new DOMException("abort", "AbortError")))) });
+    const run = t.actions.add(draft());
+    await run;
+    await flush();
+    t.actions.cancelQr();
+    await flush();
+    expect(last(t.notifications)).toMatchObject({ message: "Generación de QR cancelada", severity: "info" });
+    expect(t.ui().qrProgress.running).toBe(false);
+  });
+});
+
+describe("descargas sueltas", () => {
+  it("«Descargar SVG de esta pieza»: el SVG del servidor (contornos), con nombre de mesa y área", async () => {
+    const t = setup();
+    const { id } = await t.actions.add(draft({ mesa: "VIP/A", area: "Terraza Norte" }));
+    await flush();
+    expect(await t.actions.downloadPieceSvg(id)).toBe(true);
+    expect(t.downloads).toHaveLength(1);
+    expect(t.downloads[0]?.name).toBe("VIP_A-Terraza Norte.svg");
+    expect(t.downloads[0]?.blob.type).toBe("image/svg+xml");
+    expect(await t.downloads[0]?.blob.text()).toBe(SVG);
+    expect(last(t.notifications)).toMatchObject({ severity: "success", message: "SVG descargado: VIP_A-Terraza Norte.svg" });
+  });
+
+  it("NO ofrece el SVG de una pieza con el QR pendiente, con error o desactualizado sin confirmar", async () => {
+    const pending = setup({ fetchResolve: async () => ({ results: [], created: 0, reused: 0, failed: 0 }) });
+    const { id } = await pending.actions.add(draft());
+    await flush();
+    expect(await pending.actions.downloadPieceSvg(id)).toBe(false);
+    expect(pending.downloads).toHaveLength(0);
+    expect(last(pending.notifications)).toMatchObject({ severity: "warning" });
+
+    const stale = setup();
+    const piece = await stale.actions.add(draft());
+    await flush();
+    await stale.actions.save(piece.id, draft({ menuUrl: "https://menu.example.com/nuevo" }));
+    expect(await stale.actions.downloadPieceSvg(piece.id)).toBe(false);
+    stale.actions.keepStale(piece.id); // confirmado: ahora sí
+    expect(await stale.actions.downloadPieceSvg(piece.id)).toBe(true);
+  });
+
+  it("avisa si la pieza se descarga con avisos de composición, y reporta un fallo del servidor", async () => {
+    const warned = setup({ fetchTiles: async (r) => ({ tiles: Object.fromEntries(r.tiles.map((tile) => [tile.key, { svg: SVG, warnings: [{ code: "TEXT_OVERFLOW" }] }])) }) });
+    const { id } = await warned.actions.add(draft());
+    await flush();
+    await warned.actions.downloadPieceSvg(id);
+    expect(last(warned.notifications)).toMatchObject({ severity: "warning", message: expect.stringContaining("1 aviso") });
+
+    const broken = setup({ fetchTiles: async () => Promise.reject(new Error("Faltan las fuentes Gotham en el servidor")) });
+    const piece = await broken.actions.add(draft());
+    await flush();
+    expect(await broken.actions.downloadPieceSvg(piece.id)).toBe(false);
+    expect(broken.downloads).toHaveLength(0);
+    expect(last(broken.notifications)).toMatchObject({ severity: "error", message: expect.stringContaining("Faltan las fuentes Gotham") });
+  });
+
+  it("una pieza inexistente no hace nada", async () => {
+    const t = setup();
+    expect(await t.actions.downloadPieceSvg("nope")).toBe(false);
+    expect(t.notifications).toHaveLength(0);
+  });
+
+  it("los registros en cuarentena se pueden descargar", () => {
+    const t = setup();
+    t.actions.downloadQuarantine();
+    expect(t.downloads).toHaveLength(0); // nada que descargar
+    t.project.setState({ project: { ...t.state(), quarantine: [{ raw: { id: "roto", area: 5 }, reason: "area: Invalid input", at: NOW }] } });
+    t.actions.downloadQuarantine();
+    expect(t.downloads[0]?.name).toBe("registros-ilegibles.json");
+  });
+
+  it("la copia de seguridad se descarga; si ya no está, se avisa", async () => {
+    const t = setup({ backups: { "backup-1": { cualquier: "cosa" } } });
+    expect(await t.actions.downloadBackup("backup-1")).toBe(true);
+    expect(t.downloads[0]?.name).toBe("copia-backup-1.json");
+    expect(JSON.parse(await (t.downloads[0] as { blob: Blob }).blob.text())).toEqual({ cualquier: "cosa" });
+    expect(await t.actions.downloadBackup("otra")).toBe(false);
+    expect(last(t.notifications)).toMatchObject({ severity: "error" });
+  });
+});
+
+describe("descartar la cuarentena", () => {
+  const withQuarantine = (t: ReturnType<typeof setup>) => t.project.setState({ project: { ...t.state(), quarantine: [{ raw: { id: "roto" }, reason: "ilegible", at: NOW }] } });
+
+  it("pide confirmación; cancelar conserva los registros", async () => {
+    const t = setup({ confirm: () => ({ confirmed: false, checked: false }) });
+    withQuarantine(t);
+    expect(await t.actions.discardQuarantine()).toBe(false);
+    expect(last(t.confirms)).toMatchObject({ title: "¿Descartar 1 registro ilegible?", destructive: true });
+    expect(t.state().quarantine).toHaveLength(1);
+  });
+
+  it("confirmado, los elimina y lo avisa", async () => {
+    const t = setup();
+    withQuarantine(t);
+    expect(await t.actions.discardQuarantine()).toBe(true);
+    expect(t.state().quarantine).toEqual([]);
+    expect(last(t.notifications)?.message).toBe("1 registro ilegible descartado");
+    expect(await t.actions.discardQuarantine()).toBe(false); // ya no hay nada
+  });
+});

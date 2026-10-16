@@ -1,0 +1,100 @@
+/* ARNÉS: stub de PULSE, no fusionar */
+:root,
+:root[data-theme="dark"] {
+  --bg-page: #0f1115;
+  --bg-card: #171a21;
+  --bg-elevated: #1e222b;
+  --bg-hover: #262b36;
+  --bg-input: #12151b;
+  --text-primary: #e8eaf0;
+  --text-secondary: #a3a9b8;
+  --text-disabled: #6b7180;
+  --border-subtle: #2c313d;
+  --border-focus: #7aa7ff;
+  --primary: #5b8def;
+  --primary-hover: #7aa7ff;
+  --on-primary: #0b1020;
+  --status-success: #3ecf8e;
+  --status-warning: #f5b94a;
+  --status-error: #f2666b;
+  --status-info: #5bb8f5;
+  --overlay: rgb(0 0 0 / 0.6);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 6px 20px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg-page: #f4f6fa;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-hover: #eaeef5;
+  --bg-input: #ffffff;
+  --text-primary: #1a1f2b;
+  --text-secondary: #566074;
+  --text-disabled: #9aa3b5;
+  --border-subtle: #d8dde8;
+  --border-focus: #1d5fd6;
+  --primary: #1d5fd6;
+  --primary-hover: #1749a8;
+  --on-primary: #ffffff;
+  --status-success: #17803d;
+  --status-warning: #a15c00;
+  --status-error: #c62828;
+  --status-info: #0b6fa8;
+  --overlay: rgb(15 20 30 / 0.5);
+  --shadow-sm: 0 1px 2px rgb(15 20 30 / 0.12);
+  --shadow-md: 0 6px 20px rgb(15 20 30 / 0.18);
+  color-scheme: light;
+}
+
+:root[data-theme="sepia"] {
+  --bg-page: #f1e8d6;
+  --bg-card: #f8f1e2;
+  --bg-elevated: #fbf6ea;
+  --bg-hover: #e8dcc2;
+  --bg-input: #fbf6ea;
+  --text-primary: #3b2f20;
+  --text-secondary: #6b5a43;
+  --text-disabled: #a3937a;
+  --border-subtle: #d6c7a6;
+  --border-focus: #8a4b12;
+  --primary: #8a4b12;
+  --primary-hover: #6e3a0b;
+  --on-primary: #fbf6ea;
+  --status-success: #3d6b2a;
+  --status-warning: #8f5a00;
+  --status-error: #a63228;
+  --status-info: #2d5f7a;
+  --overlay: rgb(40 28 12 / 0.5);
+  --shadow-sm: 0 1px 2px rgb(40 28 12 / 0.15);
+  --shadow-md: 0 6px 20px rgb(40 28 12 / 0.2);
+  color-scheme: light;
+}
+
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 999px;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
