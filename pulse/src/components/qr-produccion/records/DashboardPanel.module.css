@@ -1,0 +1,14 @@
+.root { display: flex; flex-direction: column; gap: var(--space-6); }
+.continue { border-left: 4px solid var(--primary); }
+.continueBody { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.continueText { display: flex; flex-direction: column; gap: var(--space-1); }
+.projectName { margin: 0; font-size: 1.25rem; font-weight: 600; }
+.projectMeta { margin: 0; font-size: 0.875rem; color: var(--text-secondary); }
+.options { display: grid; gap: var(--space-4); }
+.option { display: flex; flex-direction: column; gap: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-4); }
+.optionIcon { display: flex; align-items: center; gap: var(--space-2); color: var(--primary); }
+.optionText { display: flex; flex-direction: column; gap: var(--space-1); }
+.optionTitle { margin: 0; font-size: 1rem; font-weight: 600; }
+.optionBody { margin: 0; font-size: 0.875rem; color: var(--text-secondary); }
+.optionAction { margin-top: auto; }
+@media (min-width: 900px) { .options { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

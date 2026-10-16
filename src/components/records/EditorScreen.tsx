@@ -85,7 +85,9 @@ export function EditorScreen() {
   const setPage = (page: number) => patchSession(runtime.session, (s) => ({ selection: { ...s.selection, page } }));
   const setFilter = (next: CounterFilter) => patchSession(runtime.session, (s) => ({ filter: next, selection: { ...s.selection, page: 1 } }));
 
-  const onSubmit = async (draft: RecordDraft): Promise<boolean> => {
+  const onSubmit = async (rawDraft: RecordDraft): Promise<boolean> => {
+    const draft = await actions.prepareDraft(rawDraft, editing && editing !== "new" ? editing : undefined);
+    if (!draft) return false;
     if (editing === "new") {
       patchSession(runtime.session, { filter: "all", query: "" }); // que la pieza nueva sea visible
       await actions.add(draft);
@@ -155,7 +157,7 @@ export function EditorScreen() {
       )}
 
       <StepFooter
-        next={{ href: "/preview", label: "Siguiente: Diseño", disabled: all.length === 0 }}
+        next={{ href: "/style", label: "Siguiente: Estilo del QR", disabled: all.length === 0 }}
         {...(all.length === 0 ? { note: "Agrega al menos una pieza para continuar" } : withErrors > 0 ? { note: `${withErrors} ${withErrors === 1 ? "pieza tiene" : "piezas tienen"} errores: corrígelas antes de exportar` } : {})}
       />
 

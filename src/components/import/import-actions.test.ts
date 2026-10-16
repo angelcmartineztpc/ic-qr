@@ -5,6 +5,7 @@ import { ImportRejectedError } from "@/lib/app/import-client";
 import { QrInflight } from "@/lib/app/qr-inflight";
 import { detectHeaderRow } from "@/lib/excel/headers";
 import { buildImportResult } from "@/lib/excel/import-pipeline";
+import type { ShortenFetcher } from "@/lib/links/shorten-many";
 import type { RawCell, RawSheet } from "@/lib/excel/types";
 import { addRecord, createEmptyProject, markSaved, orderedRecords } from "@/lib/state/project";
 import { createProjectStore, createSessionStore } from "@/lib/state/stores";
@@ -31,7 +32,7 @@ function excel(rows: Array<Array<RawCell | null>>, maxRows = 5000): ImportResult
 
 const file = (name = "mesas.xlsx", size = 1000) => new File([new Uint8Array(size)], name);
 
-function setup(options: { upload?: (file: File, options?: unknown) => Promise<ImportResult>; confirm?: (o: ConfirmOptions) => ConfirmResult; seed?: Parameters<typeof createEmptyProject>[1] & { dirtyRecords?: number } } = {}) {
+function setup(options: { fetchShorten?: ShortenFetcher; upload?: (file: File, options?: unknown) => Promise<ImportResult>; confirm?: (o: ConfirmOptions) => ConfirmResult; seed?: Parameters<typeof createEmptyProject>[1] & { dirtyRecords?: number } } = {}) {
   let initial = createEmptyProject(NOW, { id: "p" });
   for (let i = 0; i < (options.seed?.dirtyRecords ?? 0); i++) initial = addRecord(initial, draft({ mesa: `X${i}`, menuUrl: `${MENU}?x=${i}` }), NOW).state;
   const project = createProjectStore(initial);
@@ -43,11 +44,13 @@ function setup(options: { upload?: (file: File, options?: unknown) => Promise<Im
   const saved: LastImport[] = [];
   let cleared = 0;
   let navigated = 0;
+  let excelDownloads = 0;
   const runtime = {
     project,
     session,
     inflight: new QrInflight(),
     importSource: { file: null as File | null, defaultMenuUrl: "" },
+    fetchShorten: options.fetchShorten ?? (async (urls: string[]) => urls.map((url) => ({ url, status: "kept" as const, shortUrl: url }))),
     lastImport: { save: async (v: LastImport) => void saved.push(v), clear: async () => void cleared++ },
   };
   const actions = createImportActions({
@@ -59,8 +62,9 @@ function setup(options: { upload?: (file: File, options?: unknown) => Promise<Im
     resolve: async (ids) => void resolved.push([...ids]),
     ...(options.upload ? { upload: ((f: File, o?: unknown) => options.upload!(f, o)) as never } : {}),
     goToPieces: () => void navigated++,
+    downloadExcel: async () => (excelDownloads++, true),
   });
-  return { actions, project, session, notifications, confirms, downloads, resolved, saved, runtime, state: () => project.getState().project, imp: () => session.getState().import, cleared: () => cleared, navigated: () => navigated };
+  return { actions, project, session, notifications, confirms, downloads, resolved, saved, runtime, state: () => project.getState().project, imp: () => session.getState().import, cleared: () => cleared, navigated: () => navigated, excelDownloads: () => excelDownloads };
 }
 
 const sample = () =>
@@ -200,6 +204,56 @@ describe("revisión y confirmación", () => {
     expect(await t.actions.confirm()).toBe(false);
     expect(t.saved).toHaveLength(0); // un resultado sin mapear no se persiste
     expect(orderedRecords(t.state())).toHaveLength(0);
+  });
+});
+
+describe("acortar los links del menú al confirmar", () => {
+  const LONG1 = `${MENU}/carta-muy-larga?id=1&utm_source=qr`;
+  const LONG2 = `${MENU}/carta-muy-larga?id=2&utm_source=qr`;
+  const shortOf = (url: string) => `https://qr.example.com/s/${url.endsWith("id=1&utm_source=qr") ? "aaaaaaaa" : "bbbbbbbb"}`;
+  const shortener: ShortenFetcher = async (urls) => urls.map((url) => ({ url, status: "created" as const, shortUrl: shortOf(url), code: "x" }));
+  const rows = () => excel([dataRow("Tropical", "M1", LONG1), dataRow("Tropical", "M2", LONG2), dataRow("Bar", "B1", LONG1)]);
+
+  it("las piezas se crean con el link corto, y las filas con el mismo link largo comparten uno solo", async () => {
+    const calls: string[][] = [];
+    const t = setup({ upload: async () => rows(), fetchShorten: async (urls) => (calls.push(urls), shortener(urls)) });
+    await t.actions.start(file());
+    await t.actions.confirm();
+    expect(orderedRecords(t.state()).map((r) => r.menuUrl)).toEqual(["https://qr.example.com/s/aaaaaaaa", "https://qr.example.com/s/bbbbbbbb", "https://qr.example.com/s/aaaaaaaa"]);
+    expect(calls).toEqual([[LONG1, LONG2]]); // se manda cada link una sola vez
+  });
+
+  it("avisa cuántos links se acortaron y ofrece descargar el Excel actualizado", async () => {
+    const t = setup({ upload: async () => rows(), fetchShorten: shortener });
+    await t.actions.start(file());
+    await t.actions.confirm();
+    const done = t.notifications.at(-1);
+    expect(done?.message).toContain("2 links del menú acortados");
+    expect(done?.action?.label).toBe("Descargar Excel actualizado");
+    done?.action?.onClick();
+    expect(t.excelDownloads()).toBe(1);
+  });
+
+  it("si no se pueden acortar NO se crea ninguna pieza: la revisión sigue abierta y se puede reintentar", async () => {
+    let fail = true;
+    const t = setup({ upload: async () => rows(), fetchShorten: async (urls) => (fail ? Promise.reject(new TypeError("Failed to fetch")) : shortener(urls)) });
+    await t.actions.start(file());
+    expect(await t.actions.confirm()).toBe(false);
+    expect(orderedRecords(t.state())).toHaveLength(0);
+    expect(t.imp().status).toBe("review");
+    const error = t.notifications.at(-1);
+    expect(error).toMatchObject({ severity: "error", message: expect.stringContaining("No se creó ninguna pieza") });
+    fail = false;
+    error?.action?.onClick();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(orderedRecords(t.state())).toHaveLength(3);
+  });
+
+  it("un link que el servidor no puede acortar se deja como estaba (su validación lo marca)", async () => {
+    const t = setup({ upload: async () => rows(), fetchShorten: async (urls) => urls.map((url) => ({ url, status: "invalid" as const, message: "no" })) });
+    await t.actions.start(file());
+    await t.actions.confirm();
+    expect(orderedRecords(t.state()).map((r) => r.menuUrl)).toContain(LONG1);
   });
 });
 

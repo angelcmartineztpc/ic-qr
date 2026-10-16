@@ -18,9 +18,16 @@ export function requestHost(headers: Headers, trustProxyHops: number): string | 
   return headers.get("host")?.toLowerCase() ?? null;
 }
 
+/** `host:*` acepta ese nombre en cualquier puerto; el resto de entradas deben coincidir exactamente. */
 export function isAllowedHost(headers: Headers, config: OriginConfig): boolean {
   const host = requestHost(headers, config.trustProxyHops);
-  return host !== null && config.allowedHosts.some((allowed) => allowed.toLowerCase() === host);
+  if (host === null) return false;
+  return config.allowedHosts.some((allowed) => {
+    const entry = allowed.toLowerCase();
+    if (!entry.endsWith(":*")) return entry === host;
+    const name = entry.slice(0, -2);
+    return host === name || host.startsWith(`${name}:`);
+  });
 }
 
 /**

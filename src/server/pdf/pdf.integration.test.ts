@@ -69,7 +69,7 @@ describe.skipIf(!HAS_PIECE_FONT)("PDF vectorial (requiere la fuente de las pieza
     const [raw] = await extractText(bytes);
     const text = (raw ?? "").replace(/\s+/g, " "); // el tracking negativo hace que pdf.js separe letras con espacios
     expect(text.replaceAll(" ", "")).toContain("MESA–TABLE");
-    expect(text.replaceAll(" ", "")).toContain("CONSULTAELMENUYORDENAENLÍNEA");
+    expect(text.replaceAll(" ", "")).toContain("CONSULTAELMENÚYORDENAENLÍNEA");
     expect(text.replaceAll(" ", "")).toContain("LOOKATTHEMENUANORDERONLINE");
     expect(text.replaceAll(" ", "")).toContain("TROPICAL");
     expect(await paintedImageOps(bytes)).toBe(0);

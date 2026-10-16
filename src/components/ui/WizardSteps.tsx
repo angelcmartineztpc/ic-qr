@@ -10,9 +10,9 @@ import { isGenerating } from "@/lib/state/stores";
 import { STEPS, type StepIndex } from "./steps";
 
 /**
- * Stepper del flujo (Piezas → Diseño → Exportar). Cada paso es un enlace: se puede
- * volver atrás en cualquier momento; los pasos 2 y 3 esperan a que haya piezas.
- * En pantallas pequeñas se resume en «Paso N de 3» con tres marcas.
+ * Stepper del flujo (Piezas → Estilo del QR → Diseño → Exportar). Cada paso es un enlace: se puede
+ * volver atrás en cualquier momento; los pasos 2 a 4 esperan a que haya piezas.
+ * En pantallas pequeñas se resume en «Paso N de 4» con una marca por paso.
  */
 export function WizardSteps({ active }: { active: StepIndex }) {
   const count = useProject(useShallow((p) => p.order.length));

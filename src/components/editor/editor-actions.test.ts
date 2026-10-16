@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_QR_STYLE } from "@/schemas/qr-style";
 import { EditorHistory } from "@/lib/state/history";
 import { addRecord, createEmptyProject } from "@/lib/state/project";
 import { createProjectStore, createSessionStore } from "@/lib/state/stores";
@@ -87,10 +88,10 @@ describe("presets, ajuste del texto y plantilla", () => {
 
   it("un override de plantilla inválido (peso no declarado) se rechaza con mensaje y no se guarda", () => {
     const t = setup();
-    const bad = t.actions.setTemplateOverrides({ items: { area: { weight: 300 } }, qr: {}, tile: {} });
+    const bad = t.actions.setTemplateOverrides({ items: { area: { weight: 300 } }, qr: {}, tile: {}, qrStyle: DEFAULT_QR_STYLE });
     expect(bad).toMatchObject({ ok: false, message: expect.stringContaining("no declarada") });
     expect(t.state().templateOverrides.items).toEqual({});
-    expect(t.actions.setTemplateOverrides({ items: { area: { sizePt: 14 } }, qr: {}, tile: {} })).toEqual({ ok: true });
+    expect(t.actions.setTemplateOverrides({ items: { area: { sizePt: 14 } }, qr: {}, tile: {}, qrStyle: DEFAULT_QR_STYLE })).toEqual({ ok: true });
     expect(t.state().templateOverrides.items["area"]?.sizePt).toBe(14);
     t.actions.undo();
     expect(t.state().templateOverrides.items).toEqual({});

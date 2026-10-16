@@ -31,7 +31,7 @@ Flujo en tres pasos: Piezas → Diseño → Exportar. Importación de Excel/CSV 
 
 ## Brand Commitments
 
-Gotham en la UI; piezas con Address Sans Pro Cd. Textos literales de la pieza: «CONSULTA EL MENU Y ORDENA EN LÍNEA» / «LOOK AT THE MENU AN ORDER ON LINE».
+Gotham en la UI; piezas con Address Sans Pro Cd. Textos literales de la pieza: «CONSULTA EL MENÚ Y ORDENA EN LÍNEA» / «LOOK AT THE MENU AN ORDER ON LINE».
 
 ## Evidence on Hand
 

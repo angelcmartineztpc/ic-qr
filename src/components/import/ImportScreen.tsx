@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 
 import { resultNeedsMapping } from "@/lib/excel/import-pipeline";
 import { planImport, planSize, reviewImport } from "@/lib/excel/review";
+import { isOwnLink } from "@/lib/links/own-links";
 import { useProject, useSession } from "@/lib/state/StoreProvider";
 import type { DuplicateStrategy } from "@/types";
 
@@ -55,6 +56,8 @@ export function ImportScreen() {
     return { model, plan: planImport(result, model, { strategy: imp.strategy, decisions: imp.decisions, includeRejected: imp.includeRejected }) };
   }, [result, mappingNeeded, recordsById, duplicateKey, imp.strategy, imp.decisions, imp.mode, imp.includeRejected]);
   const total = current ? planSize(current.plan) : 0;
+  // Links del menú distintos que se acortarán al confirmar (los propios, que ya son cortos, no cuentan).
+  const toShorten = current ? new Set([...current.plan.toCreate.map(({ row }) => row.draft.menuUrl), ...current.plan.fixes.map((row) => row.raw["menuUrl"] ?? "")].map((u) => u.trim()).filter((u) => u !== "" && !isOwnLink(u))).size : 0;
   const discarded = current?.plan.discarded.length ?? 0;
   const busy = imp.status === "uploading";
   const mappingOpen = mappingNeeded && imp.status === "review" && (mappingForced || mappingClosedFor !== result);
@@ -107,7 +110,16 @@ export function ImportScreen() {
       {result && !mappingNeeded && current && (imp.status === "review" || imp.status === "done") ? (
         <>
           {imp.status === "done" && imp.outcome ? (
-            <Alert severity="success" data-testid="import-done" action={<Button component={Link} href="/editor" color="inherit" size="small">Ver las piezas</Button>}>
+            <Alert
+              severity="success"
+              data-testid="import-done"
+              action={
+                <div className="flex flex-wrap gap-1">
+                  <Button color="inherit" size="small" onClick={() => void actions.downloadExcel()}>Descargar Excel actualizado</Button>
+                  <Button component={Link} href="/editor" color="inherit" size="small">Ver las piezas</Button>
+                </div>
+              }
+            >
               Se importaron {imp.outcome.created + imp.outcome.fixes} piezas{imp.outcome.fixes > 0 ? ` (${imp.outcome.fixes} para corregir)` : ""}
               {imp.outcome.discarded > 0 ? ` y no se importaron ${imp.outcome.discarded} duplicadas` : ""}.
               {result.rejected.length - imp.outcome.fixes > 0 ? ` Quedan ${result.rejected.length - imp.outcome.fixes} filas con error en el informe.` : ""}
@@ -142,6 +154,12 @@ export function ImportScreen() {
                 ) : null}
               </div>
             </section>
+          ) : null}
+
+          {imp.status === "review" && toShorten > 0 ? (
+            <Alert severity="info" data-testid="shorten-note">
+              Al importar, {toShorten === 1 ? "el link del menú se acortará" : `los ${toShorten} links del menú distintos se acortarán`} automáticamente: el QR llevará el link corto, que no cambia aunque cambie el destino. Después podrás descargar el Excel actualizado con esos links cortos.
+            </Alert>
           ) : null}
 
           <div className="flex flex-wrap items-center gap-3">

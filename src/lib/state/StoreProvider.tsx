@@ -4,8 +4,10 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useStore } from "zustand";
 
 import { fetchResolve, postJson } from "@/lib/app/api-client";
+import { shortenFetcher } from "@/lib/app/links-client";
 import { QrInflight } from "@/lib/app/qr-inflight";
 import { TilePreviewClient } from "@/lib/app/tile-preview-client";
+import type { ShortenFetcher } from "@/lib/links/shorten-many";
 import type { PreviewResponse } from "@/schemas/preview";
 import type { ProjectState } from "@/types";
 
@@ -23,6 +25,8 @@ export interface Runtime {
   inflight: QrInflight;
   tiles: TilePreviewClient;
   fetchResolve: typeof fetchResolve;
+  /** Acorta los links del menú (siempre, para que el QR sea legible y estable). */
+  fetchShorten: ShortenFetcher;
   /** Guarda ya (antes de salir) y devuelve cuando terminó. */
   flush(): Promise<void>;
   takeOver(): Promise<void>;
@@ -44,11 +48,12 @@ export interface StoreProviderProps {
   kv?: KeyValueStore;
   locks?: LockManagerLike | null;
   fetchResolve?: Runtime["fetchResolve"];
+  fetchShorten?: Runtime["fetchShorten"];
   fetchTiles?: (request: Parameters<ConstructorParameters<typeof TilePreviewClient>[0]>[0], signal?: AbortSignal) => Promise<PreviewResponse>;
   initialProject?: ProjectState;
 }
 
-export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fetchTiles, initialProject }: StoreProviderProps) {
+export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fetchShorten: shortener, fetchTiles, initialProject }: StoreProviderProps) {
   const flushRef = useRef<() => Promise<void>>(async () => undefined);
   const takeOverRef = useRef<() => Promise<void>>(async () => undefined);
   const readBackupRef = useRef<(key: string) => Promise<unknown>>(async () => undefined);
@@ -61,6 +66,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     inflight: new QrInflight(),
     tiles: new TilePreviewClient(fetchTiles ?? ((request, signal) => postJson<PreviewResponse>("/api/preview/tiles", request, signal))),
     fetchResolve: resolver ?? fetchResolve,
+    fetchShorten: shortener ?? shortenFetcher,
     flush: () => flushRef.current(),
     takeOver: () => takeOverRef.current(),
     readBackup: (key) => readBackupRef.current(key),

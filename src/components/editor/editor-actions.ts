@@ -124,6 +124,10 @@ export function createEditorActions(deps: EditorDeps) {
       mutate((p) => setExportFormats(p, { formats, ...(zipNaming ? { zipNaming } : {}) }));
     },
 
+    setPdfBySection(pdfBySection: boolean): void {
+      mutate((p) => setExportFormats(p, { pdfBySection }));
+    },
+
     setFileName(name: string): void {
       updateProject(runtime.project, (p) => setExportFileName(p, name)); // escribir no es una entrada de deshacer
     },

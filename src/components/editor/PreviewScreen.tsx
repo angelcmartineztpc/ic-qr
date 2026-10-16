@@ -202,7 +202,7 @@ export function PreviewScreen() {
         </aside>
       </div>
 
-      <StepFooter back={{ href: "/editor", label: "Piezas" }} next={{ href: "/export", label: "Siguiente: Exportar" }} />
+      <StepFooter back={{ href: "/style", label: "Estilo del QR" }} next={{ href: "/export", label: "Siguiente: Exportar" }} />
     </div>
   );
 }

@@ -1,0 +1,14 @@
+.group { display: inline-flex; }
+.btn { border-radius: var(--radius-md); }
+.full { display: flex; width: 100%; }
+.btn { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); min-height: 44px; min-width: 40px; padding: 0 var(--space-4); border: 1px solid var(--border-subtle); color: var(--text-secondary); font: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer; background: transparent; }
+.small { min-height: 40px; padding: 0 var(--space-3); font-size: 0.8125rem; }
+.flex { flex: 1; }
+.group > .btn:not(:first-child) { margin-left: -1px; }
+.group > .btn:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.group > .btn:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.group > .btn:only-child { border-radius: var(--radius-md); }
+.btn:hover { background: var(--bg-hover); }
+.on { background: color-mix(in srgb, var(--primary) 18%, var(--bg-card)); color: var(--primary); border-color: var(--primary); position: relative; }
+.btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; position: relative; z-index: 1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }

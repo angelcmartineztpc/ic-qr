@@ -1,0 +1,15 @@
+{
+  "imports": {
+    "@/services/qr-produccion/": "../../src/services/qr-produccion/",
+    "@/types": "../../src/types/index.ts",
+    "zod": "npm:zod@4.6.5",
+    "qr": "npm:qr@0.7.2",
+    "qr/": "npm:/qr@0.7.2/",
+    "fflate": "npm:fflate@0.8.3",
+    "@xmldom/xmldom": "npm:@xmldom/xmldom@0.9.12",
+    "pdfkit": "npm:pdfkit@0.20.2",
+    "fontkit": "npm:fontkit@2.0.4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2"
+  }
+}

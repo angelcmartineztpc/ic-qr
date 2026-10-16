@@ -1,0 +1,133 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+}
+
+.controls {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.side {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.previews {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+.qr {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+.placeholder {
+  aspect-ratio: 1;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+}
+
+.caption {
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 2.5rem;
+  text-align: center;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.emptyText {
+  max-width: 28rem;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+@media (min-width: 600px) {
+  .previews {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .layout {
+    grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
+  }
+
+  .controls {
+    order: 1;
+  }
+
+  .side {
+    order: 2;
+    position: sticky;
+    top: var(--space-4);
+    align-self: start;
+  }
+}

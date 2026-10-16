@@ -5,9 +5,10 @@ import { outlineScene } from "@/lib/document/outline";
 import { buildScene } from "@/lib/document/scene";
 import { pageCount } from "@/lib/document/sheet";
 import { describeLayoutWarning } from "@/lib/errors/messages.es";
-import { zipEntryName } from "@/lib/export/file-name";
+import { sanitizeFileName, zipEntryName } from "@/lib/export/file-name";
 import { CHUNK_BYTES, encodeFrame, type FileName } from "@/lib/export/frames";
 import { resolveLayout } from "@/lib/layout/resolve-layout";
+import { blockingQrStyleWarnings } from "@/lib/qr-style";
 import { renderSceneSvg } from "@/lib/svg/render-scene";
 import { resolveTemplate } from "@/lib/template/resolve";
 import type { ExportRequest } from "@/schemas/export";
@@ -69,6 +70,10 @@ export function prepareExport(request: ExportRequest, deps: Pick<ExportDeps, "fo
   if (!resolved.success) throw new ExportError(400, "VALIDATION_FAILED", `Los ajustes de la plantilla no son válidos: ${resolved.error.issues[0]?.message ?? ""}`);
   const template = resolved.data;
 
+  // Misma regla que la pantalla Exportar: un estilo que deja el QR ilegible no se fabrica aunque la petición llegue directa.
+  const styleBlockers = blockingQrStyleWarnings(request.templateOverrides.qrStyle, template.qr, request.records.flatMap((r) => (r.qr.source === "generated" ? [r.qr.payload] : [])));
+  if (styleBlockers.length > 0) throw new ExportError(400, "VALIDATION_FAILED", `El estilo del QR no se puede fabricar: ${styleBlockers.map(describeLayoutWarning).join(" ")}`);
+
   const fonts = deps.fonts.forTemplate(template);
   try {
     for (const font of template.fonts) fonts(font);
@@ -88,6 +93,9 @@ export function prepareExport(request: ExportRequest, deps: Pick<ExportDeps, "fo
   return { template, fonts };
 }
 
+/** 0 → A, 25 → Z, 26 → AA… */
+const sectionLetter = (n: number): string => (n < 26 ? "" : sectionLetter(Math.floor(n / 26) - 1)) + String.fromCharCode(65 + (n % 26));
+
 const label = (record: ExportRecord) => [record.area, record.mesa].filter(Boolean).join(" ");
 
 /**
@@ -105,15 +113,25 @@ export async function runExport(request: ExportRequest, prepared: PreparedExport
   const outlinedPdf = options.pdf.textMode === "outlined";
   const outlinedSvg = options.svg.textMode === "outlined";
 
-  const writer = wantsPdf ? new PdfSheetWriter({ tile: template.tile, pdf: options.pdf, fonts, title: options.fileName, ...(deps.now ? { creationDate: deps.now() } : {}), ...(deps.compress === undefined ? {} : { compress: deps.compress }) }) : null;
-  const pdfChunks: Buffer[] = [];
-  const pdfDone = writer
-    ? new Promise<Buffer>((resolve, reject) => {
-        writer.doc.on("data", (chunk: Buffer) => pdfChunks.push(chunk));
-        writer.doc.on("end", () => resolve(Buffer.concat(pdfChunks)));
+  // Un PDF por Estación (orden de primera aparición en el Excel) o uno solo, con la clave "".
+  const bySection = wantsPdf && options.pdfBySection;
+  const sections = new Map<string, { writer: PdfSheetWriter; done: Promise<Buffer>; count: number }>();
+  const sectionFor = (record: ExportRecord) => {
+    const key = bySection ? record.estacion.trim() || "Sin estación" : "";
+    let section = sections.get(key);
+    if (!section) {
+      const writer = new PdfSheetWriter({ tile: template.tile, pdf: options.pdf, fonts, title: options.fileName, ...(deps.now ? { creationDate: deps.now() } : {}), ...(deps.compress === undefined ? {} : { compress: deps.compress }) });
+      const chunks: Buffer[] = [];
+      const done = new Promise<Buffer>((resolve, reject) => {
+        writer.doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+        writer.doc.on("end", () => resolve(Buffer.concat(chunks)));
         writer.doc.on("error", reject);
-      })
-    : null;
+      });
+      section = { writer, done, count: 0 };
+      sections.set(key, section);
+    }
+    return section;
+  };
 
   const svgEntries: Array<{ name: string; data: Uint8Array }> = [];
   const encoder = new TextEncoder();
@@ -145,17 +163,19 @@ export async function runExport(request: ExportRequest, prepared: PreparedExport
     const sceneRecord = { id: record.id, area: record.area, estacion: record.estacion, mesa: record.mesa, subgrupo: record.subgrupo, concepto: record.concepto, menuUrl: record.menuUrl };
     const layout = resolveLayout(request.layout, record.id);
 
-    if (writer) {
-      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, options: { bleedMm: options.pdf.bleedMm, cutLine: options.pdf.cutLine, includeQrBackground: options.pdf.includeQrBackground } });
+    if (wantsPdf) {
+      const section = sectionFor(record);
+      section.count++;
+      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, qrStyle: request.templateOverrides.qrStyle, options: { bleedMm: options.pdf.bleedMm, cutLine: options.pdf.cutLine, includeQrBackground: options.pdf.includeQrBackground } });
       for (const warning of scene.warnings) {
         warnings++;
         emit(encodeFrame.warning({ recordId: record.id, code: warning.code, message: describeLayoutWarning(warning) }));
       }
-      writer.add(outlinedPdf ? outlineScene(scene, fonts) : scene);
+      section.writer.add(outlinedPdf ? outlineScene(scene, fonts) : scene);
     }
     if (wantsZip) {
-      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, options: { cutLine: options.svg.cutLine ? "rgb" : "none", includeQrBackground: options.pdf.includeQrBackground } });
-      if (!writer) {
+      const scene = buildScene({ template, layout, record: sceneRecord, qr: geometry, fonts, qrStyle: request.templateOverrides.qrStyle, options: { cutLine: options.svg.cutLine ? "rgb" : "none", includeQrBackground: options.pdf.includeQrBackground } });
+      if (!wantsPdf) {
         for (const warning of scene.warnings) {
           warnings++;
           emit(encodeFrame.warning({ recordId: record.id, code: warning.code, message: describeLayoutWarning(warning) }));
@@ -176,14 +196,16 @@ export async function runExport(request: ExportRequest, prepared: PreparedExport
   };
 
   let pages = 0;
-  if (writer && pdfDone) {
-    writer.end();
-    const pdf = await pdfDone;
+  let sectionIndex = 0;
+  for (const [key, section] of sections) {
+    section.writer.end();
+    const pdf = await section.done;
     throwIfAborted();
-    pages = pageCount(total, writer.grid);
-    send("pdf", `${options.fileName}.pdf`, "application/pdf", pdf);
+    pages += pageCount(section.count, section.writer.grid);
+    if (bySection) svgEntries.push({ name: `QR_SECCION ${sectionLetter(sectionIndex++)}_${sanitizeFileName(key)}.pdf`, data: pdf });
+    else send("pdf", `${options.fileName}.pdf`, "application/pdf", pdf);
   }
-  if (wantsZip) {
+  if (wantsZip || bySection) {
     const zip = await buildZip(svgEntries, async () => {
       throwIfAborted();
       await nextTick();

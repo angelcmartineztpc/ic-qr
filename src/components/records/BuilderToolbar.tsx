@@ -1,5 +1,6 @@
 "use client";
 
+import DownloadIcon from "@mui/icons-material/Download";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SaveIcon from "@mui/icons-material/Save";
@@ -97,6 +98,10 @@ export function BuilderToolbar({ actions, total, onAdd }: BuilderToolbarProps) {
           <MenuItem onClick={() => { close(); actions.saveProjectFile(); }} disabled={total === 0}>
             <ListItemIcon><SaveIcon fontSize="small" /></ListItemIcon>
             Guardar proyecto (.qrproj.json)
+          </MenuItem>
+          <MenuItem onClick={() => { close(); void actions.downloadExcel(); }} disabled={total === 0}>
+            <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
+            Descargar Excel actualizado
           </MenuItem>
           <MenuItem onClick={() => { close(); fileInput.current?.click(); }} disabled={readOnly}>
             <ListItemIcon><FolderOpenIcon fontSize="small" /></ListItemIcon>

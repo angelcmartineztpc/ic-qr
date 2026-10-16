@@ -7,6 +7,12 @@
       "skillPath": "skills/api-and-interface-design/SKILL.md",
       "computedHash": "8bdbf1fca81bef9258d7e0d9726f933f25677ec8537792e084a3fb7c54acf2ba"
     },
+    "awesome-design-md": {
+      "source": "Tekkiiiii/the-agency",
+      "sourceType": "github",
+      "skillPath": "skills/awesome-design-md/SKILL.md",
+      "computedHash": "8ce37757a7819262ef5606990df455492ca061561e4caac3f696aa66a364f2a4"
+    },
     "browser-testing-with-devtools": {
       "source": "addyosmani/agent-skills",
       "sourceType": "github",
@@ -54,6 +60,12 @@
       "sourceType": "github",
       "skillPath": "skills/deprecation-and-migration/SKILL.md",
       "computedHash": "0d7b2002e250c02a260f6bc502d7a798ab8e8ca0c020c54d7b0f16053935c72c"
+    },
+    "design-taste-frontend": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "18f81679d2b0247ce9da298b03ed8e47ecd3c206f2951d70eefb1b65d3219345"
     },
     "documentation-and-adrs": {
       "source": "addyosmani/agent-skills",
@@ -156,6 +168,12 @@
       "sourceType": "github",
       "skillPath": "skills/using-agent-skills/SKILL.md",
       "computedHash": "4221dc84c943696829025a42c7961b257afdb8f1ba20af42463434a0d9c03812"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
     }
   }
 }

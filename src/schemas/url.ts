@@ -24,8 +24,36 @@ export const SafeHttpUrlSchema = z
     }
   });
 
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/**
+ * Link corto propio (`/s/{código}`) en una máquina de desarrollo. Sin `NEXT_PUBLIC_QR_DOMAIN` el dominio del link
+ * corto es el origen de la aplicación (`http://localhost:3000`), que `z.httpUrl` rechaza; sin esta excepción cada pieza
+ * quedaría inválida al probar en local. Solo `localhost`/`127.0.0.1`, solo esa forma exacta y nunca fuera de ella.
+ */
+export function isLocalShortLink(raw: string): boolean {
+  const url = URL.parse(raw.trim());
+  return (
+    url !== null &&
+    (url.protocol === "http:" || url.protocol === "https:") &&
+    LOCAL_HOSTNAMES.has(url.hostname) &&
+    url.username === "" &&
+    url.password === "" &&
+    url.search === "" &&
+    url.hash === "" &&
+    /^\/s\/[2-9a-hjkmnp-z]{8}$/.test(url.pathname) &&
+    raw.trim().length <= MAX_URL_LENGTH
+  );
+}
+
 /** Link del menú: se guarda en forma canónica WHATWG (es lo que se codifica en el QR). */
-export const MenuUrlSchema = SafeHttpUrlSchema.transform((s) => new URL(s).href);
+export const MenuUrlSchema = z.string().transform((raw, ctx) => {
+  if (isLocalShortLink(raw)) return new URL(raw.trim()).href;
+  const parsed = SafeHttpUrlSchema.safeParse(raw);
+  if (parsed.success) return new URL(parsed.data).href;
+  for (const issue of parsed.error.issues) ctx.addIssue({ code: "custom", message: issue.message });
+  return z.NEVER;
+});
 
 /** qrUrl GENERADO: derivado de storageKey (el servidor comprueba keyFromPublicUrl). */
 export const GeneratedQrUrlSchema = z.url({ protocol: /^https?$/ }).max(MAX_URL_LENGTH);

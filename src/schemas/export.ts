@@ -21,6 +21,8 @@ export const ExportOptionsSchema = z.strictObject({
     .strictObject({ textMode: z.enum(["outlined", "live"]), cutLine: z.boolean() })
     .default({ textMode: "live", cutLine: false }),
   zipNaming: z.enum(["index", "index-area-mesa"]).default("index"),
+  /** Un PDF por Estación (en el orden del Excel), empaquetados en un ZIP. */
+  pdfBySection: z.boolean().default(false),
 });
 
 export const EXPORT_MAX_RECORDS = 5000;

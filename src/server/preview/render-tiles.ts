@@ -89,7 +89,7 @@ export async function renderPreviewTiles(request: PreviewRequest, deps: RenderTi
       concepto: normalizeText(tile.concepto),
       menuUrl: tile.menuUrl,
     };
-    const scene = buildScene({ template, layout: resolveLayout(request.layout, tile.recordId), record, qr: await previewQrGeometry(tile, deps.storage), fonts });
+    const scene = buildScene({ template, layout: resolveLayout(request.layout, tile.recordId), record, qr: await previewQrGeometry(tile, deps.storage), fonts, qrStyle: request.templateOverrides.qrStyle });
     const drawn = request.detail === "low" ? scene : outlineScene(scene, fonts);
     tiles[tile.key] = { svg: renderSceneSvg(drawn, { detail: request.detail }), warnings: scene.warnings };
   }

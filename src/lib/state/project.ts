@@ -31,7 +31,7 @@ export function createEmptyProject(now: string, options: { id?: string; name?: s
     templateId: template.id,
     templateOverrides: structuredClone(EMPTY_TEMPLATE_OVERRIDES) as ProjectState["templateOverrides"],
     layout: { templateId: template.id, base: template.defaultLayout, overrides: {} },
-    exportOptions: { fileName: "", formats: ["pdf"], pdf: { ...PDF_DEFAULTS, pageSize: { ...PDF_DEFAULTS.pageSize }, margins: { ...PDF_DEFAULTS.margins } }, svg: { textMode: "live", cutLine: false }, zipNaming: "index" },
+    exportOptions: { fileName: "", formats: ["pdf"], pdf: { ...PDF_DEFAULTS, pageSize: { ...PDF_DEFAULTS.pageSize }, margins: { ...PDF_DEFAULTS.margins } }, svg: { textMode: "live", cutLine: false }, zipNaming: "index", pdfBySection: false },
     fileNameTouched: false,
     duplicateKey: { ...DEFAULT_DUPLICATE_KEY, fields: [...DEFAULT_DUPLICATE_KEY.fields] },
     revision: 0,
@@ -250,7 +250,7 @@ export function setPdfOptions(state: ProjectState, patch: Partial<PDFOptions>): 
 }
 
 /** Formatos de salida (PDF y/o ZIP de SVG) y nombre de las entradas del ZIP. */
-export function setExportFormats(state: ProjectState, patch: Partial<Pick<ProjectState["exportOptions"], "formats" | "zipNaming">>): ProjectState {
+export function setExportFormats(state: ProjectState, patch: Partial<Pick<ProjectState["exportOptions"], "formats" | "zipNaming" | "pdfBySection">>): ProjectState {
   return touch({ ...state, exportOptions: { ...state.exportOptions, ...patch } });
 }
 

@@ -17,7 +17,11 @@ Cada concepto tiene un único dueño: plantilla = datos Zod + `TemplateOverrides
 - **El servidor no confía en el cliente:** recalcula la exportabilidad y la identidad de cada QR. Los fallos son siempre por pieza y nunca provocan una generación de respaldo.
 
 ### III. El QR codifica un link estable
-El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{dominio}/api/qr/{resortCode}/{service}`, y esa ruta redirige (302, `Cache-Control: no-store`) al destino vigente de `src/lib/resorts/properties.ts`. Cambiar un destino no cambia el QR. El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente. Esta ruta es pública y sin autenticación (la abren los huéspedes al escanear); no debe aceptar parámetros de destino arbitrarios. Las otras rutas `/api` sin guardas son `GET /api/health` y, solo con storage local, `GET /api/storage/**`.
+El QR grabado en el material no puede reimprimirse barato. Por eso **nunca codifica el destino**: codifica un link estable que redirige (302, `Cache-Control: no-store`) al destino vigente. Hay dos:
+- **Por resort y servicio:** `{dominio}/api/qr/{resortCode}/{service}`, con destinos en `src/lib/resorts/properties.ts`.
+- **Link corto del menú:** `{dominio}/s/{código}` (8 caracteres). **Todo «Link del menú» se acorta siempre**; el código sale de una huella del link, así que el mismo link da el mismo código, y el destino se cambia desde la aplicación sin tocar el QR (`specs/011-acortador-de-links/`). Los links propios (`/s/…` y `/api/qr/…`) no se vuelven a acortar.
+
+El dominio (`NEXT_PUBLIC_QR_DOMAIN`) se graba para siempre: debe ser permanente. Estas rutas son públicas y sin autenticación (las abren los huéspedes al escanear); no aceptan destinos arbitrarios: el resort y el servicio salen de una lista cerrada y los destinos de un link corto solo los crea o cambia una persona autenticada, validados (`http(s)`, sin credenciales, nunca otro link corto propio). Las otras rutas `/api` sin guardas son `GET /api/health` y, solo con storage local, `GET /api/storage/**`.
 
 ### IV. Salida vectorial verificable
 - El PDF es vectorial: 0 imágenes, páginas y piezas con medidas exactas en mm, QR como un único path, texto en contornos (o vivo con la fuente incrustada).
@@ -30,7 +34,7 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 - Toda transformación o descarte produce un `Issue` o `Warning` visible. Los mensajes al usuario van en español.
 
 ### VI. Seguridad por defecto
-- Todo Route Handler se declara con `withApiGuards` (host → auth → Content-Type y origen → rate limit → concurrencia → tamaño); las páginas se autentican en `src/proxy.ts`. Las únicas excepciones son el redirect de III, `GET /api/health` y `GET /api/storage/**` (este último solo con storage local).
+- Todo Route Handler se declara con `withApiGuards` (host → auth → Content-Type y origen → rate limit → concurrencia → tamaño); las páginas se autentican en `src/proxy.ts`. Las únicas excepciones son los redirects de III (`/api/qr/{resort}/{servicio}` y `/s/{código}`), `GET /api/health` y `GET /api/storage/**` (este último solo con storage local).
 - Con `AUTH_MODE=none` el servidor **no arranca** en producción. Los secretos nunca se versionan (`.env*`, salvo `.env.example`); admiten la variante `*_FILE`.
 - Toda descarga externa pasa por `safeFetch` (https, IP públicas, tamaños y tiempos acotados); todo SVG externo se sanea con lista blanca y se rechaza, no se ignora.
 - Los QR generados nunca se versionan en git.
@@ -51,6 +55,29 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 
 **Código heredado:** la rama `qr-api-created` (`app/`, `lib/`, `data/`, `qrcode`, `pdf-lib`, `archiver`, `tailwind.config.js`) fue absorbida y reemplazada por `src/`; no se reintroduce.
 
+## Ámbito del módulo PULSE (`pulse/`) — enmienda 1.2.0
+
+Este apartado aplica **solo** al subárbol `pulse/` (el módulo para la plataforma PULSE; ver [`specs/012-modulo-pulse/`](../../specs/012-modulo-pulse/spec.md)). Fuera de `pulse/` rigen íntegros los apartados anteriores, incluidos «Stack» y «Estilos»: Next.js 16, MUI y Tailwind siguen siendo obligatorios en el resto del repositorio y no se relajan.
+
+### Excepción de stack (solo dentro de `pulse/`)
+Se autoriza Vite 7 + React 19 + react-router 6, CSS Modules con las variables de tema de PULSE, y Supabase (Postgres, Auth, Storage y Edge Functions en Deno). Sustituyen, **dentro de `pulse/`**, a Next.js, MUI + Tailwind y al servidor Node. Motivo: PULSE impone ese stack a los módulos que acepta (guía de integración).
+
+### Reglas que aplican solo dentro de `pulse/`
+Vienen de la guía de integración de PULSE y no cambian el contrato del código fuera de `pulse/`:
+- **DB-first:** se persiste en Supabase **antes** de actualizar el estado local; IndexedDB es caché, no fuente de verdad.
+- **Sin `console.log`** (solo `console.error` y `console.warn`).
+- **Sin MUI, Emotion, Tailwind ni Next** en `pulse/`; solo CSS Modules con variables de tema. Sin literales de color salvo datos del dominio (p. ej. la lámina blanca de la pieza).
+- Tipos en un único `src/types/index.ts`; páginas con `export default`; alias `@/`.
+- **Dependencias nuevas** solo con la justificación y la autorización recogidas en el plan de la 012.
+- Puerta de calidad de `pulse/`: `tsc --noEmit`, `vitest run` y `vite build`; y `bun run test:db` contra Supabase local para SQL, RLS y Edge Functions.
+
+### Cómo se aplican los principios I–VII dentro de `pulse/`
+- **I (capas):** `src/server/**` y `server-only` **no existen** en `pulse/`, y el principio I no aplica allí tal cual. Las Edge Functions de `pulse/supabase/functions/` siguen un esquema de capas propio (Deno + adaptadores en `_shared/`); la lógica pura vive en `pulse/src/services/qr-produccion/**` (sin React) y la de servidor, en `…/backend/**`, que los componentes no importan.
+- **II, IV, V, VI y VII:** aplican sin cambios. En el servidor equivalen: la autenticación es el JWT de Supabase + `qr_tiene_acceso()` (en lugar de `withApiGuards`), la descarga externa pasa por el `safeFetch` de `backend/net`, y las rutas públicas son solo los redirects de III y `GET qr-resolver/storage/{clave}.svg`.
+- **III (link estable):** el dominio se llama `NEXT_PUBLIC_QR_DOMAIN` fuera de `pulse/` y **`VITE_QR_DOMAIN`** (frontend) y `QR_PUBLIC_BASE` (Edge Functions) dentro; conviven, cada uno en su ámbito, y en ambos el dominio se graba para siempre y debe ser permanente.
+- **Código heredado y `pdf-lib`:** la prohibición de reintroducir `qr-api-created` es sobre la **arquitectura** de esa rama (`app/`, `lib/`, `data/`, `archiver`, `tailwind.config.js`), **no sobre la librería `pdf-lib`**: `pdf-lib` puede usarse (ya es devDependency del repositorio y, en `pulse/`, se usa en runtime para unir PDF por lotes en el cliente).
+- **Fuentes y QR generados:** las fuentes comerciales siguen sin versionarse (en `pulse/` van al bucket privado `qr-fuentes`) y los QR generados viven en Storage, nunca en git.
+
 ## Flujo de trabajo
 
 - **Spec primero:** toda feature nueva pasa por Spec Kit (`/speckit-specify` → `clarify` → `plan` → `tasks` → `implement`, con `analyze` antes de implementar). Las features existentes están documentadas en [`specs/`](../../specs/) (`001`–`008`, más las anteriores F001–F004) y las fases del proyecto en `docs/ARCHITECTURE.md` §G.
@@ -61,4 +88,4 @@ El QR grabado en el material no puede reimprimirse barato. Por eso codifica `{do
 
 Esta constitución prevalece sobre otras prácticas del repositorio; `docs/ARCHITECTURE.md` detalla el *cómo*. Una enmienda se propone con `/speckit-constitution`, indica qué principio cambia y por qué, actualiza esta versión y migra los documentos afectados en el mismo cambio. Toda revisión debe verificar el cumplimiento de los principios I–VII; la complejidad añadida se justifica en el plan de la feature. Guía de ejecución para agentes: `AGENTS.md` y `CLAUDE.md`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-09 | **Last Amended**: 2026-10-09
+**Version**: 1.2.0 | **Ratified**: 2026-10-09 | **Last Amended**: 2026-10-16

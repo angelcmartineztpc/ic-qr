@@ -34,7 +34,7 @@ describe("editor visual (/preview)", () => {
     expect(screen.queryByTestId("packing-result")).toBeNull();
     expect(screen.queryByTestId("download-pdf")).toBeNull();
     expect(screen.getByRole("link", { name: "Siguiente: Exportar" }).getAttribute("href")).toBe("/export");
-    expect(screen.getByRole("link", { name: "Piezas" }).getAttribute("href")).toBe("/editor");
+    expect(screen.getByRole("link", { name: "Estilo del QR" }).getAttribute("href")).toBe("/style");
   });
 
   it("las flechas mueven la caja (Mayús 5 mm, Alt 0,1 mm) y cada pulsación es un paso de deshacer", async () => {

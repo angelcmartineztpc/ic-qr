@@ -65,7 +65,7 @@ describe("plantillas", () => {
       "{{area}}",
       "MESA – TABLE",
       "{{mesa}}",
-      "CONSULTA EL MENU Y ORDENA EN LÍNEA",
+      "CONSULTA EL MENÚ Y ORDENA EN LÍNEA",
       "LOOK AT THE MENU AN ORDER ON LINE",
     ]);
     expect(template.content.items.map((i) => i.sizePt)).toEqual([17, 11, 22, 13.2, 13.2]);
