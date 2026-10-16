@@ -242,7 +242,13 @@ export class RemoteProjectPersistence {
 
 const COLUMNS = "id, nombre, datos, schema_version, revision, owner_id, updated_at";
 
-/** `qr_proyectos` sobre el cliente singleton de PULSE. Las políticas RLS deciden qué filas se ven y se escriben. */
+/**
+ * TODO(sin verificar): este adaptador NUNCA se ejecutó contra Supabase real; las pruebas usan `MemoryProjectTable`.
+ * Es lo primero que hay que validar con `supabase start` + patch-qr-produccion.sql: nombres de columna, RLS de
+ * `qr_proyectos` (propietario vs rol), el trigger que sube `revision`, `maybeSingle()` cuando el UPDATE no coincide
+ * (debe dar null, no error) y el código 23505 del INSERT duplicado.
+ *
+ * `qr_proyectos` sobre el cliente singleton de PULSE. Las políticas RLS deciden qué filas se ven y se escriben. */
 export function supabaseProjectTable(client: Pick<SupabaseClient, "from" | "auth">): ProjectTable {
   const table = () => client.from("qr_proyectos");
   return {

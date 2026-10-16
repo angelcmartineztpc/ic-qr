@@ -59,9 +59,11 @@ export interface StoreProviderProps {
   remoteTable?: ProjectTable | null;
   /** Solo para pruebas. */
   remoteDebounceMs?: number;
+  /** Solo para pruebas. */
+  remoteRetryMs?: readonly number[];
 }
 
-export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fetchShorten: shortener, fetchTiles, initialProject, remoteTable, remoteDebounceMs }: StoreProviderProps) {
+export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fetchShorten: shortener, fetchTiles, initialProject, remoteTable, remoteDebounceMs, remoteRetryMs }: StoreProviderProps) {
   const flushRef = useRef<() => Promise<void>>(async () => undefined);
   const takeOverRef = useRef<() => Promise<void>>(async () => undefined);
   const readBackupRef = useRef<(key: string) => Promise<unknown>>(async () => undefined);
@@ -98,6 +100,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     const remote = table
       ? new RemoteProjectPersistence(table, {
           ...(remoteDebounceMs === undefined ? {} : { debounceMs: remoteDebounceMs }),
+          ...(remoteRetryMs === undefined ? {} : { retryMs: remoteRetryMs }),
           isOffline: () => typeof navigator !== "undefined" && navigator.onLine === false,
           onStatus: (status, detail) => patchSession(rt.session, { remote: { status, ...(detail ? { detail } : {}) } }),
         })
@@ -225,6 +228,9 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
       }
     };
     const onPageHide = () => void saver.flush();
+    // Agotados los reintentos la nube espera al siguiente cambio; al volver la red se sube lo pendiente sin esperar.
+    const onOnline = () => void remote?.flush();
+    window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onHide);
     window.addEventListener("pagehide", onPageHide);
     window.addEventListener("beforeunload", onBeforeUnload);
@@ -235,6 +241,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
       unsubscribeInflight();
       document.removeEventListener("visibilitychange", onHide);
       window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("online", onOnline);
       window.removeEventListener("beforeunload", onBeforeUnload);
       void saver.flush();
       saver.dispose();

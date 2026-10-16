@@ -5,41 +5,17 @@ import { afterEach, describe, expect, it } from "vitest";
 import { memoryKv } from "@/services/qr-produccion/test-helpers/render-app";
 import { draft, NOW } from "@/services/qr-produccion/test-helpers/records";
 
-import type { ProjectPatch, ProjectRow, ProjectTable } from "./remote-persistence";
+import { MemoryProjectTable } from "@/services/qr-produccion/test-helpers/memory-project-table";
 import { addRecord } from "./project";
 import { useRuntime, StoreProvider, type Runtime } from "./StoreProvider";
 import { updateProject } from "./stores";
-
-/** `qr_proyectos` en memoria: el UPDATE exige la revisión esperada y la sube (como el trigger del SQL). */
-class MemoryTable implements ProjectTable {
-  rows = new Map<string, ProjectRow>();
-  async get(id: string) {
-    return structuredClone(this.rows.get(id) ?? null);
-  }
-  async latestMine() {
-    return structuredClone([...this.rows.values()][0] ?? null);
-  }
-  async insert(row: ProjectPatch & { id: string }) {
-    if (this.rows.has(row.id)) return "exists" as const;
-    const stored: ProjectRow = { ...structuredClone(row), revision: 1, owner_id: "u1", updated_at: NOW };
-    this.rows.set(row.id, stored);
-    return structuredClone(stored);
-  }
-  async updateIfRevision(id: string, expectedRevision: number, patch: ProjectPatch) {
-    const row = this.rows.get(id);
-    if (!row || row.revision !== expectedRevision) return null;
-    const next: ProjectRow = { ...row, ...structuredClone(patch), revision: row.revision + 1 };
-    this.rows.set(id, next);
-    return structuredClone(next);
-  }
-}
 
 let runtime: Runtime;
 function Grab() {
   runtime = useRuntime();
   return null;
 }
-const mount = (table: MemoryTable | null) =>
+const mount = (table: MemoryProjectTable | null) =>
   render(
     <StoreProvider kv={memoryKv()} locks={null} remoteTable={table} remoteDebounceMs={10}>
       <Grab />
@@ -51,7 +27,7 @@ afterEach(cleanup);
 
 describe("StoreProvider + persistencia remota (DB-first)", () => {
   it("un cambio local se guarda en la base y el estado remoto pasa a «saved»", async () => {
-    const table = new MemoryTable();
+    const table = new MemoryProjectTable(NOW);
     mount(table);
     await waitFor(() => expect(runtime.session.getState().hydrated).toBe(true));
     addPiece();
@@ -62,7 +38,7 @@ describe("StoreProvider + persistencia remota (DB-first)", () => {
   });
 
   it("al abrir, manda la base: el proyecto guardado en otro dispositivo reemplaza el vacío", async () => {
-    const table = new MemoryTable();
+    const table = new MemoryProjectTable(NOW);
     const first = mount(table);
     await waitFor(() => expect(runtime.session.getState().hydrated).toBe(true));
     addPiece();
@@ -75,7 +51,7 @@ describe("StoreProvider + persistencia remota (DB-first)", () => {
   });
 
   it("si otro dispositivo guardó antes, hay conflicto y NO se pisa la base", async () => {
-    const table = new MemoryTable();
+    const table = new MemoryProjectTable(NOW);
     mount(table);
     await waitFor(() => expect(runtime.session.getState().hydrated).toBe(true));
     addPiece();
@@ -94,5 +70,35 @@ describe("StoreProvider + persistencia remota (DB-first)", () => {
     await waitFor(() => expect(runtime.session.getState().hydrated).toBe(true));
     addPiece();
     expect(runtime.session.getState().remote.status).toBe("off");
+  });
+});
+
+describe("pérdida de conexión a mitad de sesión", () => {
+  it("la base cae: queda «offline», lo editado sigue en la caché local y al volver la red se sube solo", async () => {
+    const table = new MemoryProjectTable(NOW);
+    const kv = memoryKv();
+    render(
+      <StoreProvider kv={kv} locks={null} remoteTable={table} remoteDebounceMs={10} remoteRetryMs={[20, 20, 20, 20]}>
+        <Grab />
+      </StoreProvider>,
+    );
+    await waitFor(() => expect(runtime.session.getState().hydrated).toBe(true));
+    addPiece();
+    await waitFor(() => expect(runtime.session.getState().remote.status).toBe("saved"));
+
+    table.offline = true; // se cae la red con la sesión ya abierta
+    addPiece();
+    await waitFor(() => expect(runtime.session.getState().remote.status).toBe("offline"));
+    expect(table.rows.size).toBe(1);
+    await waitFor(() => expect(kv.data.size).toBeGreaterThan(0)); // IndexedDB sí guardó
+    expect(runtime.project.getState().project.order).toHaveLength(2); // nada se perdió en memoria
+
+    table.offline = false;
+    await new Promise((resolve) => setTimeout(resolve, 150)); // los reintentos cortos ya se agotaron: nadie vuelve a intentar solo
+    expect(runtime.session.getState().remote.status).toBe("offline");
+    act(() => void window.dispatchEvent(new Event("online"))); // vuelve la red
+    await waitFor(() => expect(runtime.session.getState().remote.status).toBe("saved"), { timeout: 2000 });
+    const stored = [...table.rows.values()][0]!;
+    expect(Object.keys((stored.datos as { recordsById: object }).recordsById)).toHaveLength(2);
   });
 });
