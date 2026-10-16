@@ -4,7 +4,7 @@ import { encodeMatrix } from "@/services/qr-produccion/qr/encode";
 import { ExternalSnapshotSchema } from "@/services/qr-produccion/schemas/qr-geometry";
 
 import { MemoryStorage } from "../test-helpers/memory-storage";
-import { bytes, ownQrSvg, rectQrSvg, strokeQrSvg } from "../test-helpers/qr-svg";
+import { bytes, ownQrSvg, rectQrSvg, strokeQrSvg, thickRoundQrSvg } from "../test-helpers/qr-svg";
 import { SafeFetchError } from "../net/safe-fetch";
 import { sha256Hex } from "./hash";
 import { rasterizeGeometry } from "./rasterize";
@@ -186,5 +186,31 @@ describe("rasterizador propio (sustituye a sharp)", () => {
   it("un SVG con un path ilegible no rompe la verificación: undecodable", async () => {
     const { deps } = setup(bytes('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M1 1L4 4 5"/></svg>'));
     expect(await verifyExistingQr(REMOTE, deps)).toMatchObject({ ok: true, qr: { verification: "undecodable" } });
+  });
+});
+
+describe("QR externo de trazos gruesos y esquinas redondeadas (sustituto de sharp)", () => {
+  /**
+   * LÍMITE CONOCIDO: la geometría saneada NO conserva `stroke-linecap`/`stroke-linejoin`; el rasterizador de verificación y
+   * el dibujo de la pieza (SVG y PDF) pintan los extremos rectos. Un QR que SOLO es legible gracias a extremos redondos o
+   * cuadrados (los módulos "se alargan" con el remate) se imprimiría distinto del original, así que se marca `undecodable`
+   * y la persona decide (qrAck). Lo importante: nunca «decodifica» algo que luego se imprimiría roto, porque verificación
+   * y dibujo usan la misma geometría. Con sharp pasaría lo mismo en la pieza: el problema es la fidelidad del dibujo, no
+   * quién rasteriza. Solución completa = conservar linecap en schema + render-scene + external.ts + PDF (ver README).
+   */
+  it("remates rectos (butt) con trazo de 1 módulo: se decodifica", async () => {
+    const { deps } = setup(bytes(thickRoundQrSvg(encodeMatrix(MENU), { width: 1, cap: "butt" })));
+    expect(await verifyExistingQr(REMOTE, deps)).toMatchObject({ ok: true, qr: { verification: "decoded", decodedPayload: MENU } });
+  });
+
+  it.each([
+    ["extremos redondos, trazo de 1 módulo", { width: 1, cap: "round" as const }],
+    ["extremos redondos, trazo de 1,15 módulos", { width: 1.15, cap: "round" as const }],
+    ["extremos cuadrados, trazo de 1,25 módulos", { width: 1.25, cap: "square" as const }],
+  ])("%s: queda undecodable (la persona decide), nunca un payload equivocado", async (_name, style) => {
+    const { deps } = setup(bytes(thickRoundQrSvg(encodeMatrix(MENU), style)));
+    const result = await verifyExistingQr(REMOTE, deps);
+    expect(result).toMatchObject({ ok: true, qr: { source: "existing", verification: "undecodable" } });
+    expect(result).not.toMatchObject({ qr: { decodedPayload: expect.anything() } });
   });
 });

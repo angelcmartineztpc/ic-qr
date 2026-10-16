@@ -167,3 +167,10 @@ documentado**, no eliminado. El DNS usa `Deno.resolveDns` si el runtime lo ofrec
 5. **El dominio de los QR** debe ser permanente antes de imprimir (arriba).
 6. **Contenido de `qr_proyectos.datos` hasta 25 MB**: un proyecto de 5000 piezas ronda varios MB y se escribe entero; si molesta, partir por registros (fuera de alcance).
 7. Los cambios a tests de `src/components/qr-produccion/**` (3 aserciones de URL) los hizo este trabajo para reflejar las nuevas rutas; confírmalo con quien mantiene esos componentes.
+
+## Límite conocido: remates de trazo (`stroke-linecap`) en QR externos
+La geometría saneada de un QR de terceros no conserva `stroke-linecap` ni `stroke-linejoin`: la verificación, el SVG de la pieza y el PDF
+dibujan los extremos rectos. Un QR externo que solo se lee gracias a extremos redondos/cuadrados (estilo «puntos» o trazos gruesos redondeados)
+sale `undecodable` y la persona decide (acuse `qrAck`); no se «decodifica» nada que luego se imprima roto. Probado en
+`backend/qr/verify-existing.test.ts`. Un servicio externo con `sharp` **no** lo arregla (el dibujo de la pieza seguiría sin remates). El arreglo
+completo es conservar `strokeLinecap` en el schema (`qr-geometry.ts`), el saneado, `render-scene.ts`, `external.ts` y el writer de PDF.

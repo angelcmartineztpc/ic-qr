@@ -10,11 +10,13 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { functionUrl } from "@/services/qr-produccion/app/api-client";
+import { uploadExcel } from "@/services/qr-produccion/app/import-client";
 import { buildExportRequest } from "@/services/qr-produccion/export/build-request";
 import { runExportJob } from "@/services/qr-produccion/export/client";
 import { createRecord } from "@/services/qr-produccion/records/factory";
 import { createEmptyProject } from "@/services/qr-produccion/state/project";
 import { draft, NOW } from "@/services/qr-produccion/test-helpers/records";
+import { buildXlsx, HEADER, menuRow } from "@/services/qr-produccion/test-helpers/xlsx-fixtures";
 import type { ProjectState, QRRecord, QrResolution } from "@/types";
 
 const API = process.env["API_URL"];
@@ -126,6 +128,45 @@ run("Edge Functions en Supabase local", () => {
     it("un resort/servicio inexistente da 404 sin sesión", async () => {
       expect((await call("qr-estable", "/qr/no-existe/nada", { jwt: null })).status).toBe(404);
     });
+  });
+
+
+  describe("qr-importar-excel (SheetJS desde https en Deno)", () => {
+    const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    const upload = (body: BodyInit, name = "menus.xlsx", type = XLSX_MIME) => call("qr-importar-excel", "", { method: "POST", headers: { "Content-Type": type, "X-File-Name": encodeURIComponent(name) }, body });
+
+    it("importa un .xlsx real: filas válidas y la fila con error con su motivo", async () => {
+      const file = buildXlsx([{ name: "Menús", rows: [HEADER, menuRow("Tropical", "M1", { menu: "https://menu.example.com/a" }), menuRow("Tropical", "M2", { menu: "https://menu.example.com/b" }), menuRow("Tropical", "M3", { menu: "no-es-url" })] }]);
+      // El cliente real valida la respuesta con el esquema completo (ImportResponseSchema).
+      const result = await uploadExcel(new File([file], "menus.xlsx", { type: XLSX_MIME }), {}, undefined, authed);
+      expect(result.totalRows).toBe(3);
+      expect(result.successful).toHaveLength(2);
+      expect(result.rejected).toHaveLength(1); // «no-es-url»
+    }, 30_000);
+
+    it("rechaza un archivo que no es un libro de Excel", async () => {
+      const response = await upload(new Uint8Array(2048).fill(7), "falso.xlsx");
+      expect(response.status).toBeGreaterThanOrEqual(400);
+      expect(response.status).toBeLessThan(500);
+    });
+  });
+
+  describe("qr-vista-previa (fontkit: texto a contornos)", () => {
+    it("dibuja una pieza como SVG con el texto convertido en contornos", async () => {
+      if (!fontsOk) return console.warn("Sin tipografía: se omite");
+      const project = createEmptyProject(NOW);
+      const response = await post("qr-vista-previa", {
+        templateId: project.templateId,
+        templateOverrides: project.templateOverrides,
+        layout: project.layout,
+        detail: "full",
+        tiles: [{ key: "k1", recordId: "p1", area: "Tropical", estacion: "Bar", mesa: "M1", subgrupo: "", concepto: "", menuUrl: "https://menu.example.com/p", qr: { source: "none" } }],
+      });
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { tiles: Record<string, { svg: string }> };
+      expect(body.tiles["k1"]?.svg).toContain("<svg");
+      expect(body.tiles["k1"]?.svg).not.toContain("<text"); // la tipografía comercial nunca sale del servidor
+    }, 30_000);
   });
 
   /** Genera de verdad los QR (por lotes de 50, el máximo del servidor) y devuelve el proyecto listo para exportar. */
