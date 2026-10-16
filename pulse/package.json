@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint src",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:db": "eval \"$(supabase status -o env | sed 's/^/export /')\" && vitest run -c vitest.db.config.ts",
+    "build:functions": "bun supabase/build-functions.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
