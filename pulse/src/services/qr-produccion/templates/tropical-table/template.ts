@@ -39,7 +39,7 @@ export const tropicalTable = {
       { type: "text", id: "label", text: "MESA – TABLE", ...text, sizePt: 11, trackingEm1000: -40, marginTopMm: 2.268 },
       { type: "text", id: "mesa", text: "{{mesa}}", ...text, sizePt: 22, trackingEm1000: -50, transform: "uppercase", marginTopMm: 1.695, fit: { mode: "shrink", minSizePt: 12 } },
       { type: "text", id: "ctaEs", text: "CONSULTA EL MENÚ Y ORDENA EN LÍNEA", ...text, sizePt: 13.2, trackingEm1000: -25, marginTopMm: 5.036, fit: { mode: "shrink", minSizePt: 10 } },
-      { type: "text", id: "ctaEn", text: "LOOK AT THE MENU AN ORDER ON LINE", ...text, sizePt: 13.2, trackingEm1000: -25, marginTopMm: 1.54, fit: { mode: "shrink", minSizePt: 10 } },
+      { type: "text", id: "ctaEn", text: "LOOK AT THE MENU AND ORDER ON LINE", ...text, sizePt: 13.2, trackingEm1000: -25, marginTopMm: 1.54, fit: { mode: "shrink", minSizePt: 10 } },
     ],
   },
   qr: { quietZoneModules: 0, foreground: PIECE_INK },

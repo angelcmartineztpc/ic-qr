@@ -5,7 +5,7 @@
   "description": "QR Production Generator: piezas de 70 × 70 mm con QR vectorial, SVG y PDF compatibles con Illustrator",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/copy-standalone-assets.mjs",
+    "build": "node scripts/embed-server-fonts.mjs && next build --webpack && node scripts/copy-standalone-assets.mjs",
     "start": "node .next/standalone/server.js",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
@@ -15,10 +15,10 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "fonts:setup": "tsx scripts/setup-fonts.mts",
-    "cf:build": "opennextjs-cloudflare build",
+    "cf:build": "bun run build && opennextjs-cloudflare build --skipNextBuild",
     "cf:fonts": "tsx scripts/upload-fonts-r2.mts",
     "cf:preview": "wrangler dev",
-    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:deploy": "bun run cf:build && opennextjs-cloudflare deploy",
     "hash-password": "tsx scripts/hash-password.mts",
     "check:sheetjs": "tsx scripts/check-sheetjs.mts",
     "render:sample": "tsx --conditions=react-server scripts/render-sample.mts"

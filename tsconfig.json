@@ -42,7 +42,9 @@
   "exclude": [
     "node_modules",
     ".next",
+    ".open-next",
     "coverage",
-    "playwright-report"
+    "playwright-report",
+    "pulse"
   ]
 }

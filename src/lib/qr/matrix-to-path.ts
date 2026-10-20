@@ -13,7 +13,12 @@ type Point = readonly [number, number];
  * mismo resultado. En vértices en silla (módulos en diagonal) se gira a la
  * derecha para mantener separados los módulos diagonales.
  */
+const contoursCache = new WeakMap<QrMatrix, Point[][]>();
+const pathCache = new WeakMap<QrMatrix, Map<string, string>>();
+
 export function matrixToContours(matrix: QrMatrix): Point[][] {
+  const cached = contoursCache.get(matrix);
+  if (cached) return cached;
   const edges = new Map<string, Point>(); // arista "x1,y1>x2,y2" → [x1,y1] (la clave identifica la dirección)
   const key = (a: Point, b: Point) => `${a[0]},${a[1]}>${b[0]},${b[1]}`;
   const add = (a: Point, b: Point) => {
@@ -67,6 +72,7 @@ export function matrixToContours(matrix: QrMatrix): Point[][] {
     }
     contours.push(simplify(loop));
   }
+  contoursCache.set(matrix, contours);
   return contours;
 }
 
@@ -95,7 +101,12 @@ const fmt = (n: number, decimals: number): string => {
 
 /** Path `d` con solo M, L y Z absolutos. */
 export function matrixToPath(matrix: QrMatrix, place: PathPlacement): string {
-  return matrixToContours(matrix)
+  const cacheKey = `${place.x}:${place.y}:${place.module}:${place.decimals}`;
+  let byPlace = pathCache.get(matrix);
+  const hit = byPlace?.get(cacheKey);
+  if (hit !== undefined) return hit;
+
+  const result = matrixToContours(matrix)
     .map((loop) => {
       const [first, ...rest] = loop;
       if (!first) return "";
@@ -103,4 +114,14 @@ export function matrixToPath(matrix: QrMatrix, place: PathPlacement): string {
       return `M${at(first)}${rest.map((p) => `L${at(p)}`).join("")}Z`;
     })
     .join("");
+
+  if (!byPlace) {
+    byPlace = new Map();
+    pathCache.set(matrix, byPlace);
+  } else if (byPlace.size >= 32) {
+    const oldest = byPlace.keys().next().value;
+    if (oldest !== undefined) byPlace.delete(oldest);
+  }
+  byPlace.set(cacheKey, result);
+  return result;
 }

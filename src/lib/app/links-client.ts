@@ -3,11 +3,18 @@ import { LinkInfoSchema, ShortenResponseSchema, type LinkInfo } from "@/schemas/
 
 import { ApiError, postJson } from "./api-client";
 
-/** Acortado en el servidor (`POST /api/links/shorten`). */
+const SHORTEN_HTTP_CHUNK = 25;
+
+/** Acortado en el servidor (`POST /api/links/shorten`), fraccionado en sub-lotes ligeros para Workers. */
 export const shortenFetcher: ShortenFetcher = async (urls, signal) => {
-  const response = ShortenResponseSchema.safeParse(await postJson<unknown>("/api/links/shorten", { urls }, signal));
-  if (!response.success) throw new ApiError(502, "BAD_RESPONSE", "El servidor respondió algo inesperado al acortar los links");
-  return response.data.results;
+  const allResults = [];
+  for (let i = 0; i < urls.length; i += SHORTEN_HTTP_CHUNK) {
+    const chunk = urls.slice(i, i + SHORTEN_HTTP_CHUNK);
+    const response = ShortenResponseSchema.safeParse(await postJson<unknown>("/api/links/shorten", { urls: chunk }, signal));
+    if (!response.success) throw new ApiError(502, "BAD_RESPONSE", "El servidor respondió algo inesperado al acortar los links");
+    allResults.push(...response.data.results);
+  }
+  return allResults;
 };
 
 async function readInfo(response: Response): Promise<LinkInfo> {

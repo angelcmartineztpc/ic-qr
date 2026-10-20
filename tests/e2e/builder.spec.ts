@@ -151,12 +151,12 @@ test.describe("builder de piezas (flujo manual de punta a punta)", () => {
     await page.getByRole("button", { name: "Más opciones del proyecto" }).click();
     await page.getByRole("menuitem", { name: "Nuevo proyecto" }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("Tienes cambios sin guardar.");
+    await expect(dialog).toContainText("¿Empezar un proyecto desde cero?");
     await dialog.getByRole("button", { name: "Cancelar" }).click();
     await expect(page.getByTestId("counter-all")).toHaveText("Total: 1");
     await page.getByRole("button", { name: "Más opciones del proyecto" }).click();
     await page.getByRole("menuitem", { name: "Nuevo proyecto" }).click();
-    await dialog.getByRole("button", { name: "Empezar sin guardar" }).click();
+    await dialog.getByRole("button", { name: "Sí, empezar de nuevo" }).click();
     await expect(page.getByRole("heading", { name: "Aún no hay piezas" })).toBeVisible();
   });
 

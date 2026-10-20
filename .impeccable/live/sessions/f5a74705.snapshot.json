@@ -1,0 +1,1879 @@
+{
+  "id": "f5a74705",
+  "phase": "generating",
+  "pageUrl": "/",
+  "sourceFile": "src/components/records/DashboardPanel.tsx",
+  "previewFile": null,
+  "previewMode": null,
+  "expectedVariants": 3,
+  "arrivedVariants": 0,
+  "visibleVariant": 0,
+  "paramValues": {},
+  "pendingEventSeq": null,
+  "pendingEvent": null,
+  "deliveryLease": null,
+  "checkpointRevision": 1264,
+  "browserCheckpointRevision": 1264,
+  "publicationCheckpointRevision": 0,
+  "activeOwner": "13dce521",
+  "sourceMarkers": {},
+  "fallbackMode": null,
+  "generationPhase": "generation_ready",
+  "generationCompletedAt": 1792503737762,
+  "generationTimings": {
+    "picked_up": {
+      "at": 1792503385053,
+      "durationMs": null
+    },
+    "scaffolding": {
+      "at": 1792503385054,
+      "durationMs": null
+    },
+    "source_ready": {
+      "at": 1792503385147,
+      "durationMs": 93.27179199992679
+    },
+    "generation_ready": {
+      "at": 1792503385148,
+      "durationMs": null
+    }
+  },
+  "variantPlan": null,
+  "generationCanceled": false,
+  "generationCanceledAt": null,
+  "cancelReason": null,
+  "annotationArtifacts": [],
+  "mountedVariants": [],
+  "mountFailures": [],
+  "renderState": "pending",
+  "diagnostics": [
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 1,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 2,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 3,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 4,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 5,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 6,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 7,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 8,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 9,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 10,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 11,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 12,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 13,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 14,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 15,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 16,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 17,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 18,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 19,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 20,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 21,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 22,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 23,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 24,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 25,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 26,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 27,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 28,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 29,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 30,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 31,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 32,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 33,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 34,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 35,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 36,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 37,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 38,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 39,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 40,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 41,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 42,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 43,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 44,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 45,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 46,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 47,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 48,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 49,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 50,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 51,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 52,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 53,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 54,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 55,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 56,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 57,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 58,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 59,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 60,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 61,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 62,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 63,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 64,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 65,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 66,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 67,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 68,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 69,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 70,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 71,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 72,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 73,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 74,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 75,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 76,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 77,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 78,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 79,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 80,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 81,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 82,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 83,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 84,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 85,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 86,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 87,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 88,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 89,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 90,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 91,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 92,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 93,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 94,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 95,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 96,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 97,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 98,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 1,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 99,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 100,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 101,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 102,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 103,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 103,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 104,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 105,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 106,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 106,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 107,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 108,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 109,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 109,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 110,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 111,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 112,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 112,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 113,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 114,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 115,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 115,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 116,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 117,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 118,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 118,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 119,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 120,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 120,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 121,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 122,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 122,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 123,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 123,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 124,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 125,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 126,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 127,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 128,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 129,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 130,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 131,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 132,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 133,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 134,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 135,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 136,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 137,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 138,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 139,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 140,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 141,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 142,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 143,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 144,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 145,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 146,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 147,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 148,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 149,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 150,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 151,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 152,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 153,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 154,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 155,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 156,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 157,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 158,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 159,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 160,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 161,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 162,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 163,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 164,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 165,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 166,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 167,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 168,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 169,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 170,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 171,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 172,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 173,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 174,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 175,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 176,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 177,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 178,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 179,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 180,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 181,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 182,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 183,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 184,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 185,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 186,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 187,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 188,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 189,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 190,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 191,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 192,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 193,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 194,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 195,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 196,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 197,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 198,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 199,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 200,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 201,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 202,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 203,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 204,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 205,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 206,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 207,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 208,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 209,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 210,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 211,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 212,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 213,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 214,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 215,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 216,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 217,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 218,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 219,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 220,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 221,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 222,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 223,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 224,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 225,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 226,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 227,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 228,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 229,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 230,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 231,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 232,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 233,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 234,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 235,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 236,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 237,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 238,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 239,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 240,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 241,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 242,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 243,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 244,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 245,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 246,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 247,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 248,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 249,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 250,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 251,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 252,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 253,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 254,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 255,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 256,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 257,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 258,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 259,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 260,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 261,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 262,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 263,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 264,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 265,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 266,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 267,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 268,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 269,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 270,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 271,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 272,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 273,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 274,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 275,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 276,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 277,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 278,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 279,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 280,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 281,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 282,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 283,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 284,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 285,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 286,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 287,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 288,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 289,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 290,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 291,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 292,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 293,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 294,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 295,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 296,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 297,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 298,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 299,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 300,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 301,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 302,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 303,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 304,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 305,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 306,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 307,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 308,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 309,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 310,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 311,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 312,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 313,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 314,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 315,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 316,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 317,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 318,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 319,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 320,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 321,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 322,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 323,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 324,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 325,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 326,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 327,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 328,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 329,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 330,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 331,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 332,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 333,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 334,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 335,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 336,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 337,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 338,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 339,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 340,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 341,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 342,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 343,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 344,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 345,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 346,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 347,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 348,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 349,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 350,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 351,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 352,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 353,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 354,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 355,
+      "revisionDomain": "browser"
+    }
+  ],
+  "updatedAt": "2026-10-20T14:02:25.060Z",
+  "__journalBytes": 733852,
+  "__nextSeq": 1601
+}

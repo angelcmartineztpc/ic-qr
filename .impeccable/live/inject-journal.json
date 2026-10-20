@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "appRoot": "/Users/administrador/ic-qr-integracion",
+  "framework": "nextjs",
+  "port": 8400,
+  "pid": 11027,
+  "recordedAt": "2026-10-20T13:14:06.893Z",
+  "artifacts": [
+    {
+      "kind": "patched",
+      "path": "src/app/layout.tsx",
+      "patch": "live-tag",
+      "markers": [
+        "impeccable-live-start",
+        "data-impeccable-csp-original"
+      ]
+    }
+  ]
+}

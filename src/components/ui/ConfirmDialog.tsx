@@ -1,14 +1,14 @@
 "use client";
 
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { createContext, useCallback, useContext, useId, useRef, useState, type ReactNode } from "react";
+
+import { ModalLayout } from "./ModalLayout";
 
 export interface ConfirmOptions {
   title: string;
@@ -61,22 +61,55 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={{ confirm, confirmDetailed }}>
       {children}
-      <Dialog open={options !== null} onClose={() => settle(false)} aria-labelledby={titleId} aria-describedby={options?.message ? descriptionId : undefined}>
-        <DialogTitle id={titleId}>{options?.title}</DialogTitle>
+      <Dialog
+        open={options !== null}
+        onClose={() => settle(false)}
+        maxWidth="xs"
+        fullWidth
+        aria-labelledby={titleId}
+        aria-describedby={options?.message ? descriptionId : undefined}
+        slotProps={{
+          paper: {
+            className: "!rounded-t-2xl !rounded-b-xl !border !border-divider !bg-surface !bg-none",
+          },
+        }}
+      >
+        <ModalLayout.Header
+          id={titleId}
+          icon={<WarningAmberIcon fontSize="small" />}
+          tone={options?.destructive ? "error" : "primary"}
+          onClose={() => settle(false)}
+        >
+          {options?.title}
+        </ModalLayout.Header>
         {options?.message || options?.checkboxLabel ? (
-          <DialogContent>
-            {options.message ? <DialogContentText id={descriptionId}>{options.message}</DialogContentText> : null}
-            {options.checkboxLabel ? <FormControlLabel control={<Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} />} label={options.checkboxLabel} /> : null}
-          </DialogContent>
+          <ModalLayout.Body dividers={false} className="flex flex-col gap-3">
+            {options.message ? (
+              <DialogContentText id={descriptionId} className="!m-0 !text-sm !text-foreground/80">
+                {options.message}
+              </DialogContentText>
+            ) : null}
+            {options.checkboxLabel ? (
+              <ModalLayout.Callout className="!px-3 !py-1.5">
+                <FormControlLabel
+                  control={<Checkbox size="small" checked={checked} onChange={(e) => setChecked(e.target.checked)} />}
+                  label={<span className="text-sm">{options.checkboxLabel}</span>}
+                />
+              </ModalLayout.Callout>
+            ) : null}
+          </ModalLayout.Body>
         ) : null}
-        <DialogActions>
-          <Button onClick={() => settle(false)} autoFocus>
-            {options?.cancelLabel ?? "Cancelar"}
-          </Button>
-          <Button onClick={() => settle(true)} variant="contained" color={options?.destructive ? "error" : "primary"}>
+        <ModalLayout.Footer
+          leading={
+            <Button onClick={() => settle(false)} color="inherit" variant="outlined" className="!rounded-full !border-divider !px-4" autoFocus>
+              {options?.cancelLabel ?? "Cancelar"}
+            </Button>
+          }
+        >
+          <Button onClick={() => settle(true)} variant="contained" color={options?.destructive ? "error" : "primary"} className="!rounded-full !px-5">
             {options?.confirmLabel ?? "Aceptar"}
           </Button>
-        </DialogActions>
+        </ModalLayout.Footer>
       </Dialog>
     </ConfirmContext.Provider>
   );
@@ -98,6 +131,6 @@ export function useConfirmDetailed(): ConfirmDetailed {
 export const UNSAVED_CHANGES_CONFIRM: ConfirmOptions = {
   title: "Tienes cambios sin guardar.",
   confirmLabel: "Salir sin guardar",
-  cancelLabel: "Cancelar",
+  cancelLabel: "Seguir aquí",
   destructive: true,
 };

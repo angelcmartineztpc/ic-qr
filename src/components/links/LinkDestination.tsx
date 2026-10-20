@@ -4,9 +4,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import { useEffect, useId, useState, type FormEvent } from "react";
@@ -14,6 +11,7 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { getLinkInfo, updateLinkDestination } from "@/lib/app/links-client";
 import type { LinkInfo } from "@/schemas/links";
 
+import { ModalLayout } from "@/components/ui/ModalLayout";
 import { useNotify } from "@/components/ui/NotificationsProvider";
 
 /**
@@ -51,18 +49,26 @@ export function LinkDestination({ code, readOnly }: { code: string; readOnly: bo
               </Link>
             </p>
           ) : error ? (
-            <p className="m-0 text-sm text-error" role="alert">{error}</p>
+            <p className="m-0 text-sm text-error" role="alert">
+              {error}
+            </p>
           ) : (
-            <p className="m-0 text-sm text-muted" role="status">Consultando…</p>
+            <p className="m-0 text-sm text-muted" role="status">
+              Consultando…
+            </p>
           )}
         </div>
         {info && !readOnly ? (
-          <Button size="small" variant="outlined" startIcon={<EditIcon />} onClick={() => setEditing(true)}>
+          <Button size="small" variant="outlined" startIcon={<EditIcon fontSize="small" />} onClick={() => setEditing(true)} className="!rounded-full">
             Cambiar destino
           </Button>
         ) : null}
       </div>
-      {info && info.history.length > 0 ? <p className="m-0 text-xs text-muted">Se ha cambiado {info.history.length === 1 ? "1 vez" : `${info.history.length} veces`}; el QR sigue siendo el mismo.</p> : null}
+      {info && info.history.length > 0 ? (
+        <p className="m-0 text-xs text-muted">
+          Se ha cambiado {info.history.length === 1 ? "1 vez" : `${info.history.length} veces`}; el QR sigue siendo el mismo.
+        </p>
+      ) : null}
       {editing && info ? <DestinationDialog info={info} onClose={() => setEditing(false)} onSaved={setInfo} /> : null}
     </div>
   );
@@ -95,18 +101,45 @@ function DestinationDialog({ info, onClose, onSaved }: { info: LinkInfo; onClose
   return (
     <Dialog open onClose={busy ? undefined : onClose} fullWidth maxWidth="sm" aria-labelledby={`${id}-title`}>
       <form onSubmit={submit} noValidate>
-        <DialogTitle id={`${id}-title`}>Cambiar el destino</DialogTitle>
-        <DialogContent className="flex flex-col gap-3">
-          <p className="m-0 text-sm text-muted">
-            El QR de esta pieza codifica <strong>{info.shortUrl}</strong> y no cambia. Al guardar, ese link llevará a la dirección nueva, incluso en las placas ya impresas.
-          </p>
-          <TextField autoFocus label="Destino nuevo" type="url" value={value} onChange={(e) => setValue(e.target.value)} disabled={busy} slotProps={{ htmlInput: { inputMode: "url", autoComplete: "off", spellCheck: false } }} />
-          {error ? <Alert severity="error" role="alert">{error}</Alert> : null}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} disabled={busy}>Cancelar</Button>
-          <Button type="submit" variant="contained" disabled={busy || unchanged}>Guardar destino</Button>
-        </DialogActions>
+        <ModalLayout.Header id={`${id}-title`} onClose={onClose} closeDisabled={busy}>
+          Cambiar el destino
+        </ModalLayout.Header>
+        <ModalLayout.Body>
+          <ModalLayout.Callout className="flex flex-col gap-2 text-sm">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <span className="text-xs font-semibold text-muted">Link impreso en el QR (permanente)</span>
+              <strong className="break-all text-xs text-primary">{info.shortUrl}</strong>
+            </div>
+            <p className="m-0 text-xs text-muted">
+              El código QR de la placa no cambia. Al guardar, cualquier escaneo redirigirá de inmediato a la dirección nueva.
+            </p>
+          </ModalLayout.Callout>
+          <TextField
+            autoFocus
+            label="Destino nuevo"
+            type="url"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            disabled={busy}
+            slotProps={{ htmlInput: { inputMode: "url", autoComplete: "off", spellCheck: false } }}
+          />
+          {error ? (
+            <Alert severity="error" role="alert">
+              {error}
+            </Alert>
+          ) : null}
+        </ModalLayout.Body>
+        <ModalLayout.Footer
+          leading={
+            <Button onClick={onClose} disabled={busy} color="inherit">
+              Cancelar
+            </Button>
+          }
+        >
+          <Button type="submit" variant="contained" disabled={busy || unchanged}>
+            Guardar destino
+          </Button>
+        </ModalLayout.Footer>
       </form>
     </Dialog>
   );

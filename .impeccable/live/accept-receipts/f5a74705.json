@@ -1,0 +1,11 @@
+{
+  "id": "f5a74705",
+  "operation": "discard",
+  "variantId": null,
+  "result": {
+    "handled": true,
+    "file": "src/components/records/DashboardPanel.tsx",
+    "carbonize": false
+  },
+  "completedAt": "2026-10-20T14:02:25.733Z"
+}

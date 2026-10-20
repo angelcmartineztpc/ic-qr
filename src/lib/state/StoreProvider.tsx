@@ -145,8 +145,10 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
       });
       switch (outcome.kind) {
         case "loaded": {
-          rt.project.setState({ project: outcome.project });
           const count = orderedRecords(outcome.project).length;
+          if (count > 0 || outcome.project.quarantine.length > 0) {
+            rt.project.setState({ project: outcome.project });
+          }
           patchSession(rt.session, { hydrated: true, notices: { restored: count > 0 ? { records: count, modifiedAt: outcome.project.lastLocalSaveAt ?? now } : null, quarantined: outcome.project.quarantine.length, recoveredBackup: null } });
           break;
         }

@@ -41,7 +41,7 @@ describe.skipIf(!HAS_PIECE_FONT)("Address Sans Pro Cd real (requiere bun run fon
       { text: "MESA – TABLE", baseline: 14.676, sizePt: 11 },
       { text: "M1", baseline: 21.804, sizePt: 22 },
       { text: "CONSULTA EL MENÚ Y ORDENA EN LÍNEA", baseline: 30.1, sizePt: 13.2 },
-      { text: "LOOK AT THE MENU AN ORDER ON LINE", baseline: 34.9, sizePt: 13.2 },
+      { text: "LOOK AT THE MENU AND ORDER ON LINE", baseline: 34.9, sizePt: 13.2 },
     ];
     expect(texts.map((t) => t.text)).toEqual(reference.map((r) => r.text));
     texts.forEach((t, i) => {

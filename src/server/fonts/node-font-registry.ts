@@ -31,6 +31,9 @@ function toCommands(commands: readonly FontkitCommand[]): PathCommand[] {
 }
 
 class FontkitLoadedFont implements LoadedFont {
+  private readonly shapeCache = new Map<string, ShapedGlyph[]>();
+  private readonly glyphOutlineCache = new Map<number, PathCommand[]>();
+
   constructor(
     private readonly font: fontkit.Font,
     readonly filePath: string,
@@ -55,16 +58,30 @@ class FontkitLoadedFont implements LoadedFont {
   }
 
   shape(text: string): ShapedGlyph[] {
+    const cached = this.shapeCache.get(text);
+    if (cached) return cached;
     const run = this.font.layout(text);
-    return run.glyphs.map((glyph, index) => {
+    const shaped = run.glyphs.map((glyph, index) => {
       const position = run.positions[index];
       return {
         advance: position?.xAdvance ?? glyph.advanceWidth,
         xOffset: position?.xOffset ?? 0,
         yOffset: position?.yOffset ?? 0,
-        outline: () => toCommands(glyph.path.commands as FontkitCommand[]),
+        outline: () => {
+          const hit = this.glyphOutlineCache.get(glyph.id);
+          if (hit) return hit;
+          const cmds = toCommands(glyph.path.commands as FontkitCommand[]);
+          this.glyphOutlineCache.set(glyph.id, cmds);
+          return cmds;
+        },
       };
     });
+    if (this.shapeCache.size >= 2000) {
+      const oldest = this.shapeCache.keys().next().value;
+      if (oldest !== undefined) this.shapeCache.delete(oldest);
+    }
+    this.shapeCache.set(text, shaped);
+    return shaped;
   }
 }
 

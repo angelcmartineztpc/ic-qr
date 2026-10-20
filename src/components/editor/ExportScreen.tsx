@@ -17,6 +17,7 @@ import { getTemplate } from "@/templates";
 
 import { PersistenceBanners } from "@/components/records/PersistenceBanners";
 import { useBuilderActions } from "@/components/records/useBuilderActions";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Panel } from "@/components/ui/Panel";
 import { StepFooter } from "@/components/ui/StepFooter";
 
@@ -50,13 +51,17 @@ export function ExportScreen() {
   if (!template) return <Alert severity="error">La plantilla «{templateId}» ya no existe. Elígela de nuevo en el paso Diseño.</Alert>;
   if (records.length === 0) {
     return (
-      <Panel>
-        <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <h2 className="m-0 text-lg font-semibold">Aún no hay piezas que exportar</h2>
-          <p className="m-0 max-w-md text-muted">Crea o importa piezas en el primer paso.</p>
-          <Button component={Link} href="/editor" variant="contained">Ir a las piezas</Button>
-        </div>
-      </Panel>
+      <EmptyState.Root aria-label="Sin piezas">
+        <EmptyState.Header>
+          <EmptyState.Title>Aún no hay piezas que exportar</EmptyState.Title>
+          <EmptyState.Description>Crea o importa piezas en el primer paso antes de preparar los pliegos de impresión.</EmptyState.Description>
+        </EmptyState.Header>
+        <EmptyState.PrimaryAction>
+          <Button component={Link} href="/editor" variant="contained">
+            Ir a las piezas
+          </Button>
+        </EmptyState.PrimaryAction>
+      </EmptyState.Root>
     );
   }
 
@@ -81,41 +86,76 @@ export function ExportScreen() {
         </Alert>
       ) : null}
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
-        <div className="flex flex-col gap-6">
-          <Panel title="Qué se exporta" description={`Plantilla «${template.name}», ${template.tile.width} × ${template.tile.height} mm`}>
-            <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm" data-testid="export-summary">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,26.5rem)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-5">
+          <Panel title="1. Resumen del lote y archivo" description={`Plantilla «${template.name}» · Mesa de ${template.tile.width} × ${template.tile.height} mm`}>
+            <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 rounded-lg border border-divider bg-surface-subtle p-3 text-sm" data-testid="export-summary">
               <dt className="text-muted">Piezas</dt>
-              <dd className="m-0 font-medium">{plural(included.length, "pieza", "piezas")}</dd>
+              <dd className="m-0 font-medium tabular-nums">{plural(included.length, "pieza", "piezas")}</dd>
               <dt className="text-muted">QR por generar</dt>
               <dd className="m-0 font-medium">{needQr === 0 ? "Todos listos" : `${needQr} (se generan al descargar)`}</dd>
               {blocked > 0 ? (
                 <>
                   <dt className="text-muted">Con errores</dt>
-                  <dd className="m-0 font-medium text-warning">{blocked} · <Link href="/editor">revisar</Link></dd>
+                  <dd className="m-0 font-medium text-warning">
+                    {blocked} · <Link href="/editor">revisar</Link>
+                  </dd>
                 </>
               ) : null}
             </dl>
             {excluded.length > 0 ? (
-              <Alert severity="info" data-testid="excluded-note" action={<Button color="inherit" size="small" onClick={() => exporter.includeAll()} disabled={generating}>Volver a incluirlas</Button>}>
+              <Alert
+                severity="info"
+                data-testid="excluded-note"
+                action={
+                  <Button color="inherit" size="small" onClick={() => exporter.includeAll()} disabled={generating}>
+                    Volver a incluirlas
+                  </Button>
+                }
+              >
                 {plural(excluded.length, "pieza excluida", "piezas excluidas")} de esta exportación.
               </Alert>
             ) : null}
+            <div className="border-t border-divider pt-3">
+              <FileNameInput value={exportOptions.fileName} disabled={disabled} onChange={(name) => editor.setFileName(name)} />
+            </div>
           </Panel>
 
-          <Panel title="Archivo">
-            <FileNameInput value={exportOptions.fileName} disabled={disabled} onChange={(name) => editor.setFileName(name)} />
-          </Panel>
-
-          <Panel title="Hoja y formato">
-            <PdfOptionsPanel options={exportOptions.pdf} tile={template.tile} count={included.length} disabled={disabled} onChange={(patch) => editor.setPdfOptions(patch)} formats={exportOptions.formats} zipNaming={exportOptions.zipNaming} onFormats={(formats, naming) => editor.setFormats(formats, naming)} pdfBySection={exportOptions.pdfBySection} onPdfBySection={(v) => editor.setPdfBySection(v)} />
+          <Panel title="2. Hoja e imposición del pliego">
+            <PdfOptionsPanel
+              options={exportOptions.pdf}
+              tile={template.tile}
+              count={included.length}
+              disabled={disabled}
+              onChange={(patch) => editor.setPdfOptions(patch)}
+              formats={exportOptions.formats}
+              zipNaming={exportOptions.zipNaming}
+              onFormats={(formats, naming) => editor.setFormats(formats, naming)}
+              pdfBySection={exportOptions.pdfBySection}
+              onPdfBySection={(v) => editor.setPdfBySection(v)}
+            />
           </Panel>
         </div>
 
-        <Panel title="Vista previa del PDF" description="Así quedan las hojas: las piezas reales, en el lugar donde irán en el archivo." className="self-start lg:sticky lg:top-40" label="Hojas del PDF">
+        <Panel
+          title="Vista previa del pliego PDF"
+          description="Representación exacta de las hojas de producción y la imposición de cada placa vectorial."
+          className="self-start rounded-t-2xl rounded-b-xl lg:sticky lg:top-6"
+          label="Hojas del PDF"
+        >
           <PdfViewer tile={template.tile} options={exportOptions.pdf} records={included} />
           {generation.phase === "done" && generation.result ? (
-            <Alert severity={generation.result.warnings > 0 ? "warning" : "success"} data-testid="last-export" action={generation.result.zip ? <Button color="inherit" size="small" onClick={() => exporter.downloadZip()}>Descargar ZIP</Button> : undefined}>
+            <Alert
+              severity={generation.result.warnings > 0 ? "warning" : "success"}
+              data-testid="last-export"
+              action={
+                generation.result.zip ? (
+                  <Button color="inherit" size="small" onClick={() => exporter.downloadZip()}>
+                    Descargar ZIP
+                  </Button>
+                ) : undefined
+              }
+            >
               Última exportación: {plural(generation.result.pieces, "pieza", "piezas")} en {plural(generation.result.pages, "página", "páginas")}
               {generation.result.warnings > 0 ? `, con ${plural(generation.result.warnings, "aviso", "avisos")} de composición` : ""}.
             </Alert>
@@ -128,7 +168,15 @@ export function ExportScreen() {
         primary={
           <div className="flex flex-wrap items-center justify-end gap-3">
             <GenerationStatus />
-            <Button variant="contained" size="large" startIcon={<DownloadIcon />} disabled={disabled || generating || included.length === 0 || styleBlockers.length > 0} onClick={() => void exporter.start()} data-testid="download-pdf">
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<DownloadIcon />}
+              disabled={disabled || generating || included.length === 0 || styleBlockers.length > 0}
+              onClick={() => void exporter.start()}
+              data-testid="download-pdf"
+              className="!rounded-full !px-5"
+            >
               {exportOptions.formats.includes("pdf") ? "Descargar PDF" : "Descargar ZIP de SVG"}
             </Button>
           </div>

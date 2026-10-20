@@ -12,7 +12,7 @@ export default function ImportPage() {
       <StepHeader
         step={0}
         title="Importa desde Excel o CSV"
-        description="Sube el archivo, revisa errores y duplicados y confirma. Si una fila trae Link del QR se usa ese QR; si no, se genera uno nuevo."
+        description="Carga tu listado de mesas o ubicaciones, previsualiza el lote y confirma. Si una fila incluye un QR existente se conserva; para el resto se crean códigos nuevos."
         actions={
           <NavButton href="/editor" variant="text">
             ← Volver a las piezas

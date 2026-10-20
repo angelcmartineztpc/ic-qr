@@ -7,6 +7,7 @@ import { saveProject } from "@/lib/state/persistence";
 
 import { draft, generatedSource, NOW } from "../../../tests/helpers/records";
 import { heldLocks, memoryKv, renderApp } from "../../../tests/helpers/render-app";
+import { DashboardPanel } from "./DashboardPanel";
 import { EditorScreen } from "./EditorScreen";
 
 const MENU = "https://menu.example.com/tropical";
@@ -35,12 +36,45 @@ function seeded(count: number) {
   return markSaved(project, NOW);
 }
 
-describe("builder — estado vacío", () => {
-  it("muestra cómo empezar: agregar o importar", async () => {
+describe("builder — estado vacío (First-Use Empty State M3)", () => {
+  it("muestra cómo empezar: agregar o importar, sin duplicar botones ni fingir un proyecto guardado", async () => {
     renderApp(<EditorScreen />);
     expect(await screen.findByRole("heading", { name: "Aún no hay piezas" })).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: /\+ Agregar nuevo/ }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("link", { name: /Importar Excel/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /\+ Agregar nuevo/ })).toHaveLength(1);
+    expect(screen.getAllByRole("link", { name: /Importar Excel/ })).toHaveLength(1);
+    expect(screen.queryByText("Guardado en este navegador")).toBeNull();
+  });
+
+  it("en Inicio sin proyecto muestra el First-Use Empty State sin proyecto precargado y guía a crear en 1 clic", async () => {
+    const user = userEvent.setup();
+    renderApp(
+      <>
+        <DashboardPanel />
+        <EditorScreen />
+      </>,
+    );
+    expect(await screen.findByTestId("first-use-empty-state")).toBeTruthy();
+    expect(screen.queryByTestId("continue-card")).toBeNull();
+    // 1 clic en el CTA primario del First-Use Empty State abre directamente el modal de creación
+    await user.click(within(screen.getByTestId("first-use-empty-state")).getByRole("link", { name: "+ Agregar nuevo" }));
+    expect(await screen.findByRole("dialog", { name: "Agregar nueva pieza" })).toBeTruthy();
+  });
+
+  it("en Inicio con proyecto activo permite «+ Nuevo proyecto» con modal de confirmación «¿Empezar un proyecto desde cero?»", async () => {
+    const user = userEvent.setup();
+    renderApp(<DashboardPanel />, { initialProject: seeded(2) });
+    const continueCard = await screen.findByTestId("continue-card");
+    await user.click(within(continueCard).getByRole("button", { name: "+ Nuevo proyecto" }));
+    const dialog = await screen.findByRole("dialog", { name: "¿Empezar un proyecto desde cero?" });
+    expect(within(dialog).getByText(/se borrará de este navegador/i)).toBeTruthy();
+    await user.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.getByTestId("continue-card")).toBeTruthy();
+
+    await user.click(within(continueCard).getByRole("button", { name: "+ Nuevo proyecto" }));
+    const dialog2 = await screen.findByRole("dialog", { name: "¿Empezar un proyecto desde cero?" });
+    await user.click(within(dialog2).getByRole("button", { name: "Sí, empezar de nuevo" }));
+    expect(await screen.findByTestId("first-use-empty-state")).toBeTruthy();
   });
 });
 

@@ -429,9 +429,9 @@ export function createBuilderActions(deps: ActionDeps) {
       }
       return actions.openProjectFile(text);
     },
-    async newProject(): Promise<boolean> {
+    async newProject(options?: { confirmed?: boolean }): Promise<boolean> {
       const count = orderedRecords(project()).length;
-      if (!(await unsavedGuard(`Se perderán ${plural(count, "pieza", "piezas")}.`, "Empezar sin guardar"))) return false;
+      if (!options?.confirmed && !(await unsavedGuard(`Se perderán ${plural(count, "pieza", "piezas")}.`, "Empezar sin guardar"))) return false;
       runtime.inflight.abortAll();
       runtime.project.setState({ project: createEmptyProject(now()) });
       runtime.tiles.clear();

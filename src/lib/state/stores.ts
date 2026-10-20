@@ -91,6 +91,8 @@ export interface SessionState {
   exportReview: ExportReview | null;
   /** Avisos persistentes de la hidratación. */
   notices: { restored: { records: number; modifiedAt: string } | null; quarantined: number; recoveredBackup: string | null };
+  /** Si se navegó desde el First-Use Empty State de Inicio pulsando «+ Agregar nuevo», abre el formulario al entrar a /editor en 1 clic. */
+  autoOpenNewPiece?: boolean;
 }
 
 export const initialSession = (): SessionState => ({
@@ -112,6 +114,7 @@ export const initialSession = (): SessionState => ({
   generation: initialGeneration(),
   exportReview: null,
   notices: { restored: null, quarantined: 0, recoveredBackup: null },
+  autoOpenNewPiece: false,
 });
 
 export type ProjectStore = StoreApi<ProjectStoreState>;

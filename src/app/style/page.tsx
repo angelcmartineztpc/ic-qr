@@ -9,7 +9,11 @@ export const metadata: Metadata = { title: "Estilo del QR" };
 export default function QrStylePage() {
   return (
     <AppShell step={1}>
-      <StepHeader step={1} title="Dale estilo al QR" description="Elige la forma, los colores y, si quieres, un logo. Cambia solo cómo se dibuja: el contenido del QR no cambia y las piezas con su propio QR lo conservan." />
+      <StepHeader
+        step={1}
+        title="Dale estilo al QR"
+        description="Personaliza la geometría, el color de tinta y el isotipo central del QR sin alterar su enlace de destino. Las placas con arte QR propio mantienen su archivo original."
+      />
       <QrStyleScreen />
     </AppShell>
   );

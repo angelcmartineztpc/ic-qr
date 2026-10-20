@@ -34,19 +34,19 @@ export function DuplicateList({ model, strategy, decisions, existing, onDecision
     }),
   ];
 
-  if (items.length === 0) return <p className="m-0 py-4 text-sm text-muted">No se encontraron duplicados.</p>;
+  if (items.length === 0) return <p className="m-0 rounded-lg border border-divider bg-background/40 px-4 py-5 text-sm text-muted">No se encontraron duplicados.</p>;
 
   return (
     <ul className="m-0 flex max-h-96 list-none flex-col gap-3 overflow-auto p-0" aria-label="Grupos de duplicados">
       {items.map((item) => (
-        <li key={item.key} className="rounded border border-divider p-3 text-sm">
-          <strong>{item.title}</strong>
-          <ul className="m-0 mt-2 flex list-none flex-col gap-1 p-0">
+        <li key={item.key} className="rounded-lg border border-divider bg-background/60 p-3.5 text-sm">
+          <strong className="font-semibold text-foreground">{item.title}</strong>
+          <ul className="m-0 mt-2 flex list-none flex-col gap-1.5 border-t border-divider/60 pt-2 p-0">
             {item.copies.map((row) => {
               const decision = decisions[row] ?? "discard";
               return (
                 <li key={row} className="flex flex-wrap items-center justify-between gap-2">
-                  <span>Fila {row}: igual {item.against}</span>
+                  <span className="text-muted">Fila {row}: igual {item.against}</span>
                   {strategy === "review" ? (
                     <FormControlLabel
                       control={<Switch checked={decision === "keep"} onChange={(e) => onDecision(row, e.target.checked ? "keep" : "discard")} slotProps={{ input: { "aria-label": `Conservar la fila ${row}` } }} />}

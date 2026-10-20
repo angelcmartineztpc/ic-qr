@@ -153,7 +153,7 @@ El servidor **no confía en el cliente**: recalcula la exportabilidad y la ident
 | Tipografía de las piezas | **Address Sans Pro Cd Semibold** (condensada; no se admite la «SemiBold» de ancho normal) |
 | Tinta | **#000000** (negro puro, RGB) |
 | Marco | 0.5 pt |
-| Textos fijos | «CONSULTA EL MENÚ Y ORDENA EN LÍNEA» / «LOOK AT THE MENU AN ORDER ON LINE» |
+| Textos fijos | «CONSULTA EL MENÚ Y ORDENA EN LÍNEA» / «LOOK AT THE MENU AND ORDER ON LINE» |
 | QR | 33 módulos de ≈ 0.75 mm de referencia, corrección de errores **H**, sin zona de silencio en la plantilla de referencia |
 
 ### 7.3 Tipografías y licencias

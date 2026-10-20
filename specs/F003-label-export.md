@@ -16,7 +16,7 @@ Producir etiquetas para grabado láser (una por spot) y exportarlas en lote como
 1. Nombre de estación (grande, bold) — "TROPICAL"
 2. Tipo (pequeño) — "MESA – TABLE" | "CAMASTRO – SUNBED"
 3. Número (muy grande, bold) — "M1"
-4. Texto bilingüe 2 líneas (bold, mayúsculas) — "CONSULTA EL MENÚ Y ORDENA EN LÍNEA" / "LOOK AT THE MENU AN ORDER ON LINE"
+4. Texto bilingüe 2 líneas (bold, mayúsculas) — "CONSULTA EL MENÚ Y ORDENA EN LÍNEA" / "LOOK AT THE MENU AND ORDER ON LINE"
 5. QR centrado, zona de silencio
 
 ## lib/label.ts

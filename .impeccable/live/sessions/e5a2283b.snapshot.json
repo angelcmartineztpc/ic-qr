@@ -1,0 +1,71 @@
+{
+  "id": "e5a2283b",
+  "phase": "discarded",
+  "pageUrl": "/",
+  "sourceFile": null,
+  "previewFile": null,
+  "previewMode": null,
+  "expectedVariants": 3,
+  "arrivedVariants": 3,
+  "visibleVariant": 1,
+  "paramValues": {},
+  "pendingEventSeq": null,
+  "pendingEvent": null,
+  "deliveryLease": null,
+  "checkpointRevision": 37,
+  "browserCheckpointRevision": 37,
+  "publicationCheckpointRevision": 0,
+  "activeOwner": "60036300",
+  "sourceMarkers": {},
+  "fallbackMode": null,
+  "generationPhase": "all_variants_ready",
+  "generationCompletedAt": null,
+  "generationTimings": {
+    "picked_up": {
+      "at": 1792503305556,
+      "durationMs": null
+    },
+    "scaffolding": {
+      "at": 1792503305556,
+      "durationMs": null
+    },
+    "source_ready": {
+      "at": 1792503311705,
+      "durationMs": 6148.50950000016
+    },
+    "generation_ready": {
+      "at": 1792503311705,
+      "durationMs": null
+    },
+    "first_reviewable": {
+      "at": 1792503341984,
+      "durationMs": null
+    },
+    "second_reviewable": {
+      "at": 1792503341984,
+      "durationMs": null
+    },
+    "all_variants_ready": {
+      "at": 1792503341984,
+      "durationMs": null
+    }
+  },
+  "variantPlan": null,
+  "generationCanceled": true,
+  "generationCanceledAt": 1792503357328,
+  "cancelReason": "discard",
+  "annotationArtifacts": [],
+  "mountedVariants": [],
+  "mountFailures": [],
+  "renderState": null,
+  "diagnostics": [
+    {
+      "error": "late_generation_event_ignored",
+      "type": "agent_done",
+      "phase": "discard_requested"
+    }
+  ],
+  "updatedAt": "2026-10-20T13:36:15.209Z",
+  "__journalBytes": 35345,
+  "__nextSeq": 20
+}

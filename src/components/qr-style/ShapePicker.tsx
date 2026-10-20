@@ -23,7 +23,7 @@ export function ShapePicker<T extends string>({ label, value, options, disabled,
             aria-label={option.label}
             disabled={disabled}
             onClick={() => onChange(option.value)}
-            className={`!flex !min-h-[5.5rem] !min-w-0 !flex-col !items-center !justify-start !gap-1.5 !rounded-lg !border !px-1.5 !py-2 !text-center !text-xs !leading-tight ${selected ? "!border-primary !bg-primary/10 !font-semibold !text-primary" : "!border-divider hover:!bg-black/5"}`}
+            className={`!flex !min-h-[5.5rem] !min-w-0 !flex-col !items-center !justify-start !gap-1.5 !rounded-xl !border !px-1.5 !py-2 !text-center !text-xs !leading-tight transition-colors ${selected ? "!border-primary !bg-primary/10 !font-semibold !text-primary" : "!border-divider hover:!bg-surface-subtle"}`}
           >
             <span aria-hidden className="flex h-9 w-9 items-center justify-center">{option.icon}</span>
             <span className="w-full text-balance break-words">{option.label}</span>

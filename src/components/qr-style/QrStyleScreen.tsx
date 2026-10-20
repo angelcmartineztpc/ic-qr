@@ -26,6 +26,7 @@ import { svgDataUrl, useTile } from "@/components/preview/useTile";
 import { TilePreview } from "@/components/preview/TilePreview";
 import { PersistenceBanners } from "@/components/records/PersistenceBanners";
 import { useBuilderActions } from "@/components/records/useBuilderActions";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Panel } from "@/components/ui/Panel";
 import { StepFooter } from "@/components/ui/StepFooter";
 
@@ -97,11 +98,17 @@ export function QrStyleScreen() {
   if (!template) return <Alert severity="error">La plantilla «{templateId}» ya no existe. Elige otra en el paso Diseño.</Alert>;
   if (records.length === 0) {
     return (
-      <section aria-label="Sin piezas" className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-divider p-10 text-center">
-        <h2 className="m-0 text-lg font-semibold">Aún no hay piezas</h2>
-        <p className="m-0 max-w-md text-muted">Agrega o importa piezas para darle estilo a su QR.</p>
-        <Button component={Link} href="/editor" variant="contained">Ir a las piezas</Button>
-      </section>
+      <EmptyState.Root aria-label="Sin piezas">
+        <EmptyState.Header>
+          <EmptyState.Title>Aún no hay piezas</EmptyState.Title>
+          <EmptyState.Description>Agrega o importa piezas en el primer paso para personalizar el estilo de su código QR.</EmptyState.Description>
+        </EmptyState.Header>
+        <EmptyState.PrimaryAction>
+          <Button component={Link} href="/editor" variant="contained">
+            Ir a las piezas
+          </Button>
+        </EmptyState.PrimaryAction>
+      </EmptyState.Root>
     );
   }
 
@@ -124,66 +131,98 @@ export function QrStyleScreen() {
       <PersistenceBanners actions={builder} showRestored={false} />
       {disabled ? <Alert severity="info">Esta pestaña está en solo lectura: la otra pestaña es la que edita.</Alert> : null}
       {error ? <Alert severity="error" role="alert">{error}</Alert> : null}
-      <div className="flex justify-end gap-1" role="toolbar" aria-label="Deshacer y rehacer">
-        <Tooltip title="Deshacer (Ctrl/⌘ + Z)"><span><IconButton aria-label="Deshacer" onClick={history.undo} disabled={disabled || !history.canUndo}><UndoIcon /></IconButton></span></Tooltip>
-        <Tooltip title="Rehacer (Mayús + Ctrl/⌘ + Z)"><span><IconButton aria-label="Rehacer" onClick={history.redo} disabled={disabled || !history.canRedo}><RedoIcon /></IconButton></span></Tooltip>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-divider bg-surface px-4 py-2.5 shadow-2xs" role="toolbar" aria-label="Deshacer y rehacer">
+        <div className="flex items-center gap-1.5">
+          <Tooltip title="Deshacer (Ctrl/⌘ + Z)">
+            <span>
+              <IconButton
+                size="small"
+                aria-label="Deshacer"
+                onClick={history.undo}
+                disabled={disabled || !history.canUndo}
+                className="!h-9 !w-9 max-sm:!h-11 max-sm:!w-11 !rounded-lg !border !border-divider !bg-background/60"
+              >
+                <UndoIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Rehacer (Mayús + Ctrl/⌘ + Z)">
+            <span>
+              <IconButton
+                size="small"
+                aria-label="Rehacer"
+                onClick={history.redo}
+                disabled={disabled || !history.canRedo}
+                className="!h-9 !w-9 max-sm:!h-11 max-sm:!w-11 !rounded-lg !border !border-divider !bg-background/60"
+              >
+                <RedoIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </div>
+        <Button
+          size="small"
+          variant="outlined"
+          disabled={disabled || !customized}
+          onClick={() => commit(structuredClone(DEFAULT_QR_STYLE))}
+          className="!rounded-full !px-3.5"
+        >
+          Restablecer al QR clásico
+        </Button>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,29rem)_minmax(0,1fr)]">
         <div className="order-2 flex flex-col gap-4 lg:order-1">
-          <Panel title="Forma" description="El contorno del código y la forma de cada módulo.">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium">Contorno</span>
-              <ShapePicker label="Contorno del QR" value={style.outline} options={OUTLINES} disabled={disabled} onChange={(outline) => update({ outline })} />
+          <Panel title="1. Geometría y esquinas" description="Elige el contorno general, el trazo de los módulos y el estilo de los tres cuadros localizadores.">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted">Contorno</span>
+                <ShapePicker label="Contorno del QR" value={style.outline} options={OUTLINES} disabled={disabled} onChange={(outline) => update({ outline })} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted">Marco de esquinas</span>
+                <ShapePicker label="Forma del marco de las esquinas" value={style.eyeFrame} options={EYE_FRAMES} disabled={disabled} onChange={(eyeFrame) => update({ eyeFrame })} />
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium">Módulos</span>
+
+            <div className="flex flex-col gap-1.5 border-t border-divider pt-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Módulos de datos</span>
               <ShapePicker label="Forma de los módulos" value={style.modules} options={MODULES} disabled={disabled} onChange={(modules) => update({ modules })} />
             </div>
-          </Panel>
 
-          <Panel title="Esquinas" description="Los tres cuadros grandes que el lector usa para ubicar el código.">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium">Marco</span>
-              <ShapePicker label="Forma del marco de las esquinas" value={style.eyeFrame} options={EYE_FRAMES} disabled={disabled} onChange={(eyeFrame) => update({ eyeFrame })} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium">Centro</span>
+            <div className="flex flex-col gap-1.5 border-t border-divider pt-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">Centro de esquinas</span>
               <ShapePicker label="Forma del centro de las esquinas" value={style.eyeBall} options={EYE_BALLS} disabled={disabled} onChange={(eyeBall) => update({ eyeBall })} />
             </div>
           </Panel>
 
-          <Panel title="Colores" description="Usa colores oscuros sobre un fondo claro: así lo leen todos los celulares.">
+          <Panel title="2. Tinta y contraste" description="Usa tintas oscuras sobre un fondo claro para garantizar lectura inmediata en cualquier celular.">
             <ColorField label="Módulos" value={colors.modules} custom={style.colors.modules !== null} autoLabel="Igual que la plantilla" disabled={disabled} onChange={(c: HexColor) => updateColors({ modules: c })} onReset={() => updateColors({ modules: null })} />
             <ColorField label="Marco de las esquinas" value={colors.eyeFrame} custom={style.colors.eyeFrame !== null} autoLabel="Igual que los módulos" disabled={disabled} onChange={(c: HexColor) => updateColors({ eyeFrame: c })} onReset={() => updateColors({ eyeFrame: null })} />
             <ColorField label="Centro de las esquinas" value={colors.eyeBall} custom={style.colors.eyeBall !== null} autoLabel="Igual que el marco" disabled={disabled} onChange={(c: HexColor) => updateColors({ eyeBall: c })} onReset={() => updateColors({ eyeBall: null })} />
             <ColorField label="Fondo" value={colors.background} custom={style.colors.background !== null} autoLabel="Igual que la plantilla" disabled={disabled} onChange={(c: HexColor) => updateColors({ background: c })} onReset={() => updateColors({ background: null })} />
           </Panel>
 
-          <Panel title="Logo" description="Un SVG al centro del QR. El código sigue leyéndose gracias a la corrección de errores, mientras el logo no sea demasiado grande.">
+          <Panel title="3. Isotipo central (Logo)" description="Inserta un vector SVG al centro. El código mantiene su lectura gracias a la corrección de errores nivel H.">
             <LogoControls logo={style.logo} disabled={disabled} onChange={(logo) => update({ logo })} />
           </Panel>
-
-          <div>
-            <Button variant="outlined" disabled={disabled || !customized} onClick={() => commit(structuredClone(DEFAULT_QR_STYLE))}>
-              Restablecer al QR clásico
-            </Button>
-          </div>
         </div>
 
         <div className="order-1 flex flex-col gap-4 lg:sticky lg:top-4 lg:order-2 lg:self-start">
-          <Panel title="Vista previa">
+          <Panel title="Mesa de pruebas en vivo" description="Compara la matriz vectorial aislada y su aplicación real sobre la placa de 70 × 70 mm." className="rounded-t-2xl rounded-b-xl">
             <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 sm:grid-cols-2">
               <figure className="m-0 flex flex-col gap-2">
-                <div className="flex aspect-square w-full items-center justify-center rounded bg-background p-4 ring-1 ring-black/10">
+                <div className="flex aspect-square w-full items-center justify-center rounded-xl border border-divider bg-background p-4">
                   {/* eslint-disable-next-line @next/next/no-img-element -- SVG generado aquí mismo; next/image no aporta nada */}
                   <img src={svgDataUrl(qrSvg)} alt="Vista previa del QR con el estilo elegido" data-testid="qr-style-preview" className="h-full w-full select-none" draggable={false} />
                 </div>
-                <figcaption className="text-center text-sm text-muted">Solo el QR</figcaption>
+                <figcaption className="text-center text-xs font-medium text-muted">Matriz QR vectorial</figcaption>
               </figure>
               <figure className="m-0 flex flex-col gap-2">
-                {shown ? <TilePreview record={shown} /> : <div className="aspect-square rounded bg-background" />}
-                <figcaption className="text-center text-sm text-muted">En la pieza</figcaption>
+                <div className="rounded-xl border border-divider bg-background p-2">
+                  {shown ? <TilePreview record={shown} /> : <div className="aspect-square rounded bg-background" />}
+                </div>
+                <figcaption className="text-center text-xs font-medium text-muted">En placa (70 × 70 mm)</figcaption>
               </figure>
             </div>
             {shown && shown.id !== current?.id ? (
@@ -205,7 +244,12 @@ export function QrStyleScreen() {
         </div>
       </div>
 
-      <StepFooter back={{ href: "/editor", label: "Piezas" }} next={{ href: "/preview", label: "Siguiente: Diseño" }} />
+      <StepFooter
+        back={{ href: "/editor", label: "Piezas" }}
+        shortcut={{ href: "/export", label: "Ir directo a Exportar" }}
+        next={{ href: "/preview", label: "Siguiente: Diseño" }}
+      />
     </div>
   );
 }
+

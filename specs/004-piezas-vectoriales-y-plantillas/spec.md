@@ -21,7 +21,7 @@ Quien diseña necesita que cada pieza impresa o grabada sea idéntica a `QR_Trop
 **Acceptance Scenarios**:
 
 1. **Given** la plantilla `tropical-table` v2.0.0, **When** se construye la escena, **Then** la pieza mide 70 × 70 mm, el marco es un rectángulo de trazo 0.5 pt y no hay avisos de composición.
-2. **Given** área «Tropical» y mesa «M1», **When** se construye la escena, **Then** las cinco líneas son `TROPICAL` (17 pt), `MESA – TABLE` (11 pt), `M1` (22 pt), `CONSULTA EL MENÚ Y ORDENA EN LÍNEA` y `LOOK AT THE MENU AN ORDER ON LINE` (13.2 pt), con bases a ±0.03 mm de la referencia y centradas en x = 35 mm (±0.15 mm).
+2. **Given** área «Tropical» y mesa «M1», **When** se construye la escena, **Then** las cinco líneas son `TROPICAL` (17 pt), `MESA – TABLE` (11 pt), `M1` (22 pt), `CONSULTA EL MENÚ Y ORDENA EN LÍNEA` y `LOOK AT THE MENU AND ORDER ON LINE` (13.2 pt), con bases a ±0.03 mm de la referencia y centradas en x = 35 mm (±0.15 mm).
 3. **Given** un QR de versión 4, **When** se coloca en la plantilla, **Then** ocupa un cuadrado de 24.788 mm en (22.606, 39.424) con 33 módulos de ≈ 0.751 mm y sin zona de silencio propia.
 4. **Given** cualquier pieza, **When** se genera, **Then** texto, QR y marco usan negro puro `#000000` en RGB y no aparece `2C2E35`.
 
@@ -119,7 +119,7 @@ Existen `restaurant-default` y `custom-template` como variantes y base para plan
 ### Functional Requirements
 
 - **FR-001**: La plantilla `tropical-table` v2.0.0 DEBE medir 70 × 70 mm y dibujar un marco de 0.5 pt (rectángulo `frame`, trazo `#000000`).
-- **FR-002**: La plantilla DEBE imprimir `{{area}}` (mayúsculas), `MESA – TABLE`, `{{mesa}}` (mayúsculas) y los literales `CONSULTA EL MENÚ Y ORDENA EN LÍNEA` y `LOOK AT THE MENU AN ORDER ON LINE`; Estación, Sub-grupo y Concepto son metadatos y no se imprimen.
+- **FR-002**: La plantilla DEBE imprimir `{{area}}` (mayúsculas), `MESA – TABLE`, `{{mesa}}` (mayúsculas) y los literales `CONSULTA EL MENÚ Y ORDENA EN LÍNEA` y `LOOK AT THE MENU AND ORDER ON LINE`; Estación, Sub-grupo y Concepto son metadatos y no se imprimen.
 - **FR-003**: El QR DEBE ocupar un cuadrado de 24.788 mm en (22.606, 39.424) mm con `quietZoneModules: 0`.
 - **FR-004**: La tinta de texto, QR y marco DEBE ser `#000000` en RGB, definida una sola vez en `PIECE_INK` (`src/templates/address-sans.ts`).
 - **FR-005**: La tipografía de las piezas DEBE ser Address Sans Pro Cd Semibold (`.woff2`, no versionado); Gotham es solo de la interfaz y no se usa en piezas.

@@ -16,10 +16,20 @@ const ok: EditResult = { ok: true };
 const between = (min: number, max: number, v: number): EditResult => (v >= min && v <= max ? ok : { ok: false, message: `Debe estar entre ${min} y ${max}` });
 
 /** Resultado en vivo de packGrid: «6 por página · 3 páginas» o por qué no cabe. */
-export function describePacking(tile: { width: number; height: number }, options: PDFOptions, count: number): { ok: true; text: string } | { ok: false; text: string } {
+export function describePacking(
+  tile: { width: number; height: number },
+  options: PDFOptions,
+  count: number,
+): { ok: true; text: string } | { ok: false; text: string } {
   try {
     const grid = packGrid({ tile, options });
-    return { ok: true, text: options.mode === "single" ? `${count} ${count === 1 ? "página" : "páginas"}, una pieza por página (${grid.pageMm.width} × ${grid.pageMm.height} mm)` : describeSheet(count, grid) };
+    return {
+      ok: true,
+      text:
+        options.mode === "single"
+          ? `${count} ${count === 1 ? "página" : "páginas"}, una pieza por página (${grid.pageMm.width} × ${grid.pageMm.height} mm)`
+          : describeSheet(count, grid),
+    };
   } catch (error) {
     if (error instanceof SheetLayoutError) return { ok: false, text: error.message };
     throw error;
@@ -39,69 +49,214 @@ export interface PdfOptionsPanelProps {
   onPdfBySection(value: boolean): void;
 }
 
-export function PdfOptionsPanel({ options, tile, count, disabled, onChange, formats, zipNaming, onFormats, pdfBySection, onPdfBySection }: PdfOptionsPanelProps) {
+export function PdfOptionsPanel({
+  options,
+  tile,
+  count,
+  disabled,
+  onChange,
+  formats,
+  zipNaming,
+  onFormats,
+  pdfBySection,
+  onPdfBySection,
+}: PdfOptionsPanelProps) {
   const packing = describePacking(tile, options, count);
   const margin = (side: keyof PDFOptions["margins"], label: string) => (
-    <NumberField key={`${side}-${options.margins[side]}`} label={label} unit="mm" step={1} value={options.margins[side]} disabled={disabled} onCommit={(v) => (between(0, 100, v).ok ? (onChange({ margins: { ...options.margins, [side]: v } }), ok) : between(0, 100, v))} />
+    <NumberField
+      key={`${side}-${options.margins[side]}`}
+      label={label}
+      unit="mm"
+      step={1}
+      value={options.margins[side]}
+      disabled={disabled}
+      onCommit={(v) => (between(0, 100, v).ok ? (onChange({ margins: { ...options.margins, [side]: v } }), ok) : between(0, 100, v))}
+    />
   );
+
   return (
-    <section aria-label="Opciones del PDF" className="flex flex-col gap-3">
+    <section aria-label="Opciones del PDF" className="flex flex-col gap-4">
       <Alert severity={packing.ok ? "success" : "error"} role={packing.ok ? "status" : "alert"} data-testid="packing-result">
         {packing.text}
       </Alert>
-      <TextField select size="small" label="Disposición" value={options.mode} disabled={disabled} onChange={(e) => onChange({ mode: e.target.value as PDFOptions["mode"] })}>
-        <MenuItem value="sheet">Hoja con varias piezas</MenuItem>
-        <MenuItem value="single">Una pieza por página</MenuItem>
-      </TextField>
-      {options.mode === "sheet" ? (
-        <>
-          <div className="grid grid-cols-2 gap-x-3">
-            <TextField select size="small" label="Página" value={options.pageSize.kind} disabled={disabled} onChange={(e) => onChange({ pageSize: e.target.value === "custom" ? { kind: "custom", widthMm: 210, heightMm: 297 } : { kind: e.target.value as "A4" | "Letter" } })}>
-              <MenuItem value="A4">A4</MenuItem>
-              <MenuItem value="Letter">Carta (Letter)</MenuItem>
-              <MenuItem value="custom">Personalizada</MenuItem>
-            </TextField>
-            <TextField select size="small" label="Orientación" value={options.orientation} disabled={disabled} onChange={(e) => onChange({ orientation: e.target.value as PDFOptions["orientation"] })}>
-              <MenuItem value="portrait">Vertical</MenuItem>
-              <MenuItem value="landscape">Horizontal</MenuItem>
-              <MenuItem value="auto">Automática</MenuItem>
-            </TextField>
-          </div>
-          {options.pageSize.kind === "custom" ? (
+
+      <div className="flex flex-col gap-3">
+        <span className="text-xs font-semibold text-muted">1. Formato de hoja</span>
+        <TextField
+          select
+          size="small"
+          label="Disposición"
+          value={options.mode}
+          disabled={disabled}
+          onChange={(e) => onChange({ mode: e.target.value as PDFOptions["mode"] })}
+        >
+          <MenuItem value="sheet">Hoja con varias piezas</MenuItem>
+          <MenuItem value="single">Una pieza por página</MenuItem>
+        </TextField>
+
+        {options.mode === "sheet" ? (
+          <>
             <div className="grid grid-cols-2 gap-x-3">
-              <NumberField key={`pw-${options.pageSize.widthMm}`} label="Ancho de página" unit="mm" step={1} value={options.pageSize.widthMm} disabled={disabled} onCommit={(v) => (between(10, 1500, v).ok && options.pageSize.kind === "custom" ? (onChange({ pageSize: { kind: "custom", widthMm: v, heightMm: options.pageSize.heightMm } }), ok) : between(10, 1500, v))} />
-              <NumberField key={`ph-${options.pageSize.heightMm}`} label="Alto de página" unit="mm" step={1} value={options.pageSize.heightMm} disabled={disabled} onCommit={(v) => (between(10, 1500, v).ok && options.pageSize.kind === "custom" ? (onChange({ pageSize: { kind: "custom", widthMm: options.pageSize.widthMm, heightMm: v } }), ok) : between(10, 1500, v))} />
+              <TextField
+                select
+                size="small"
+                label="Página"
+                value={options.pageSize.kind}
+                disabled={disabled}
+                onChange={(e) =>
+                  onChange({
+                    pageSize:
+                      e.target.value === "custom" ? { kind: "custom", widthMm: 210, heightMm: 297 } : { kind: e.target.value as "A4" | "Letter" },
+                  })
+                }
+              >
+                <MenuItem value="A4">A4</MenuItem>
+                <MenuItem value="Letter">Carta (Letter)</MenuItem>
+                <MenuItem value="custom">Personalizada</MenuItem>
+              </TextField>
+              <TextField
+                select
+                size="small"
+                label="Orientación"
+                value={options.orientation}
+                disabled={disabled}
+                onChange={(e) => onChange({ orientation: e.target.value as PDFOptions["orientation"] })}
+              >
+                <MenuItem value="portrait">Vertical</MenuItem>
+                <MenuItem value="landscape">Horizontal</MenuItem>
+                <MenuItem value="auto">Automática</MenuItem>
+              </TextField>
             </div>
-          ) : null}
-          <div className="grid grid-cols-2 gap-x-3">
+            {options.pageSize.kind === "custom" ? (
+              <div className="grid grid-cols-2 gap-x-3">
+                <NumberField
+                  key={`pw-${options.pageSize.widthMm}`}
+                  label="Ancho de página"
+                  unit="mm"
+                  step={1}
+                  value={options.pageSize.widthMm}
+                  disabled={disabled}
+                  onCommit={(v) =>
+                    between(10, 1500, v).ok && options.pageSize.kind === "custom"
+                      ? (onChange({ pageSize: { kind: "custom", widthMm: v, heightMm: options.pageSize.heightMm } }), ok)
+                      : between(10, 1500, v)
+                  }
+                />
+                <NumberField
+                  key={`ph-${options.pageSize.heightMm}`}
+                  label="Alto de página"
+                  unit="mm"
+                  step={1}
+                  value={options.pageSize.heightMm}
+                  disabled={disabled}
+                  onCommit={(v) =>
+                    between(10, 1500, v).ok && options.pageSize.kind === "custom"
+                      ? (onChange({ pageSize: { kind: "custom", widthMm: options.pageSize.widthMm, heightMm: v } }), ok)
+                      : between(10, 1500, v)
+                  }
+                />
+              </div>
+            ) : null}
+            <FormControlLabel
+              control={<Switch checked={options.center} disabled={disabled} onChange={(e) => onChange({ center: e.target.checked })} />}
+              label="Centrar las piezas en la hoja"
+            />
+          </>
+        ) : null}
+      </div>
+
+      {options.mode === "sheet" ? (
+        <div className="flex flex-col gap-3 border-t border-divider pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">2. Márgenes, calle y sangrado</span>
+            <span className="rounded bg-black/5 px-2 py-0.5 text-[11px] font-medium text-muted tabular-nums">
+              {options.margins.top}/{options.margins.right}/{options.margins.bottom}/{options.margins.left} mm · Calle {options.gapMm} mm
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-x-2.5 gap-y-2 sm:grid-cols-3">
             {margin("top", "Margen superior")}
             {margin("bottom", "Margen inferior")}
             {margin("left", "Margen izquierdo")}
             {margin("right", "Margen derecho")}
-            <NumberField key={`gap-${options.gapMm}`} label="Separación" unit="mm" step={1} value={options.gapMm} disabled={disabled} onCommit={(v) => (between(0, 50, v).ok ? (onChange({ gapMm: v }), ok) : between(0, 50, v))} />
-            <NumberField key={`bleed-${options.bleedMm}`} label="Sangrado (corte)" unit="mm" step={0.5} value={options.bleedMm} disabled={disabled} onCommit={(v) => (between(0, 5, v).ok ? (onChange({ bleedMm: v }), ok) : between(0, 5, v))} />
+            <NumberField
+              key={`gap-${options.gapMm}`}
+              label="Separación"
+              unit="mm"
+              step={1}
+              value={options.gapMm}
+              disabled={disabled}
+              onCommit={(v) => (between(0, 50, v).ok ? (onChange({ gapMm: v }), ok) : between(0, 50, v))}
+            />
+            <NumberField
+              key={`bleed-${options.bleedMm}`}
+              label="Sangrado (corte)"
+              unit="mm"
+              step={0.5}
+              value={options.bleedMm}
+              disabled={disabled}
+              onCommit={(v) => (between(0, 5, v).ok ? (onChange({ bleedMm: v }), ok) : between(0, 5, v))}
+            />
           </div>
-          <FormControlLabel control={<Switch checked={options.center} disabled={disabled} onChange={(e) => onChange({ center: e.target.checked })} />} label="Centrar las piezas en la hoja" />
-        </>
+        </div>
       ) : null}
-      <TextField select size="small" label="Texto en el PDF" value={options.textMode} disabled={disabled} helperText={options.textMode === "live" ? "Podrás editar el texto en Illustrator." : "Se ve igual en cualquier equipo, pero el texto ya no se puede editar."} onChange={(e) => onChange({ textMode: e.target.value as PDFOptions["textMode"] })}>
-        <MenuItem value="live">Texto vivo (editable en Illustrator)</MenuItem>
-        <MenuItem value="outlined">Convertido a contornos (se ve igual en cualquier equipo)</MenuItem>
-      </TextField>
-      {options.textMode === "live" ? <Alert severity="info">Para ver bien el texto, instala la fuente Address Sans Pro Cd Semibold (Adobe Fonts) en el equipo donde abras el archivo. Si no la tienes, Illustrator usará otra y el texto cambiará de aspecto.</Alert> : null}
-      <FormControlLabel control={<Switch checked={options.includeQrBackground} disabled={disabled} onChange={(e) => onChange({ includeQrBackground: e.target.checked })} />} label="Fondo blanco bajo el QR" />
-      <FormControlLabel control={<Switch checked={pdfBySection} disabled={disabled} onChange={(e) => onPdfBySection(e.target.checked)} />} label="Un PDF por Estación (en un ZIP)" />
-      <FormControlLabel
-        control={<Switch checked={formats.includes("svgZip")} disabled={disabled} onChange={(e) => onFormats(e.target.checked ? ["pdf", "svgZip"] : ["pdf"])} />}
-        label="También un ZIP con un SVG por pieza"
-      />
-      {formats.includes("svgZip") ? (
-        <TextField select size="small" label="Nombre de cada SVG" value={zipNaming} disabled={disabled} onChange={(e) => onFormats(formats, e.target.value as "index" | "index-area-mesa")}>
-          <MenuItem value="index">001.svg, 002.svg…</MenuItem>
-          <MenuItem value="index-area-mesa">001-area-mesa.svg…</MenuItem>
+
+      <div className="flex flex-col gap-2.5 border-t border-divider pt-3">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted">3. Acabado vectorial y salidas adicionales</span>
+        <TextField
+          select
+          size="small"
+          label="Texto en el PDF"
+          value={options.textMode}
+          disabled={disabled}
+          helperText={
+            options.textMode === "live"
+              ? "Podrás editar el texto en Illustrator."
+              : "Se ve igual en cualquier equipo, pero el texto ya no se puede editar."
+          }
+          onChange={(e) => onChange({ textMode: e.target.value as PDFOptions["textMode"] })}
+        >
+          <MenuItem value="live">Texto vivo (editable en Illustrator)</MenuItem>
+          <MenuItem value="outlined">Convertido a contornos (se ve igual en cualquier equipo)</MenuItem>
         </TextField>
-      ) : null}
-      {!options.includeQrBackground ? <Alert severity="warning">Sin fondo blanco el QR puede no leerse sobre un metal oscuro o con relieve.</Alert> : null}
+        {options.textMode === "live" ? (
+          <Alert severity="info">
+            Para ver bien el texto, instala la fuente Address Sans Pro Cd Semibold (Adobe Fonts) en el equipo donde abras el archivo. Si no la tienes,
+            Illustrator usará otra y el texto cambiará de aspecto.
+          </Alert>
+        ) : null}
+        <FormControlLabel
+          control={
+            <Switch checked={options.includeQrBackground} disabled={disabled} onChange={(e) => onChange({ includeQrBackground: e.target.checked })} />
+          }
+          label="Fondo blanco bajo el QR"
+        />
+        {!options.includeQrBackground ? (
+          <Alert severity="warning">Sin fondo blanco el QR puede no leerse sobre un metal oscuro o con relieve.</Alert>
+        ) : null}
+        <FormControlLabel
+          control={<Switch checked={pdfBySection} disabled={disabled} onChange={(e) => onPdfBySection(e.target.checked)} />}
+          label="Un PDF por Estación (en un ZIP)"
+        />
+        <FormControlLabel
+          control={
+            <Switch checked={formats.includes("svgZip")} disabled={disabled} onChange={(e) => onFormats(e.target.checked ? ["pdf", "svgZip"] : ["pdf"])} />
+          }
+          label="También un ZIP con un SVG por pieza"
+        />
+        {formats.includes("svgZip") ? (
+          <TextField
+            select
+            size="small"
+            label="Nombre de cada SVG"
+            value={zipNaming}
+            disabled={disabled}
+            onChange={(e) => onFormats(formats, e.target.value as "index" | "index-area-mesa")}
+          >
+            <MenuItem value="index">001.svg, 002.svg…</MenuItem>
+            <MenuItem value="index-area-mesa">001-area-mesa.svg…</MenuItem>
+          </TextField>
+        ) : null}
+      </div>
     </section>
   );
 }
