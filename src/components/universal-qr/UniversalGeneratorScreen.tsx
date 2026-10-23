@@ -5,7 +5,6 @@ import ContactMailOutlinedIcon from "@mui/icons-material/ContactMailOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutlineOutlined";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import LinkIcon from "@mui/icons-material/Link";
 import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
@@ -25,6 +24,7 @@ import { LogoControls } from "@/components/qr-style/LogoControls";
 import { ShapePicker, type ShapeOption } from "@/components/qr-style/ShapePicker";
 import { EyeBallSwatch, EyeFrameSwatch, ModuleSwatch, OutlineSwatch } from "@/components/qr-style/swatches";
 import { Panel } from "@/components/ui/Panel";
+import { postJson } from "@/lib/app/api-client";
 import { describeLayoutWarning } from "@/lib/errors/messages.es";
 import { qrStyleWarnings, resolveStyleColors, styledQrNodes } from "@/lib/qr-style";
 import { renderSceneSvg } from "@/lib/svg/render-scene";
@@ -79,7 +79,6 @@ const svgDataUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeUR
 export function UniversalGeneratorScreen() {
   const [data, setData] = useState<UniversalQrData>(DEFAULT_UNIVERSAL_DATA);
   const [style, setStyle] = useState<QrStyle>(DEFAULT_QR_STYLE);
-  const [downloadingPng, setDownloadingPng] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
 
   const payload = useMemo(() => buildPayloadString(data), [data]);
@@ -122,37 +121,8 @@ export function UniversalGeneratorScreen() {
     a.download = `qr-${data.type}.svg`;
     a.click();
     URL.revokeObjectURL(url);
-  };
-
-  const handleDownloadPng = async () => {
-    setDownloadingPng(true);
-    try {
-      const img = new Image();
-      const url = svgDataUrl(sceneSvg);
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("No se pudo generar la imagen"));
-        img.src = url;
-      });
-      const canvas = document.createElement("canvas");
-      const scale = 2048 / Math.max(img.width || 500, img.height || 500);
-      canvas.width = Math.round((img.width || 500) * scale);
-      canvas.height = Math.round((img.height || 500) * scale);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const pngUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = pngUrl;
-        a.download = `qr-${data.type}.png`;
-        a.click();
-        URL.revokeObjectURL(pngUrl);
-      }, "image/png");
-    } finally {
-      setDownloadingPng(false);
-    }
+    // Se archiva igual que los QR de producción; si falla, la descarga ya se hizo.
+    void postJson("/api/qr/universal", { svg: sceneSvg, kind: data.type }).catch(() => undefined);
   };
 
   const customized = JSON.stringify(style) !== JSON.stringify(DEFAULT_QR_STYLE);
@@ -210,7 +180,7 @@ export function UniversalGeneratorScreen() {
               <div>
                 <p className="m-0 text-sm font-bold text-foreground">Descárgalo al instante</p>
                 <p className="m-0 mt-0.5 text-xs text-muted leading-relaxed">
-                  Bájalo como <strong>Imagen (PNG)</strong> para enviarlo o pegarlo en documentos, o en <strong>Vector (SVG)</strong> para imprenta.
+                  Bájalo como <strong>Vector (SVG)</strong>: líneas vectoriales listas para imprenta, grabado o Illustrator.
                 </p>
               </div>
             </div>
@@ -621,22 +591,11 @@ export function UniversalGeneratorScreen() {
                   variant="contained"
                   color="primary"
                   size="large"
-                  startIcon={<ImageOutlinedIcon />}
-                  disabled={downloadingPng}
-                  onClick={() => void handleDownloadPng()}
-                  className="!rounded-full !py-2.5 !font-semibold"
-                >
-                  {downloadingPng ? "Preparando imagen…" : "Descargar Imagen (PNG)"}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="medium"
                   startIcon={<DownloadIcon />}
                   onClick={handleDownloadSvg}
-                  className="!rounded-full !font-semibold"
+                  className="!rounded-full !py-2.5 !font-semibold"
                 >
-                  Descargar para Imprenta / Diseño (SVG)
+                  Descargar vector (SVG)
                 </Button>
               </div>
             </div>
