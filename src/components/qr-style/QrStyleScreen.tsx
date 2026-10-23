@@ -224,8 +224,8 @@ export function QrStyleScreen() {
             <ColorField label="Fondo" value={colors.background} custom={style.colors.background !== null} autoLabel="Igual que la plantilla" disabled={disabled} onChange={(c: HexColor) => updateColors({ background: c })} onReset={() => updateColors({ background: null })} />
           </Panel>
 
-          <Panel title="3. Isotipo central (Logo)" description="Inserta un vector SVG al centro. El código mantiene su lectura gracias a la corrección de errores nivel H.">
-            <LogoControls logo={style.logo} disabled={disabled} onChange={(logo) => update({ logo })} />
+          <Panel title="3. Isotipo central (Logo)" description="Elige un isotipo vectorial para el centro del código QR o sube un archivo personalizado.">
+            <LogoControls logo={style.logo} disabled={disabled} onChange={(logo) => update({ logo })} hideSliders />
           </Panel>
         </div>
 

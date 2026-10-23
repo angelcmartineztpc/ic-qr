@@ -7,6 +7,8 @@ import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
 import Switch from "@mui/material/Switch";
+import Tooltip from "@mui/material/Tooltip";
+import ButtonBase from "@mui/material/ButtonBase";
 import { useEffect, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/app/api-client";
@@ -16,8 +18,21 @@ import type { HexColor } from "@/types";
 
 import { ColorField } from "./ColorField";
 
+/** Iconos de uso frecuente (public/icons); se cargan por el mismo flujo de subida y saneo que un logo propio. */
+const PRESET_ICONS = ["Baglioni", "Corona Palace", "Le Blanc", "Palace Elite"];
+
 /** Logo en SVG al centro del QR: se sube, se sanea en el servidor y se guarda solo su geometría vectorial. */
-export function LogoControls({ logo, disabled, onChange }: { logo: QrLogo | null; disabled: boolean; onChange(next: QrLogo | null): void }) {
+export function LogoControls({
+  logo,
+  disabled,
+  onChange,
+  hideSliders = false,
+}: {
+  logo: QrLogo | null;
+  disabled: boolean;
+  onChange(next: QrLogo | null): void;
+  hideSliders?: boolean;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   // El logo vigente al terminar la subida: si moviste un control mientras subía, no se pisa con el valor de antes.
@@ -48,6 +63,16 @@ export function LogoControls({ logo, disabled, onChange }: { logo: QrLogo | null
     }
   };
 
+  const pickPreset = async (name: string) => {
+    try {
+      const response = await fetch(`/icons/${encodeURIComponent(name)}.svg`);
+      if (!response.ok) throw new Error();
+      await pick(new File([await response.blob()], `${name}.svg`, { type: "image/svg+xml" }));
+    } catch {
+      setError("No se pudo cargar el icono predeterminado");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <input ref={input} type="file" accept=".svg,image/svg+xml" hidden data-testid="logo-input" onChange={(event) => void pick(event.target.files?.[0])} />
@@ -66,42 +91,77 @@ export function LogoControls({ logo, disabled, onChange }: { logo: QrLogo | null
           <span className="text-sm text-muted">Solo SVG con contornos; se dibuja al centro sin perder nitidez.</span>
         )}
       </div>
+      <div role="group" aria-label="Iconos predeterminados" className="flex flex-col gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted">Logos predeterminados:</span>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {PRESET_ICONS.map((name) => {
+            const isSelected = logo?.fileName === `${name}.svg`;
+            return (
+              <Tooltip key={name} title={name} arrow>
+                <ButtonBase
+                  role="radio"
+                  aria-checked={isSelected}
+                  aria-label={name}
+                  disabled={disabled || busy}
+                  onClick={() => void pickPreset(name)}
+                  className={`!flex !h-16 !w-full !items-center !justify-center !rounded-xl !border !p-2 transition-all ${
+                    isSelected
+                      ? "!border-primary !bg-primary/10 !ring-2 !ring-primary/30"
+                      : "!border-divider !bg-surface-subtle/50 hover:!border-foreground/30 hover:!bg-surface-subtle"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/icons/${encodeURIComponent(name)}.svg`}
+                    alt={name}
+                    className="max-h-10 max-w-full object-contain filter dark:invert"
+                  />
+                </ButtonBase>
+              </Tooltip>
+            );
+          })}
+        </div>
+      </div>
       {error ? <Alert severity="error" role="alert" onClose={() => setError(null)}>{error}</Alert> : null}
 
       {logo ? (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <span id="logo-size-label" className="text-sm font-medium">Tamaño del logo: {dragSize ?? logo.sizePct} % del QR</span>
-            <Slider
-              aria-labelledby="logo-size-label"
-              value={dragSize ?? logo.sizePct}
-              min={LOGO_MIN_SIZE_PCT}
-              max={LOGO_MAX_SIZE_PCT}
-              step={1}
-              disabled={disabled}
-              onChange={(_, v) => setDragSize(v as number)}
-              onChangeCommitted={(_, v) => {
-                setDragSize(null);
-                onChange({ ...logo, sizePct: v as number });
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <span id="logo-margin-label" className="text-sm font-medium">Espacio libre alrededor: {dragMargin ?? logo.marginModules} {(dragMargin ?? logo.marginModules) === 1 ? "módulo" : "módulos"}</span>
-            <Slider
-              aria-labelledby="logo-margin-label"
-              value={dragMargin ?? logo.marginModules}
-              min={0}
-              max={3}
-              step={0.5}
-              disabled={disabled}
-              onChange={(_, v) => setDragMargin(v as number)}
-              onChangeCommitted={(_, v) => {
-                setDragMargin(null);
-                onChange({ ...logo, marginModules: v as number });
-              }}
-            />
-          </div>
+          {!hideSliders ? (
+            <>
+              <div className="flex flex-col gap-1">
+                <span id="logo-size-label" className="text-sm font-medium">Tamaño del logo: {dragSize ?? logo.sizePct} % del QR</span>
+                <Slider
+                  aria-labelledby="logo-size-label"
+                  value={dragSize ?? logo.sizePct}
+                  min={LOGO_MIN_SIZE_PCT}
+                  max={LOGO_MAX_SIZE_PCT}
+                  step={1}
+                  disabled={disabled}
+                  onChange={(_, v) => setDragSize(v as number)}
+                  onChangeCommitted={(_, v) => {
+                    setDragSize(null);
+                    onChange({ ...logo, sizePct: v as number });
+                  }}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <span id="logo-margin-label" className="text-sm font-medium">Espacio libre alrededor: {dragMargin ?? logo.marginModules} {(dragMargin ?? logo.marginModules) === 1 ? "módulo" : "módulos"}</span>
+                <Slider
+                  aria-labelledby="logo-margin-label"
+                  value={dragMargin ?? logo.marginModules}
+                  min={0}
+                  max={3}
+                  step={0.5}
+                  disabled={disabled}
+                  onChange={(_, v) => setDragMargin(v as number)}
+                  onChangeCommitted={(_, v) => {
+                    setDragMargin(null);
+                    onChange({ ...logo, marginModules: v as number });
+                  }}
+                />
+              </div>
+            </>
+          ) : null}
           <FormControlLabel
             control={<Switch checked={logo.color !== null} disabled={disabled} onChange={(event) => onChange({ ...logo, color: event.target.checked ? ("#000000" as HexColor) : null })} />}
             label="Pintar el logo de un solo color"

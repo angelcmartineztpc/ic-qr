@@ -35,27 +35,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es" className={uiFont.variable}>
       <body>
         <AppProviders>{children}</AppProviders>
-        {/* impeccable-live-start */}
-        <Script
-          id="impeccable-storage-cleaner"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                Object.keys(localStorage).forEach(k => {
-                  if (k.startsWith('impeccable-live')) {
-                    localStorage.removeItem(k);
-                  }
-                });
-              } catch (e) {}
-            `,
-          }}
-        />
-        <Script
-          src="http://localhost:8403/live.js?token=ac7b7302-47fa-4720-9f3f-309844c8d519"
-          strategy="afterInteractive"
-        />
-        {/* impeccable-live-end */}
       </body>
     </html>
   );
