@@ -3,12 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { addRecord, createEmptyProject, markSaved } from "@/lib/state/project";
+import { useRuntime } from "@/lib/state/StoreProvider";
+import { patchSession } from "@/lib/state/stores";
 
 import { draft, NOW } from "../../../tests/helpers/records";
 import { heldLocks, renderApp } from "../../../tests/helpers/render-app";
 import { ExportScreen } from "./ExportScreen";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/export" }));
+
+function FinishExport() {
+  const runtime = useRuntime();
+  return <button onClick={() => patchSession(runtime.session, { generation: { phase: "done", done: 1, total: 1, bytes: 0, size: 0, result: { pieces: 1, pages: 1, warnings: 0, zip: null } } })}>fin</button>;
+}
 
 const MENU = "https://menu.example.com/tropical";
 function seeded(count: number) {
@@ -64,5 +71,24 @@ describe("paso 3: exportar", () => {
     renderApp(<ExportScreen />, { initialProject: seeded(1), locks: heldLocks });
     expect((await screen.findAllByText(/solo lectura/)).length).toBeGreaterThan(0);
     expect((screen.getByTestId("download-pdf") as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("al terminar abre el cierre del flujo; con cambios sin descargar pide confirmar antes de empezar de nuevo", async () => {
+    const user = userEvent.setup();
+    const dirty = addRecord(seeded(2), draft({ mesa: "M9", menuUrl: `${MENU}?m=9` }), NOW, { id: "r9" }).state;
+    renderApp(<><ExportScreen /><FinishExport /></>, { initialProject: dirty });
+    await screen.findByTestId("export-summary");
+    expect(screen.queryByTestId("next-steps")).toBeNull();
+    await user.click(screen.getByText("fin"));
+    const dialog = await screen.findByRole("dialog", { name: "Exportación completada" });
+    expect(dialog.querySelector('[data-testid="next-editor"]')?.getAttribute("href")).toBe("/editor");
+    expect(dialog.querySelector('[data-testid="next-dashboard"]')?.getAttribute("href")).toBe("/");
+    await user.click(screen.getByTestId("next-new"));
+    expect(await screen.findByRole("dialog", { name: "¿Empezar un proyecto desde cero?" })).toBeTruthy();
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "¿Empezar un proyecto desde cero?" })).toBeNull());
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Exportación completada" })).toBeNull());
+    expect(screen.getByTestId("next-steps")).toBeTruthy();
   });
 });

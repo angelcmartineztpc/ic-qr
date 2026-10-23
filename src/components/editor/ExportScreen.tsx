@@ -23,6 +23,7 @@ import { StepFooter } from "@/components/ui/StepFooter";
 
 import { DownloadProgress } from "./DownloadProgress";
 import { ExportBlockersDialog } from "./ExportBlockersDialog";
+import { ExportNextSteps } from "./ExportNextSteps";
 import { FileNameInput } from "./FileNameInput";
 import { GenerationStatus } from "./GenerationStatus";
 import { PdfViewer } from "./PdfViewer";
@@ -182,6 +183,7 @@ export function ExportScreen() {
           </div>
         }
       />
+      <ExportNextSteps />
       <DownloadProgress actions={exporter} />
       <ExportBlockersDialog actions={exporter} />
     </div>

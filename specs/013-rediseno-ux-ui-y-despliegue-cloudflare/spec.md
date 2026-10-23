@@ -56,3 +56,20 @@ Los links cortos (`/s/{código}`) y los SVG de los QR (`qr/v1/{sha256}.svg`) se 
 2. **Given** un cambio de destino en `LinkDestination` (`PATCH /api/links/{código}`), **When** se vuelve a escanear el mismo QR, **Then** redirige al nuevo link actualizado sin cambiar el QR impreso.
 3. **Given** las pantallas `/preview` y `/export` en Cloudflare Workers, **When** se solicita la vista previa o el PDF, **Then** el servidor traza `Address Sans Pro Cd Semibold` desde el respaldo embebido sin devolver `FONTS_MISSING`.
 
+
+---
+
+### User Story 5 - Cierre del flujo en Exportar (`/export`) (Priority: P2)
+
+Al terminar una exportación (`generation.phase === "done"`), `ExportNextSteps` abre un modal «Exportación completada» y deja en la pantalla una sección «Siguiente paso» (`data-testid="next-steps"`) para reabrirlo con `Ver opciones`. Ofrece cuatro salidas: **Guardar proyecto (.qrproj)**, **Empezar un proyecto nuevo**, **Volver al Editor** (`/editor`) e **Ir al Dashboard** (`/`). La lógica de generación de PDF/SVG no cambia.
+
+- Un solo CTA primario (`#274C69`): «Guardar proyecto» mientras haya cambios sin descargar (`isDirty`); una vez guardado, el primario pasa a «Empezar un proyecto nuevo». Las demás acciones son secundarias (contorno / texto).
+- El modal usa `ModalLayout`: cierra con `Escape` y `✕`, atrapa el foco (MUI Dialog) y no se abre al volver a `/export` con un resultado viejo, solo al terminar una exportación.
+
+**Acceptance Scenarios**:
+
+1. **Given** una exportación recién terminada, **When** se muestra el resultado, **Then** aparece el modal con las cuatro opciones y, al cerrarlo, queda la sección «Siguiente paso».
+2. **Given** cambios sin descargar, **When** se elige «Empezar un proyecto nuevo», **Then** `StartOverDialog` advierte la pérdida del progreso y ofrece descargar el `.qrproj` antes; `Cancelar` o `Escape` no borran nada.
+3. **Given** el proyecto ya guardado, **When** se elige «Empezar un proyecto nuevo», **Then** se limpia el estado y se navega a `/` sin confirmación adicional.
+
+**Pruebas**: `src/components/editor/ExportScreen.test.tsx` (cierre del flujo y confirmación con cambios sin descargar).
