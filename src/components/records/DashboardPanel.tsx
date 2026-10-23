@@ -1,9 +1,11 @@
 "use client";
 
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutlineOutlined";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
@@ -41,6 +43,7 @@ export function DashboardPanel() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [draggingProject, setDraggingProject] = useState(false);
   const [confirmStartOver, setConfirmStartOver] = useState(false);
+  const [showGuide, setShowGuide] = useState(true);
   const hasProject = hydrated && records.length > 0;
 
   const handleOpenFile = (file: File | undefined) => {
@@ -63,10 +66,83 @@ export function DashboardPanel() {
     <div className="flex flex-col gap-5">
       <PersistenceBanners actions={actions} />
 
+      {/* GUÍA RÁPIDA EN INICIO PARA QUE CUALQUIER USUARIO SEPA QUÉ ELEGIR SIN DUDAS */}
+      {showGuide ? (
+        <section
+          aria-label="Guía rápida de inicio"
+          className="rounded-t-[28px] rounded-b-xl border border-divider bg-surface p-4 sm:p-5 shadow-2xs"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-divider pb-3">
+            <div className="flex items-center gap-2">
+              <HelpOutlineIcon color="primary" fontSize="small" />
+              <h2 className="m-0 text-sm font-bold text-foreground">
+                ¿Qué necesitas hacer hoy? Guía rápida para empezar sin dudas
+              </h2>
+            </div>
+            <Button
+              size="small"
+              variant="text"
+              color="inherit"
+              onClick={() => setShowGuide(false)}
+              className="!rounded-full !text-xs !text-muted hover:!text-foreground"
+            >
+              Ocultar guía
+            </Button>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                1
+              </span>
+              <div>
+                <p className="m-0 text-sm font-bold text-foreground">Placas por lote (Mesas / Áreas)</p>
+                <p className="m-0 mt-0.5 text-xs text-muted leading-relaxed">
+                  Si necesitas imprimir placas de 70 × 70 mm para varias mesas, haz clic en <strong>+ Nueva pieza</strong> o <strong>Importar Excel</strong> y sigue los 4 pasos de arriba.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                2
+              </span>
+              <div>
+                <p className="m-0 text-sm font-bold text-foreground">Un solo QR suelto al instante</p>
+                <p className="m-0 mt-0.5 text-xs text-muted leading-relaxed">
+                  Si solo quieres crear un QR rápido (para una web, Wi-Fi, WhatsApp, contacto o correo), entra a <strong>Crear QR Rápido</strong> y descárgalo en segundos.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                3
+              </span>
+              <div>
+                <p className="m-0 text-sm font-bold text-foreground">Revisar un PDF o retomar trabajo</p>
+                <p className="m-0 mt-0.5 text-xs text-muted leading-relaxed">
+                  Usa <strong>Auditar PDF</strong> para verificar que todos los QR de un archivo funcionen antes de mandar a imprenta, o abre un proyecto guardado (<code>.qrproj</code>).
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div className="flex justify-end">
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            startIcon={<HelpOutlineIcon fontSize="small" />}
+            onClick={() => setShowGuide(true)}
+            className="!rounded-full !border-divider !bg-surface !text-xs"
+          >
+            Ver guía rápida de uso
+          </Button>
+        </div>
+      )}
+
       <ViewTransitionStage name="workspace-stage" className="flex flex-col gap-5">
         {hasProject ? (
           <>
-
             <Panel title="Proyecto en curso" label="Proyecto actual" className="rounded-t-[28px] rounded-b-xl bg-surface-subtle/50">
               <div data-testid="continue-card" className="flex flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
@@ -101,7 +177,7 @@ export function DashboardPanel() {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-divider pt-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">Ir directo al paso:</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">Flujo en cuatro pasos · Ir directo al paso:</span>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {STEPS.map((step, idx) => (
                       <Button
@@ -121,9 +197,9 @@ export function DashboardPanel() {
               </div>
             </Panel>
 
-
             <Panel
-              title="Alimentar lote o cambiar de proyecto"
+              title="Otras acciones y herramientas rápidas"
+              description="Agrega más piezas a tu lote actual, genera un código QR suelto al instante o revisa un PDF."
             >
               <div className="overflow-hidden rounded-xl border border-divider bg-surface shadow-sm divide-y divide-divider">
                 {/* Fila 1: Manual */}
@@ -135,9 +211,9 @@ export function DashboardPanel() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-foreground">Agregar pieza</span>
-                        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">Manual</span>
+                        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary">Manual</span>
                       </div>
-                      <p className="mt-0.5 text-xs text-muted">Ingresa Área, Mesa y Link en el editor.</p>
+                      <p className="mt-0.5 text-xs text-muted">Ingresa Área, Mesa y Link una por una en el editor.</p>
                     </div>
                   </div>
                   <Button
@@ -161,9 +237,9 @@ export function DashboardPanel() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-foreground">Importar Excel o CSV</span>
-                        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">Masivo</span>
+                        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">Masivo</span>
                       </div>
-                      <p className="mt-0.5 text-xs text-muted">Carga múltiples filas desde una hoja de cálculo.</p>
+                      <p className="mt-0.5 text-xs text-muted">Carga todas las mesas de golpe desde una tabla de Excel.</p>
                     </div>
                   </div>
                   <Button
@@ -178,7 +254,33 @@ export function DashboardPanel() {
                   </Button>
                 </div>
 
-                {/* Fila 3: Archivo .qrproj */}
+                {/* Fila 3: Crear QR Rápido */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 transition-colors hover:bg-muted/[0.02]">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
+                      <AutoAwesomeOutlinedIcon fontSize="small" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">Crear QR Rápido</span>
+                        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary">Al instante</span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted">Crea un QR individual para web, Wi-Fi, WhatsApp o contacto y descárgalo directo.</p>
+                    </div>
+                  </div>
+                  <Button
+                    component={Link}
+                    href={"/generator" as Route}
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AutoAwesomeOutlinedIcon fontSize="small" />}
+                    className="!rounded-full !px-4 !py-1.5 !text-xs !font-semibold !border-primary !text-primary hover:!bg-primary/5"
+                  >
+                    Crear QR Rápido
+                  </Button>
+                </div>
+
+                {/* Fila 4: Archivo .qrproj */}
                 <div
                   onDragOver={(e) => {
                     if (readOnly) return;
@@ -202,10 +304,10 @@ export function DashboardPanel() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-foreground">Abrir proyecto (.qrproj)</span>
-                        <span className="rounded bg-secondary/10 px-1.5 py-0.5 text-[10px] font-bold text-secondary">Archivo</span>
+                        <span className="text-sm font-semibold text-foreground">Abrir proyecto guardado (.qrproj)</span>
+                        <span className="rounded bg-secondary/10 px-1.5 py-0.5 text-xs font-bold text-secondary">Archivo</span>
                       </div>
-                      <p className="mt-0.5 text-xs text-muted">Restaura un archivo guardado o arrástralo aquí.</p>
+                      <p className="mt-0.5 text-xs text-muted">Retoma un lote que guardaste antes en tu computadora.</p>
                     </div>
                   </div>
                   <Button
@@ -220,7 +322,7 @@ export function DashboardPanel() {
                   </Button>
                 </div>
 
-                {/* Fila 4: Auditar QRs de un PDF */}
+                {/* Fila 5: Auditar QRs de un PDF */}
                 <div className="flex flex-wrap items-center justify-between gap-3 p-4 transition-colors hover:bg-muted/[0.02]">
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400" aria-hidden="true">
@@ -229,9 +331,9 @@ export function DashboardPanel() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-foreground">Auditar QRs desde PDF</span>
-                        <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">Revisión</span>
+                        <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">Revisión</span>
                       </div>
-                      <p className="mt-0.5 text-xs text-muted">Comprueba que cada QR del PDF se lea y abra su página.</p>
+                      <p className="mt-0.5 text-xs text-muted">Sube un PDF para verificar que todos sus códigos QR se lean bien.</p>
                     </div>
                   </div>
                   <Button
@@ -273,7 +375,7 @@ export function DashboardPanel() {
             <EmptyState.Header>
               <EmptyState.Title>Generador de placas QR</EmptyState.Title>
               <EmptyState.Description>
-                Crea piezas de producción con QR vectorial y textos en contornos, listas para imprenta.
+                Crea placas de mesa listas para imprenta paso a paso, o elige una herramienta rápida abajo.
               </EmptyState.Description>
             </EmptyState.Header>
 
@@ -295,7 +397,10 @@ export function DashboardPanel() {
               </Button>
             </EmptyState.PrimaryAction>
 
-            <EmptyState.SecondaryActions label="O cargar un lote existente:">
+            <EmptyState.SecondaryActions label="O elige otra forma de empezar:">
+              <Button component={Link} href={"/generator" as Route} variant="outlined" startIcon={<AutoAwesomeOutlinedIcon />}>
+                Crear QR Rápido
+              </Button>
               <Button component={Link} href={"/import" as Route} variant="outlined" startIcon={<UploadFileIcon />}>
                 Importar Excel
               </Button>

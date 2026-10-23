@@ -1,5 +1,6 @@
 "use client";
 
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import Button from "@mui/material/Button";
@@ -85,6 +86,7 @@ function ProjectBadge() {
 export function AppShell({ children, step }: { children: ReactNode; step?: StepIndex }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isGenerator = pathname === "/generator";
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
@@ -114,6 +116,18 @@ export function AppShell({ children, step }: { children: ReactNode; step?: StepI
             >
               <HomeOutlinedIcon sx={{ fontSize: 16 }} />
               <span>Inicio</span>
+            </Link>
+            <Link
+              href={"/generator" as Route}
+              aria-current={isGenerator ? "page" : undefined}
+              className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold no-underline transition-colors ${
+                isGenerator
+                  ? "bg-primary/12 text-primary ring-1 ring-primary/25"
+                  : "text-muted hover:bg-surface-subtle hover:text-foreground"
+              }`}
+            >
+              <AutoAwesomeOutlinedIcon sx={{ fontSize: 16 }} />
+              <span>Crear QR Rápido</span>
             </Link>
           </div>
           <ProjectBadge />
