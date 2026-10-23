@@ -61,8 +61,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: 38,
-          borderRadius: 8,
-          paddingInline: 14,
+          borderRadius: 999,
+          paddingInline: 18,
           "@media (pointer: coarse)": { minHeight: 44 },
           "&.MuiButton-containedPrimary": {
             backgroundColor: "#274C69",
@@ -146,7 +146,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: 36,
-          borderRadius: 8,
+          borderRadius: 999,
           textTransform: "none",
           fontWeight: 600,
           fontSize: "0.8125rem",
@@ -170,7 +170,7 @@ export const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 999,
           fontWeight: 500,
           "&.MuiChip-filledPrimary": {
             backgroundColor: "#274C69",
@@ -195,6 +195,7 @@ export const theme = createTheme({
       styleOverrides: {
         paper: {
           backgroundImage: "none",
+          borderRadius: 16,
           border: "1px solid var(--mui-palette-divider)",
           ".dark &": {
             backgroundColor: "#1b242e",
@@ -227,7 +228,7 @@ export const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 14,
           backgroundColor: "var(--mui-palette-background-paper)",
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "color-mix(in srgb, var(--mui-palette-text-primary) 16%, transparent)",
@@ -267,7 +268,7 @@ export const theme = createTheme({
     MuiDialog: {
       styleOverrides: {
         paper: {
-          borderRadius: 12,
+          borderRadius: "28px 28px 12px 12px",
           backgroundImage: "none",
           border: "1px solid var(--mui-palette-divider)",
           ".dark &": {

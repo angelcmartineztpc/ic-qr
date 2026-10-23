@@ -24,10 +24,12 @@ export const TilePreview = memo(function TilePreview({ record, detail = "full", 
         // eslint-disable-next-line @next/next/no-img-element -- SVG generado por el servidor; next/image no aporta nada aquí
         <img src={dataUrl(result.svg)} alt={title} className="h-full w-full select-none" draggable={false} />
       ) : error ? (
+
         <div role="alert" className="flex h-full flex-col items-center justify-center gap-1 p-2 text-center text-xs text-error">
           <ErrorIcon fontSize="small" />
           {error}
         </div>
+
       ) : (
         <Skeleton variant="rectangular" className="!h-full !w-full" role="img" aria-label="Cargando vista previa" />
       )}

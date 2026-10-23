@@ -18,7 +18,7 @@ import { useProject, useSession } from "@/lib/state/StoreProvider";
 import { resolveTemplate } from "@/lib/template/resolve";
 import { DEFAULT_QR_STYLE, type QrStyle } from "@/schemas/qr-style";
 import { getTemplate } from "@/templates";
-import type { HexColor } from "@/types";
+import type { HexColor, QRRecord } from "@/types";
 
 import { useEditorActions } from "@/components/editor/useEditorActions";
 import { useUndoRedo } from "@/components/editor/useUndoRedo";
@@ -73,10 +73,31 @@ export function QrStyleScreen() {
   const template = resolved?.success ? resolved.data : base;
 
   // Pieza que se muestra: la actual si su QR se puede estilizar; si no, la primera que sí.
+  // Si ninguna pieza es estirable o aún no hay piezas, se crea una pieza de muestra (SAMPLE_RECORD) para previsualizar la placa con el enlace de ejemplo.
   const index = Math.max(0, records.findIndex((r) => r.id === currentId));
   const current = records[index];
-  const shown = current && isStylable(current) ? current : records.find(isStylable);
-  const payload = (shown && stylablePayload(shown)) || SAMPLE_PAYLOAD;
+  const sampleFallbackRecord = useMemo<QRRecord>(() => {
+    const now = new Date().toISOString();
+    return {
+      id: "preview-sample",
+      area: "Terraza",
+      estacion: "Bar",
+      mesa: "Mesa 1",
+      subgrupo: "",
+      concepto: "",
+      menuUrl: SAMPLE_PAYLOAD,
+      qrStatus: "pending",
+      qr: { source: "none" },
+      order: 0,
+      metadata: { origin: "manual" },
+      validationErrors: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+  }, []);
+
+  const shown = (current && isStylable(current) ? current : records.find(isStylable)) ?? sampleFallbackRecord;
+  const payload = stylablePayload(shown) || SAMPLE_PAYLOAD;
   const matrix = useMemo(() => matrixOf(payload) ?? (matrixOf(SAMPLE_PAYLOAD) as NonNullable<ReturnType<typeof matrixOf>>), [payload]);
   const { result: tile } = useTile(shown);
   const existingCount = records.filter(hasOwnQr).length;
@@ -209,7 +230,7 @@ export function QrStyleScreen() {
         </div>
 
         <div className="order-1 flex flex-col gap-4 lg:sticky lg:top-4 lg:order-2 lg:self-start">
-          <Panel title="Mesa de pruebas en vivo" description="Compara la matriz vectorial aislada y su aplicación real sobre la placa de 70 × 70 mm." className="rounded-t-2xl rounded-b-xl">
+          <Panel title="Mesa de pruebas en vivo" description="Compara la matriz vectorial aislada y su aplicación real sobre la placa de 70 × 70 mm." className="rounded-t-[28px] rounded-b-xl">
             <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 sm:grid-cols-2">
               <figure className="m-0 flex flex-col gap-2">
                 <div className="flex aspect-square w-full items-center justify-center rounded-xl border border-divider bg-background p-4">
@@ -219,9 +240,11 @@ export function QrStyleScreen() {
                 <figcaption className="text-center text-xs font-medium text-muted">Matriz QR vectorial</figcaption>
               </figure>
               <figure className="m-0 flex flex-col gap-2">
+
                 <div className="rounded-xl border border-divider bg-background p-2">
                   {shown ? <TilePreview record={shown} /> : <div className="aspect-square rounded bg-background" />}
                 </div>
+
                 <figcaption className="text-center text-xs font-medium text-muted">En placa (70 × 70 mm)</figcaption>
               </figure>
             </div>

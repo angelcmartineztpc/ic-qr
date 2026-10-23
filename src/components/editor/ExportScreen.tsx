@@ -140,7 +140,7 @@ export function ExportScreen() {
         <Panel
           title="Vista previa del pliego PDF"
           description="Representación exacta de las hojas de producción y la imposición de cada placa vectorial."
-          className="self-start rounded-t-2xl rounded-b-xl lg:sticky lg:top-6"
+          className="self-start rounded-t-[28px] rounded-b-xl lg:sticky lg:top-6"
           label="Hojas del PDF"
         >
           <PdfViewer tile={template.tile} options={exportOptions.pdf} records={included} />

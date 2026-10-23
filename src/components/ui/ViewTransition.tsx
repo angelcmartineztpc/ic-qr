@@ -43,7 +43,11 @@ export function ViewTransitionStage({ name = "workspace-stage", className, child
  * respetando `prefers-reduced-motion: reduce` y degradando limpiamente a `React.startTransition` en tests/SSR.
  */
 export function runViewTransition(update: () => void): void {
-  if (typeof document !== "undefined" && "startViewTransition" in document) {
+  if (
+    typeof document !== "undefined" &&
+    "startViewTransition" in document &&
+    document.visibilityState !== "hidden"
+  ) {
     const prefersReduced =
       typeof window !== "undefined" &&
       typeof window.matchMedia === "function" &&
@@ -51,9 +55,21 @@ export function runViewTransition(update: () => void): void {
 
     if (!prefersReduced) {
       try {
-        (document as Document & { startViewTransition(cb: () => void): unknown }).startViewTransition(() => {
+        const transition = (
+          document as Document & {
+            startViewTransition(cb: () => void): { finished?: Promise<void>; ready?: Promise<void> };
+          }
+        ).startViewTransition(() => {
           startTransition(update);
         });
+
+        // Evitar Uncaught InvalidStateError si el documento se oculta mientras la transición está en vuelo
+        if (transition && typeof transition.finished?.catch === "function") {
+          transition.finished.catch(() => {});
+        }
+        if (transition && typeof transition.ready?.catch === "function") {
+          transition.ready.catch(() => {});
+        }
         return;
       } catch {
         // Fallback inmediato si startViewTransition falla en este contexto

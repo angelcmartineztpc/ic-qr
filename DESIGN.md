@@ -61,6 +61,10 @@ Industrial precision workbench aesthetic on warm stone paper (`#F5F6F4`) with sl
 - **Color palette:** primary (`#274C69`), secondary (`#8A5A19`), surface (`#FFFFFF`), background (`#F5F6F4`), ink (`#000000`), success (`#16A34A`), warning (`#9A4F00`), danger (`#DC2626`)
 - **Spacing scale:** 4/8/12/16/24/32
 
+## Shape language (todo el sitio)
+
+Una sola forma, tomada de la pantalla de auditoría: contenedores (`Panel`, `EmptyState`, diálogos, tarjetas) con esquina superior grande (28 px) e inferior pequeña (12 px); botones, chips y selectores en píldora; campos de texto a 14 px; métricas en bento con una esquina grande distinta por tarjeta. El estado nunca va solo en color (icono + texto). Se define en `theme.ts`, `Panel` y `EmptyState`; no se vuelvan a escribir radios sueltos.
+
 ## Colors
 
 - **Primary (#274C69):** Deep slate blue for primary CTAs, active step indicators, and focus rings.

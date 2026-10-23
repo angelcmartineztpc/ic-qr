@@ -7,7 +7,7 @@ export default function DashboardPage() {
     <AppShell>
       <StepHeader
         title="Piezas de producción"
-        description="Prepara lotes de placas vectoriales de 70 × 70 mm con códigos QR reutilizables, listas para abrir en Illustrator o enviar a impresión."
+        description="Generación de placas con códigos QR listas para impresión."
       />
       <DashboardPanel />
     </AppShell>

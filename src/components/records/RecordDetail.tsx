@@ -80,7 +80,7 @@ export function RecordDetail({ record, position, total, readOnly, actions, catal
   return (
     <section
       aria-label="Pieza seleccionada"
-      className="overflow-hidden rounded-t-2xl rounded-b-xl border border-divider bg-surface shadow-xs"
+      className="overflow-hidden rounded-t-[28px] rounded-b-xl border border-divider bg-surface shadow-xs"
     >
       {/* Cabecera del inspector: navegación rápida a la izquierda, CTA primario Editar + iconos cuadrados con tooltip a la derecha */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider bg-background/60 px-4 py-2.5 sm:px-5">

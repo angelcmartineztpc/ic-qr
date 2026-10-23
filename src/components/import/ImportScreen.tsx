@@ -105,34 +105,75 @@ export function ImportScreen() {
       ) : null}
 
       {imp.status === "idle" || imp.status === "error" ? (
-        <div className="grid items-start gap-6 lg:grid-cols-[1.25fr_0.95fr]">
-          <Panel
-            title="1. Sube tu archivo Excel o CSV"
-            label="Paso principal"
-            description="Arrastra tu hoja .xlsx o .csv. Reconocemos automáticamente Área, Estación, Mesa, Sub-grupo, Concepto y Link del menú."
-          >
-            <ExcelUploader disabled={readOnly || !hydrated} onFile={(file) => void actions.start(file, defaultMenu)} />
-          </Panel>
 
-          <Panel
-            title="2. Link de respaldo para filas vacías"
-            label="Opcional · Antes de subir"
-            description="Solo si tu archivo no incluye la columna «Link del menú» o tiene celdas vacías, asignaremos este enlace por defecto."
-            className="bg-background/50"
-          >
-            <ResortLinkPicker disabled={readOnly || !hydrated} onPick={setDefaultMenu} />
-            <TextField
-              size="small"
-              label="Link del menú para las filas que no lo traen (opcional)"
-              helperText="Si tu Excel ya trae los enlaces, puedes ignorar esta sección."
-              placeholder="https://menu.ejemplo.com/hotel"
-              value={defaultMenu}
-              onChange={(e) => setDefaultMenu(e.target.value)}
-              type="url"
-              slotProps={{ htmlInput: { autoComplete: "off", inputMode: "url" } }}
-            />
-          </Panel>
+
+        <div className="rounded-2xl border border-divider bg-surface shadow-md overflow-hidden">
+          <div className="border-b border-divider bg-surface-subtle/50 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="m-0 text-sm font-bold text-foreground">Importador de Lote de Producción</h3>
+              <p className="m-0 text-xs text-muted">Carga hasta 5,000 registros vectoriales de una sola vez.</p>
+            </div>
+            <span className="rounded-full border border-divider bg-surface px-3 py-1 text-xs font-semibold text-muted">
+              2 pasos rápidos
+            </span>
+          </div>
+          <div className="p-6 grid items-stretch gap-6 md:grid-cols-2">
+            <div className="flex flex-col justify-between rounded-xl border-2 border-primary/30 bg-surface-subtle/20 p-5 shadow-sm transition-all hover:border-primary/50">
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white shadow-sm">1</span>
+                    <div>
+                      <span className="text-sm font-bold text-foreground block">Carga de Datos</span>
+                      <span className="text-[11px] text-muted block">Excel o CSV con áreas y mesas</span>
+                    </div>
+                  </div>
+                  <span className="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">Obligatorio</span>
+                </div>
+              </div>
+              <ExcelUploader disabled={readOnly || !hydrated} onFile={(file) => void actions.start(file, defaultMenu)} />
+            </div>
+
+            <div className="flex flex-col justify-between rounded-xl border-2 border-primary/30 bg-surface-subtle/20 p-5 shadow-sm transition-all hover:border-primary/50">
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-subtle text-xs font-bold text-foreground border border-divider">2</span>
+                    <div>
+                      <span className="text-sm font-bold text-foreground block">Destino de Menú</span>
+                      <span className="text-[11px] text-muted block">Enlace fallback si no viene en el archivo</span>
+                    </div>
+                  </div>
+                  <span className="rounded bg-surface-subtle px-2 py-0.5 text-[10px] font-medium text-muted border border-divider">Opcional</span>
+                </div>
+
+                <div className="space-y-3 mt-4">
+                  <div>
+                    <span className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1">Catálogo del Resort</span>
+                    <ResortLinkPicker disabled={readOnly || !hydrated} onPick={setDefaultMenu} />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1">O Link Manual</span>
+                    <TextField
+                      size="small"
+                      placeholder="https://menu.ejemplo.com/hotel"
+                      value={defaultMenu}
+                      onChange={(e) => setDefaultMenu(e.target.value)}
+                      type="url"
+                      fullWidth
+                      slotProps={{ htmlInput: { autoComplete: "off", inputMode: "url" } }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-divider/40 text-[11px] text-muted">
+                💡 Los QR generados usarán este destino cuando no se especifique URL propia.
+              </div>
+            </div>
+          </div>
         </div>
+
+
       ) : null}
 
       {result && mappingNeeded && imp.status === "review" ? (

@@ -1,0 +1,259 @@
+{
+  "id": "42ec520b",
+  "phase": "generating",
+  "pageUrl": "/style",
+  "sourceFile": "src/components/preview/TilePreview.tsx",
+  "previewFile": null,
+  "previewMode": null,
+  "expectedVariants": 3,
+  "arrivedVariants": 0,
+  "visibleVariant": 0,
+  "paramValues": {},
+  "pendingEventSeq": null,
+  "pendingEvent": null,
+  "deliveryLease": null,
+  "checkpointRevision": 113,
+  "browserCheckpointRevision": 113,
+  "publicationCheckpointRevision": 0,
+  "activeOwner": "1b09bfcc",
+  "sourceMarkers": {},
+  "fallbackMode": null,
+  "generationPhase": "generation_ready",
+  "generationCompletedAt": 1792526285802,
+  "generationTimings": {
+    "picked_up": {
+      "at": 1792526232183,
+      "durationMs": null
+    },
+    "scaffolding": {
+      "at": 1792526232183,
+      "durationMs": null
+    },
+    "source_ready": {
+      "at": 1792526236314,
+      "durationMs": 4130.561458000913
+    },
+    "generation_ready": {
+      "at": 1792526236314,
+      "durationMs": null
+    }
+  },
+  "variantPlan": null,
+  "generationCanceled": false,
+  "generationCanceledAt": null,
+  "cancelReason": null,
+  "annotationArtifacts": [],
+  "mountedVariants": [],
+  "mountFailures": [],
+  "renderState": "pending",
+  "diagnostics": [
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 1,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 2,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 3,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 4,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 5,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 6,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 7,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 8,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 9,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 10,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 11,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 12,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 13,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 14,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 1,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 2,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 3,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 4,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 5,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 6,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 7,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 8,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 9,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 10,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 11,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 12,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 13,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 14,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 15,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 16,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 17,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 18,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 19,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 20,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 21,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 22,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 23,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 24,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 25,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 26,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 27,
+      "revisionDomain": "browser"
+    }
+  ],
+  "updatedAt": "2026-10-20T19:59:59.111Z",
+  "__journalBytes": 79098,
+  "__nextSeq": 165
+}

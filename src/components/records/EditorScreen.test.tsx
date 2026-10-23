@@ -56,7 +56,7 @@ describe("builder — estado vacío (First-Use Empty State M3)", () => {
     expect(await screen.findByTestId("first-use-empty-state")).toBeTruthy();
     expect(screen.queryByTestId("continue-card")).toBeNull();
     // 1 clic en el CTA primario del First-Use Empty State abre directamente el modal de creación
-    await user.click(within(screen.getByTestId("first-use-empty-state")).getByRole("link", { name: "+ Agregar nuevo" }));
+    await user.click(within(screen.getByTestId("first-use-empty-state")).getByRole("link", { name: "+ Nueva pieza" }));
     expect(await screen.findByRole("dialog", { name: "Agregar nueva pieza" })).toBeTruthy();
   });
 

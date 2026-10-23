@@ -214,7 +214,7 @@ export function PreviewScreen() {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_24.5rem]">
         <section aria-label="Composición" className="flex flex-col gap-3">
-          <div className="flex flex-col overflow-hidden rounded-t-2xl rounded-b-xl border border-divider bg-surface shadow-xs">
+          <div className="flex flex-col overflow-hidden rounded-t-[28px] rounded-b-xl border border-divider bg-surface shadow-xs">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider bg-background/60 px-4 py-2">
               <div className="flex flex-wrap items-center gap-4">
                 <FormControlLabel

@@ -17,7 +17,7 @@ function Root({ className = "", children, ...rest }: EmptyStateRootProps) {
   return (
     <section
       {...rest}
-      className={`flex flex-col items-center gap-5 rounded-t-2xl rounded-b-xl border border-divider bg-surface px-6 py-10 text-center shadow-2xs sm:px-10 sm:py-12 ${className}`.trim()}
+      className={`flex flex-col items-center gap-5 rounded-t-[28px] rounded-b-xl border border-divider bg-surface px-6 py-10 text-center shadow-2xs sm:px-10 sm:py-12 ${className}`.trim()}
     >
       {children}
     </section>

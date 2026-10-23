@@ -1,0 +1,69 @@
+{
+  "id": "2e54036a",
+  "phase": "discarded",
+  "pageUrl": "/style",
+  "sourceFile": "src/components/qr-style/QrStyleScreen.tsx",
+  "previewFile": null,
+  "previewMode": null,
+  "expectedVariants": 3,
+  "arrivedVariants": 3,
+  "visibleVariant": 0,
+  "paramValues": {},
+  "pendingEventSeq": null,
+  "pendingEvent": null,
+  "deliveryLease": null,
+  "checkpointRevision": 13,
+  "browserCheckpointRevision": 13,
+  "publicationCheckpointRevision": 0,
+  "activeOwner": "89e06285",
+  "sourceMarkers": {},
+  "fallbackMode": null,
+  "generationPhase": "generation_ready",
+  "generationCompletedAt": 1792526166450,
+  "generationTimings": {
+    "picked_up": {
+      "at": 1792526046062,
+      "durationMs": null
+    },
+    "scaffolding": {
+      "at": 1792526046063,
+      "durationMs": null
+    },
+    "source_ready": {
+      "at": 1792526050414,
+      "durationMs": 4351.253750000149
+    },
+    "generation_ready": {
+      "at": 1792526050415,
+      "durationMs": null
+    }
+  },
+  "variantPlan": null,
+  "generationCanceled": true,
+  "generationCanceledAt": 1792526184169,
+  "cancelReason": "discard",
+  "annotationArtifacts": [],
+  "mountedVariants": [],
+  "mountFailures": [],
+  "renderState": "pending",
+  "diagnostics": [
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 1,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 2,
+      "revisionDomain": "browser"
+    },
+    {
+      "error": "stale_checkpoint_ignored",
+      "revision": 3,
+      "revisionDomain": "browser"
+    }
+  ],
+  "updatedAt": "2026-10-20T19:56:24.345Z",
+  "__journalBytes": 12065,
+  "__nextSeq": 15
+}

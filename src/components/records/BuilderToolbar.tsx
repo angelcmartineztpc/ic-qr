@@ -45,29 +45,14 @@ const SORTS: Array<{ key: SortKey; label: string }> = [
   { key: "sourceRow", label: "Fila de Excel" },
 ];
 
+/** Solo para lectores de pantalla: ya no se guarda nada en el navegador, así que no hay indicador visible de guardado. */
 function SaveStatus({ hasPieces }: { hasPieces: boolean }) {
-  const status = useSession((s) => s.persistence.status);
   const dirty = useProject((p) => isDirty(p));
-  if (!hasPieces && status !== "saving") return null;
+  if (!dirty || !hasPieces) return null;
   return (
-    <div className="flex flex-wrap items-center gap-1.5" aria-live="polite">
-      {status === "saving" ? (
-        <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-divider bg-background/70 px-3 text-xs font-medium text-muted">
-          <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-          <span>Guardando…</span>
-        </span>
-      ) : status === "ok" && hasPieces ? (
-        <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-divider bg-background/70 px-3 text-xs font-medium text-muted">
-          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-          <span>Guardado en este navegador</span>
-        </span>
-      ) : null}
-      {dirty && hasPieces ? (
-        <span data-testid="dirty-chip" className="sr-only">
-          Cambios sin descargar
-        </span>
-      ) : null}
-    </div>
+    <span data-testid="dirty-chip" className="sr-only">
+      Cambios sin descargar
+    </span>
   );
 }
 

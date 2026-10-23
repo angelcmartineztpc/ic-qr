@@ -20,7 +20,7 @@ export interface StartOverDialogProps {
 
 /**
  * Modal de confirmación para «Empezar de nuevo / Nuevo proyecto».
- * Sigue el estándar Material 3 Expressive (`rounded-t-2xl rounded-b-xl`),
+ * Sigue el estándar Material 3 Expressive (`rounded-t-[28px] rounded-b-xl`),
  * informa qué ocurre con el proyecto actual en el navegador y ofrece guardar respaldo `.qrproj` antes de limpiar.
  */
 export function StartOverDialog({

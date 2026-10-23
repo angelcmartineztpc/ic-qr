@@ -12,7 +12,7 @@ import type { PreviewResponse } from "@/schemas/preview";
 import type { ProjectState } from "@/types";
 
 import { EditorHistory } from "./history";
-import { createIdbStore } from "./idb";
+import { clearLegacyStore, noStore } from "./idb";
 import { clearLastImport, loadLastImport, saveLastImport, type LastImport } from "./last-import";
 import { createAutosaver, loadProject, type KeyValueStore } from "./persistence";
 import { createEmptyProject, isDirty, orderedRecords } from "./project";
@@ -76,8 +76,12 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
   }));
 
   useEffect(() => {
-    const store = kv ?? createIdbStore();
-    const writerLocks = locks === undefined ? (typeof navigator !== "undefined" && window.isSecureContext ? (navigator.locks as unknown as LockManagerLike | undefined) : undefined) : (locks ?? undefined);
+    // Sin `kv` (la app real) no se guarda nada en el navegador: cada visita empieza limpia y el archivo .qrproj es la forma de conservar un proyecto.
+    // Tampoco hace falta un único escritor entre pestañas. `kv` solo lo inyectan las pruebas de persistencia.
+    const persist = kv !== undefined;
+    if (!persist) void clearLegacyStore();
+    const store = kv ?? noStore;
+    const writerLocks = !persist ? undefined : locks === undefined ? (typeof navigator !== "undefined" && window.isSecureContext ? (navigator.locks as unknown as LockManagerLike | undefined) : undefined) : (locks ?? undefined);
     let disposed = false;
 
     const saver = createAutosaver(store, {

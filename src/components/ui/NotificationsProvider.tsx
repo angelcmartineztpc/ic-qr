@@ -21,7 +21,7 @@ export type NotificationSeverity = "success" | "info" | "warning" | "error";
  * del mismo grupo, para que secuencias como "PDF generado → Descarga iniciada →
  * PDF descargado" no se acumulen.
  */
-export type NotificationGroup = "export" | "qr-batch" | "import" | "persistence" | "records";
+export type NotificationGroup = "export" | "qr-batch" | "import" | "persistence" | "records" | "audit";
 
 export interface NotifyOptions {
   message: string;
