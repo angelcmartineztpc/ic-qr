@@ -85,11 +85,13 @@ export const EnvSchema = z
     EXPORT_MAX_BODY_BYTES: int(8_388_608, 1024),
     EXPORT_MAX_CONCURRENCY: int(2, 1),
     EXPORT_TIMEOUT_MS: int(60_000, 1000),
-    RATE_LIMIT_RESOLVE_PER_MIN: int(30, 1),
+    RATE_LIMIT_RESOLVE_PER_MIN: int(240, 1),
     RATE_LIMIT_IMPORT_PER_MIN: int(10, 1),
     RATE_LIMIT_EXPORT_PER_MIN: int(6, 1),
     RATE_LIMIT_ASSET_PER_MIN: int(300, 1),
     RATE_LIMIT_PREVIEW_PER_MIN: int(600, 1),
+    // Acortar links del menú: 5000 filas = hasta 200 sub-lotes de 25.
+    RATE_LIMIT_LINKS_PER_MIN: int(240, 1),
 
     // Variables de proxy de salida: solo se leen para la regla de arranque.
     HTTP_PROXY: z.string().optional(),

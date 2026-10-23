@@ -9,7 +9,11 @@ export const metadata: Metadata = { title: "Piezas" };
 export default function EditorPage() {
   return (
     <AppShell step={0}>
-      <StepHeader step={0} title="Tus piezas" description="Agrega las piezas una a una o impórtalas desde un Excel o CSV. Cada una lleva su QR; revisa que todo esté bien antes de pasar al diseño." />
+      <StepHeader
+        step={0}
+        title="Tus piezas"
+        description="Revisa el arte de cada placa, edita sus textos o importa un lote desde Excel. El estilo y la composición ya vienen listos para imprenta: puedes personalizarlos o saltar directo a exportar."
+      />
       <EditorScreen />
     </AppShell>
   );

@@ -9,8 +9,37 @@
 /* Sin el preflight de Tailwind: CssBaseline de MUI hace el reset (evita dos resets). */
 
 /*
- * Tokens: el tema MUI (cssVariables: true) es la única fuente. Tailwind solo
- * los referencia, para que layout y componentes compartan valores.
+ * Tokens de superficie e identidad corporativa (Modo Claro vs. Modo Oscuro Tonal M3):
+ * - Color primario corporativo: #274C69 (RGB 39, 76, 105)
+ * - Variante luminosa en modo oscuro (focos, textos de acento, iconos): #6B9BC3 (contraste >= 6.4:1 WCAG AA sobre #121920)
+ * - Superficies oscuras teñidas: base #0a0e12, paneles #121920, elevadas/hover #1b242e
+ */
+:root {
+  --color-brand-solid: #274C69;
+  --color-brand-accent: #274C69;
+  --color-focus-ring: #274C69;
+  --surface-base: #f4f5f7;
+  --surface-panel: #ffffff;
+  --surface-subtle-token: #eef1f5;
+  --surface-elevated-token: #ffffff;
+  --border-subtle-token: rgba(15, 23, 42, 0.09);
+  --border-strong-token: rgba(15, 23, 42, 0.16);
+}
+
+.dark {
+  --color-brand-solid: #274C69;
+  --color-brand-accent: #6B9BC3;
+  --color-focus-ring: #6B9BC3;
+  --surface-base: #0a0e12;
+  --surface-panel: #121920;
+  --surface-subtle-token: #161f28;
+  --surface-elevated-token: #1b242e;
+  --border-subtle-token: rgba(255, 255, 255, 0.08);
+  --border-strong-token: rgba(107, 155, 195, 0.28);
+}
+
+/*
+ * Tokens: el tema MUI (cssVariables: true) y las variables semánticas comparten valores.
  * Breakpoints iguales a los de MUI (xs <600, sm 600, md 900, lg 1200, xl 1536).
  */
 @theme inline {
@@ -22,22 +51,38 @@
   /* --spacing se queda en 4px (Tailwind): MUI spacing(1) = 8px = utilidad "2". */
   --font-sans: var(--font-ui), system-ui, sans-serif;
 
-  --color-background: var(--mui-palette-background-default);
-  --color-surface: var(--mui-palette-background-paper);
+  --color-background: var(--mui-palette-background-default, var(--surface-base));
+  --color-surface: var(--mui-palette-background-paper, var(--surface-panel));
+  --color-surface-subtle: var(--surface-subtle-token);
+  --color-surface-elevated: var(--surface-elevated-token);
   --color-foreground: var(--mui-palette-text-primary);
   --color-muted: var(--mui-palette-text-secondary);
-  --color-divider: var(--mui-palette-divider);
-  --color-primary: var(--mui-palette-primary-main);
+  --color-divider: var(--mui-palette-divider, var(--border-subtle-token));
+  --color-border-subtle: var(--border-subtle-token);
+  --color-border-strong: var(--border-strong-token);
+  /* En modo claro #274C69; en modo oscuro #6B9BC3 para que textos/iconos `text-primary` y bordes `border-primary` tengan contraste WCAG AA sobre #121920, mientras los botones sólidos usan #274C69. */
+  --color-primary: var(--color-brand-accent);
+  --color-primary-solid: var(--color-brand-solid);
   --color-error: var(--mui-palette-error-main);
   --color-warning: var(--mui-palette-warning-main);
   --color-success: var(--mui-palette-success-main);
+}
+
+/* Transiciones de vista entre First-Use Empty State y el proyecto activo (Material Design 3 standard easing). */
+::view-transition-old(workspace-stage),
+::view-transition-new(workspace-stage) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* Respeta la preferencia de movimiento reducido del sistema. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after {
+  *::after,
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
@@ -53,8 +98,8 @@
   z-index: 2000;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  background: var(--mui-palette-primary-main);
-  color: var(--mui-palette-primary-contrastText);
+  background: var(--color-brand-solid, #274C69);
+  color: #ffffff;
   text-decoration: none;
   font-weight: 500;
   transition: top 150ms ease-out;
@@ -65,25 +110,35 @@
 
 /*
  * Foco del teclado visible en TODOS los controles (WCAG 2.4.7 / 2.4.13). Va sin capa
- * a propósito: las reglas de MUI (capa mui) ponen `outline: 0` en botones y toggles y
+ * a propósito: las reglas de MUI (capa mui) ponen `outline: 0` en botones, chips y toggles y
  * ganarían a una regla dentro de una capa.
+ * - Modo claro: #274C69 (RGB 39, 76, 105)
+ * - Modo oscuro: #6B9BC3 (variante luminosa del mismo tono para alto contraste sobre #0a0e12 / #121920)
  */
-:focus-visible {
-  outline: 3px solid var(--mui-palette-primary-main);
-  outline-offset: 2px;
+:focus-visible,
+.MuiButtonBase-root:focus-visible,
+.MuiChip-root:focus-visible,
+.MuiIconButton-root:focus-visible,
+.MuiToggleButton-root:focus-visible,
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="radio"]:focus-visible {
+  outline: 3px solid var(--color-focus-ring, #274C69) !important;
+  outline-offset: 2px !important;
 }
 /* Los campos de texto ya marcan el foco con el borde grueso del contorno; no se duplica. */
 .MuiInputBase-input:focus-visible {
-  outline: none;
+  outline: none !important;
 }
 /* El input del interruptor es invisible: el contorno se dibuja en el interruptor completo. */
 .MuiSwitch-root:has(input:focus-visible) {
-  outline: 3px solid var(--mui-palette-primary-main);
-  outline-offset: 2px;
+  outline: 3px solid var(--color-focus-ring, #274C69) !important;
+  outline-offset: 2px !important;
   border-radius: 999px;
 }
 .MuiSwitch-root input:focus-visible {
-  outline: none;
+  outline: none !important;
 }
 
 /* El pie fijo del paso no debe tapar el control que recibe el foco al navegar con Tab. */

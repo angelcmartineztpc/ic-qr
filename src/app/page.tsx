@@ -5,7 +5,10 @@ import { StepHeader } from "@/components/ui/StepHeader";
 export default function DashboardPage() {
   return (
     <AppShell>
-      <StepHeader title="Piezas de producción" description="Crea piezas con su QR, ajusta su diseño y genera un PDF vectorial listo para Illustrator, en tres pasos: Piezas, Diseño y Exportar." />
+      <StepHeader
+        title="Piezas de producción"
+        description="Generación de placas con códigos QR listas para impresión."
+      />
       <DashboardPanel />
     </AppShell>
   );

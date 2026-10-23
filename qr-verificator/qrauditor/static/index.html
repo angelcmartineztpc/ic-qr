@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR Auditor</title>
+<meta name="description" content="Audita cientos de códigos QR de un PDF en segundos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#results">Saltar a resultados</a>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true"></span><h1>QR Auditor</h1></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Cambiar tema claro/oscuro">◐</button>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <h2 id="hero-title">Cientos de QR,<br>una sola pasada.</h2>
+    <p>Sube un PDF. Leemos cada código, abrimos cada enlace y te decimos cuáles fallan.</p>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="application/pdf">
+      <span class="drop-icon" aria-hidden="true">⬆</span>
+      <span class="drop-title" id="drop-title">Elige un PDF o arrástralo aquí</span>
+      <span class="drop-hint">Hasta 200 MB · Se procesa en tu equipo, no se guarda</span>
+    </label>
+    <p class="error" id="error" role="alert" hidden></p>
+  </section>
+
+  <section class="verdict" id="verdict" hidden aria-live="polite">
+    <div class="verdict-icon" aria-hidden="true"><span id="v-icon">…</span></div>
+    <div class="verdict-text">
+      <h2 id="v-title">Preparando…</h2>
+      <p id="v-sub"></p>
+      <div class="bar" role="progressbar" aria-label="Progreso de la revisión" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar"><span id="bar-fill"></span></div>
+    </div>
+  </section>
+
+  <section class="metrics" id="metrics" aria-label="Resumen" hidden>
+    <article class="m m-ok"><span class="m-label">Funcionan</span><strong id="m-ok">0</strong></article>
+    <article class="m m-err"><span class="m-label">Necesitan revisión</span><strong id="m-err">0</strong></article>
+    <article class="m m-total"><span class="m-label">Total revisados</span><strong id="m-total">0</strong></article>
+  </section>
+
+  <section class="results" id="results" aria-labelledby="res-title" hidden>
+    <div class="res-head">
+      <h2 id="res-title">Tus QR</h2>
+      <div class="actions">
+        <a class="btn tonal" id="dl-xlsx" aria-disabled="true" download>Descargar Excel</a>
+        <a class="btn tonal" id="dl-csv" aria-disabled="true" download>CSV</a>
+      </div>
+    </div>
+    <div class="chips" role="group" aria-label="Filtrar">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">Todos <span id="c-all"></span></button>
+      <button class="chip" type="button" data-f="bad" aria-pressed="false">Con problemas <span id="c-bad"></span></button>
+      <button class="chip" type="button" data-f="good" aria-pressed="false">Funcionan <span id="c-good"></span></button>
+    </div>
+    <ul class="grid" id="grid"></ul>
+    <p class="empty" id="empty" hidden></p>
+    <button class="btn tonal more" id="more" type="button" hidden>Mostrar más</button>
+  </section>
+</main>
+<script src="app.js" type="module"></script>
+</body>
+</html>

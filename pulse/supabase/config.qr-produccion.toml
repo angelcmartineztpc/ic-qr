@@ -1,0 +1,42 @@
+# Fragmento para fusionar en supabase/config.toml de PULSE (no sustituye al archivo existente).
+#
+# verify_jwt = false en TODAS: el JWT se valida en el código (`_shared/auth.ts`: Auth `getUser` + rol con
+# `qr_tiene_acceso()`), y tres rutas son públicas a propósito (redirect de links cortos, links estables y el SVG de cada QR:
+# los abre quien escanea, sin sesión). Con verify_jwt = true el gateway las rechazaría.
+#
+# import_map: resuelve `@/services/qr-produccion/` hacia ../../src/services/qr-produccion/ (la lógica pura se comparte, no se copia).
+
+[functions.qr-resolver]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+
+[functions.qr-exportar]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+
+[functions.qr-importar-excel]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+
+[functions.qr-enlaces]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+
+[functions.qr-estable]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+
+[functions.qr-vista-previa]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"
+
+[functions.qr-logo]
+enabled = true
+verify_jwt = false
+import_map = "./functions/import_map.json"

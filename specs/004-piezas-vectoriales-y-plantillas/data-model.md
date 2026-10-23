@@ -22,8 +22,8 @@ Líneas de texto de `tropical-table` (`TextElement`, todas con `color #000000`, 
 | `area` | `{{area}}` (mayúsculas) | 17 | −50 | 0 | shrink, mínimo 10 pt |
 | `label` | `MESA – TABLE` | 11 | −40 | 2.268 | none |
 | `mesa` | `{{mesa}}` (mayúsculas) | 22 | −50 | 1.695 | shrink, mínimo 12 pt |
-| `ctaEs` | `CONSULTA EL MENU Y ORDENA EN LÍNEA` | 13.2 | −25 | 5.036 | shrink, mínimo 10 pt |
-| `ctaEn` | `LOOK AT THE MENU AN ORDER ON LINE` | 13.2 | −25 | 1.54 | shrink, mínimo 10 pt |
+| `ctaEs` | `CONSULTA EL MENÚ Y ORDENA EN LÍNEA` | 13.2 | −25 | 5.036 | shrink, mínimo 10 pt |
+| `ctaEn` | `LOOK AT THE MENU AND ORDER ON LINE` | 13.2 | −25 | 1.54 | shrink, mínimo 10 pt |
 
 Campos enlazables en `text`: `{{area}}`, `{{estacion}}`, `{{mesa}}`, `{{subgrupo}}`, `{{concepto}}`, `{{menuUrl}}`. `hideWhenEmpty` es `true` por defecto.
 

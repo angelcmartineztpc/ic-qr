@@ -1,115 +1,77 @@
 ---
 name: QR Production Generator
-description: Herramienta de producción interna para armar placas con QR y exportar PDF vectorial.
 colors:
-  forest-green: "#1f5c4d"
-  bronze: "#8a5a19"
-  burnt-amber: "#9a4f00"
-  paper-mist: "#f5f6f4"
-  white-sheet: "#ffffff"
-  ink-muted: "rgba(0, 0, 0, 0.68)"
+  primary: "#274C69"
+  secondary: "#8A5A19"
+  success: "#16A34A"
+  warning: "#9A4F00"
+  danger: "#DC2626"
+  surface: "#FFFFFF"
+  background: "#F5F6F4"
+  text: "#111827"
+  ink: "#000000"
+  neutral: "#FFFFFF"
 typography:
-  body:
-    fontFamily: "Gotham, system-ui, sans-serif"
-    fontWeight: 400
-  headline:
-    fontFamily: "Gotham, system-ui, sans-serif"
-    fontWeight: 700
-  label:
-    fontFamily: "Gotham, system-ui, sans-serif"
-    fontWeight: 500
+  h1:
+    fontFamily: "var(--font-ui)"
+    fontSize: 2.125rem
+  h2:
+    fontFamily: "var(--font-ui)"
+    fontSize: 1.75rem
+  h3:
+    fontFamily: "var(--font-ui)"
+    fontSize: 1.25rem
+  subtitle:
+    fontFamily: "var(--font-ui)"
+    fontSize: 1.125rem
+  body-md:
+    fontFamily: "var(--font-ui)"
+    fontSize: 1rem
+  body-sm:
+    fontFamily: "var(--font-ui)"
+    fontSize: 0.875rem
+  label-caps:
+    fontFamily: "var(--font-ui)"
+    fontSize: 0.75rem
+  sourceScale: "12/14/16/18/20/24/28/30/34"
+  weights: "300, 400, 500, 600, 700"
 rounded:
-  md: "8px"
+  sm: 4px
+  md: 8px
+  lg: 12px
+  pill: 999px
 spacing:
-  unit: "8px"
-components:
-  button-primary:
-    backgroundColor: "{colors.forest-green}"
-    textColor: "{colors.white-sheet}"
-    rounded: "{rounded.md}"
-    height: "40px"
+  sm: 4px
+  md: 8px
+  lg: 16px
+  xl: 24px
+  sourceScale: "4/8/12/16/24/32"
 ---
-
-# Design System: QR Production Generator
 
 ## Overview
 
-**Creative North Star: "El taller ordenado"**
+Industrial precision workbench aesthetic on warm stone paper (`#F5F6F4`) with slate-navy primary actions (`#274C69`), high-contrast dark amber warnings (`#9A4F00`), and crisp vector surfaces (`#FFFFFF`). Designed for print-production operators preparing physical 70 × 70 mm QR plaques.
 
-Interfaz de herramienta: sobria, densa lo justo, con un solo acento verde bosque sobre papel neutro. La UI se aparta para que la pieza (placa de 70×70 mm) sea lo único con carácter. Gotham vive solo en la interfaz; la tipografía de las piezas es fija e independiente.
+## Style Foundations
 
-**Key Characteristics:**
-- Un acento (verde bosque) sobre superficies blancas y fondo gris cálido.
-- Tres pasos en stepper: Piezas → Diseño → Exportar; cada pantalla con un propósito.
-- Contornos finos en lugar de sombras; tarjetas `outlined`.
-- Objetivos táctiles de 44 px en puntero grueso.
+- **Visual style:** industrial workbench, functional, high-contrast, print-ready
+- **Typography scale:** 12/14/16/18/20/24/28/30/34
+- **Typography fonts:** primary=Gotham (`--font-ui`), display=Gotham (`--font-ui`), mono=ui-monospace
+- **Typography weights:** 300, 400, 500, 600, 700
+- **Color palette:** primary (`#274C69`), secondary (`#8A5A19`), surface (`#FFFFFF`), background (`#F5F6F4`), ink (`#000000`), success (`#16A34A`), warning (`#9A4F00`), danger (`#DC2626`)
+- **Spacing scale:** 4/8/12/16/24/32
+
+## Shape language (todo el sitio)
+
+Una sola forma, tomada de la pantalla de auditoría: contenedores (`Panel`, `EmptyState`, diálogos, tarjetas) con esquina superior grande (28 px) e inferior pequeña (12 px); botones, chips y selectores en píldora; campos de texto a 14 px; métricas en bento con una esquina grande distinta por tarjeta. El estado nunca va solo en color (icono + texto). Se define en `theme.ts`, `Panel` y `EmptyState`; no se vuelvan a escribir radios sueltos.
 
 ## Colors
 
-Paleta restringida: un acento, neutros claros.
-
-### Primary
-- **Verde bosque** (#1f5c4d): acciones primarias, foco, paso activo.
-
-### Secondary
-- **Bronce** (#8a5a19): acento secundario puntual.
-- **Ámbar quemado** (#9a4f00): advertencias; cumple 4.5:1 como texto.
-
-### Neutral
-- **Papel neblina** (#f5f6f4): fondo de la app.
-- **Hoja blanca** (#ffffff): superficies y tarjetas.
-- **Tinta atenuada** (rgba(0,0,0,0.68)): texto secundario.
-
-### Named Rules
-**The One Accent Rule.** El verde bosque es el único acento de la interfaz; los demás colores son solo estado.
-
-## Typography
-
-**Font:** Gotham (con system-ui como respaldo), solo en la UI.
-
-**Character:** geométrica y clara; jerarquía por peso (700 títulos, 500 botones, 400 cuerpo).
-
-### Hierarchy
-- **Headline** (700): títulos de paso y panel.
-- **Label** (500, sin mayúsculas forzadas): botones.
-- **Body** (400): contenido y ayudas.
-
-## Layout
-
-Base de 8 px (MUI spacing) con utilidades Tailwind de 4 px. Breakpoints 600/900/1200/1536. Contenido en paneles; en móvil una sola columna sin scroll horizontal.
-
-## Elevation & Depth
-
-Plano: la profundidad se expresa con bordes de 1 px (divider) y cambio de superficie, sin sombras en reposo.
-
-## Shapes
-
-Esquinas de 8 px en botones, campos y tarjetas.
-
-## Components
-
-### Buttons
-- **Shape:** radio 8 px; altura mínima 40 px (44 px con puntero grueso).
-- **Primary:** verde bosque, texto blanco, sin elevación.
-- **Focus:** contorno de 2 px en verde bosque con desfase de 2 px, solo con teclado.
-
-### Cards / Containers
-- **Corner Style:** 8 px; variante `outlined`, fondo blanco, sin sombra.
-
-### Inputs / Fields
-- **Style:** MUI TextField pequeño, ancho completo.
-
-### Navigation
-- Stepper de tres pasos con insignia del proyecto en la barra.
-
-## Do's and Don'ts
-
-### Do:
-- **Do** usar los tokens del tema MUI (`--mui-palette-*`) o clases Tailwind; nunca colores literales en JSX.
-- **Do** mantener contraste AA y foco visible.
-- **Do** mantener la UI en español.
-
-### Don't:
-- **Don't** usar Gotham ni tocar la tipografía en las piezas.
-- **Don't** añadir un segundo acento ni sombras decorativas.
-- **Don't** repetir información entre pasos del stepper.
+- **Primary (#274C69):** Deep slate blue for primary CTAs, active step indicators, and focus rings.
+- **Secondary (#8A5A19):** Warm bronze accent for secondary interactive states.
+- **Success (#16A34A):** Ready-to-print status and validated rows.
+- **Warning (#9A4F00):** High-contrast dark amber (WCAG AA ≥ 4.5:1 on light surfaces) for pending QR generation and duplicate warnings.
+- **Danger (#DC2626):** Blocking errors, destructive actions, and print-bleed/quiet-zone violations.
+- **Background (#F5F6F4):** Warm stone workspace canvas that separates white cards and physical piece previews.
+- **Surface (#FFFFFF):** Clean card, modal, and plaque preview surface.
+- **Text (#111827) & Ink (#000000):** Primary UI text and default vector QR ink.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ResolveFetcher, ResolveResponse } from "@/lib/app/api-client";
+import type { ShortenFetcher } from "@/lib/links/shorten-many";
 import { QrInflight } from "@/lib/app/qr-inflight";
 import { TilePreviewClient } from "@/lib/app/tile-preview-client";
 import { createEmptyProject, isDirty, orderedRecords } from "@/lib/state/project";
@@ -14,7 +15,7 @@ import { createBuilderActions } from "./builder-actions";
 
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="50mm" height="50mm" viewBox="0 0 500 500"><g id="qr"><path id="qr-code" d="M0 0Z"/></g></svg>';
 
-function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchResolve?: ResolveFetcher; fetchTiles?: ConstructorParameters<typeof TilePreviewClient>[0]; backups?: Record<string, unknown> } = {}) {
+function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchResolve?: ResolveFetcher; fetchShorten?: ShortenFetcher; fetchTiles?: ConstructorParameters<typeof TilePreviewClient>[0]; backups?: Record<string, unknown> } = {}) {
   const project = createProjectStore(createEmptyProject(NOW, { id: "p" }));
   const session = createSessionStore({ hydrated: true });
   const notifications: NotifyOptions[] = [];
@@ -39,6 +40,7 @@ function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchR
       session,
       inflight: new QrInflight(),
       fetchResolve,
+      fetchShorten: options.fetchShorten ?? (async (urls) => urls.map((url) => ({ url, status: "kept" as const, shortUrl: url }))),
       tiles: new TilePreviewClient(options.fetchTiles ?? (async (r) => ({ tiles: Object.fromEntries(r.tiles.map((tile) => [tile.key, { svg: SVG, warnings: [] }])) })), { batchMs: 1 }),
       readBackup: async (key) => options.backups?.[key],
     },
@@ -51,6 +53,79 @@ function setup(options: { confirm?: (o: ConfirmOptions) => ConfirmResult; fetchR
 }
 const flush = () => new Promise((r) => setTimeout(r, 0));
 const last = <T,>(items: T[]): T | undefined => items[items.length - 1];
+
+describe("acortar el Link del menú al guardar", () => {
+  const shortener: ShortenFetcher = async (urls) => urls.map((url) => (url.includes("qr.example.com/s/") ? { url, status: "kept" as const, shortUrl: url } : { url, status: "created" as const, shortUrl: "https://qr.example.com/s/ab3de9xk", code: "ab3de9xk" }));
+
+  it("una pieza nueva queda con el link corto", async () => {
+    const t = setup({ fetchShorten: shortener });
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/carta-muy-larga?id=1` }));
+    expect(prepared?.menuUrl).toBe("https://qr.example.com/s/ab3de9xk");
+  });
+
+  it("un link corto propio no se vuelve a acortar", async () => {
+    const t = setup({ fetchShorten: shortener });
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: "https://qr.example.com/s/ab3de9xk" }));
+    expect(prepared?.menuUrl).toBe("https://qr.example.com/s/ab3de9xk");
+  });
+
+  it("al editar sin tocar el link, no se acorta (cambiarlo desactualizaría un QR ya impreso)", async () => {
+    let calls = 0;
+    const t = setup({ fetchShorten: async (urls) => (calls++, shortener(urls)) });
+    const record = await t.actions.add(draft({ menuUrl: `${MENU}/largo?id=7` }));
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/largo?id=7`, mesa: "Otra" }), record);
+    expect(prepared?.menuUrl).toBe(`${MENU}/largo?id=7`);
+    expect(calls).toBe(0);
+  });
+
+  it("al editar CAMBIANDO el link, se acorta el nuevo", async () => {
+    const t = setup({ fetchShorten: shortener });
+    const record = await t.actions.add(draft({ menuUrl: `${MENU}/largo?id=7` }));
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/otro-largo?id=8` }), record);
+    expect(prepared?.menuUrl).toBe("https://qr.example.com/s/ab3de9xk");
+  });
+
+  it("si el servicio falla no se guarda nada: devuelve null y avisa con un error", async () => {
+    const t = setup({ fetchShorten: async () => Promise.reject(new TypeError("Failed to fetch")) });
+    expect(await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/largo` }))).toBeNull();
+    expect(last(t.notifications)).toMatchObject({ severity: "error", message: expect.stringContaining("No se pudo acortar") });
+    expect(orderedRecords(t.state())).toHaveLength(0);
+  });
+
+  it("un link que el servidor marca como inválido se deja como está (su validación ya lo señala)", async () => {
+    const t = setup({ fetchShorten: async (urls) => urls.map((url) => ({ url, status: "invalid" as const, message: "no" })) });
+    const prepared = await t.actions.prepareDraft(draft({ menuUrl: `${MENU}/x` }));
+    expect(prepared?.menuUrl).toBe(`${MENU}/x`);
+  });
+});
+
+describe("descargar el Excel actualizado", () => {
+  it("manda todas las piezas al servidor y descarga el archivo con el nombre del proyecto", async () => {
+    const t = setup();
+    let sent: unknown[] = [];
+    const actions = createBuilderActions({
+      runtime: { project: t.project, session: t.session, inflight: new QrInflight(), fetchResolve: async () => ({ results: [], created: 0, reused: 0, failed: 0 }), fetchShorten: async () => [], tiles: new TilePreviewClient(async () => ({ tiles: {} }), { batchMs: 1 }), readBackup: async () => undefined },
+      notify: (n) => t.notifications.push(n),
+      confirm: async () => ({ confirmed: true, checked: false }),
+      now: () => LATER,
+      download: (name, blob) => t.downloads.push({ name, blob }),
+      exportExcel: async (records) => ((sent = [...records]), new Blob(["xlsx"])),
+    });
+    await t.actions.add(draft({ mesa: "M1" }));
+    await t.actions.add(draft({ mesa: "M2", menuUrl: `${MENU}?2` }));
+    t.actions.setName("Mesas LBLC");
+    expect(await actions.downloadExcel()).toBe(true);
+    expect(sent).toHaveLength(2);
+    expect(t.downloads.at(-1)?.name).toBe("Mesas LBLC.xlsx");
+    expect(last(t.notifications)).toMatchObject({ severity: "success", message: expect.stringContaining("2 piezas") });
+  });
+
+  it("sin piezas no llama al servidor", async () => {
+    const t = setup();
+    expect(await t.actions.downloadExcel()).toBe(false);
+    expect(last(t.notifications)?.message).toBe("No hay piezas para descargar");
+  });
+});
 
 describe("alta de piezas (AC1, AC2, AC11)", () => {
   it("agrega una pieza, la selecciona y genera su QR al guardar", async () => {

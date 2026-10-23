@@ -1,0 +1,11 @@
+{
+  "id": "4cfdf0c8",
+  "operation": "accept",
+  "variantId": "2",
+  "result": {
+    "handled": true,
+    "file": "src/components/import/ImportScreen.tsx",
+    "carbonize": false
+  },
+  "completedAt": "2026-10-20T17:31:10.453Z"
+}

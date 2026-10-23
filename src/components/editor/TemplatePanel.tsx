@@ -95,7 +95,7 @@ export function TemplatePanel({ template, overrides, disabled, onChange }: Templ
         </div>
       </fieldset>
 
-      <Button variant="outlined" disabled={disabled || !hasOverrides} onClick={() => void apply({ items: {}, qr: {}, tile: {} })}>
+      <Button variant="outlined" disabled={disabled || !hasOverrides} onClick={() => void apply({ items: {}, qr: {}, tile: {}, qrStyle: overrides.qrStyle })}>
         Restablecer a la plantilla
       </Button>
     </section>

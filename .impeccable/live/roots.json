@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "appRoot": "/Users/administrador/ic-qr-integracion",
+  "repoRoot": "/Users/administrador/ic-qr-integracion",
+  "contextRoot": "/Users/administrador/ic-qr-integracion",
+  "sessionRoot": "/Users/administrador/ic-qr-integracion/.impeccable/live",
+  "productPath": "/Users/administrador/ic-qr-integracion/PRODUCT.md",
+  "designPath": "/Users/administrador/ic-qr-integracion/DESIGN.md",
+  "resolvedFrom": "cwd"
+}

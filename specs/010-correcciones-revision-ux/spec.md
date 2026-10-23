@@ -75,6 +75,10 @@ Los imports nuevos de `RecordDetail.tsx` van con su bloque de imports de `@/lib`
 | R4 | `docs/AUDITORIA-UX.md:122`, `src/components/records/PersistenceBanners.tsx`, `src/components/records/BuilderToolbar.tsx:47` | La auditoría propone «Aún no has descargado el PDF»; el código usa «Cambios sin descargar». | Dos versiones del mismo aviso. | Una frase canónica en código y auditoría. Decisión en `plan.md`. |
 | R5 | `src/components/records/RecordDetail.tsx:20-26` | Los imports nuevos de `@/lib/records/qr-badge` y `@/lib/state/StoreProvider` quedan separados de su bloque por una línea en blanco. | Ruido de estilo. | Imports agrupados. |
 | R6 | Rama `mejoras-ux`, commit `9d28551` | Commit de `disenopr` (~47 archivos, 2225 líneas) dentro del PR de UX. | El PR mezcla dos alcances y no está revisado. | Decisión documentada: se excluye de este PR. Ver `plan.md`. |
+| R7 | `src/schemas/qr-style.ts` (`QrLogoGeometrySchema`) | El logo que llega del cliente se valida con `ExternalNodeSchema`, que acepta `stroke`/`strokeWidth`. Solo el upload (`src/server/qr-style/logo.ts`) los quita. | El SVG dibuja el trazo y el PDF lo ignora: una petición manipulada hace que ambos difieran. | El esquema del logo rechaza trazos; SVG y PDF coinciden siempre. |
+| R8 | `src/server/export/run-export.ts` (`prepareExport`), `src/components/qr-style/qr-style-model.ts` | El bloqueo por avisos «block» del estilo (contraste < 3, logo > 30 %) solo existe en `ExportScreen`. | Una petición directa a `/api/export` genera el PDF con un QR ilegible. | `prepareExport` rechaza con 400 un estilo bloqueante. Cliente y servidor comparten una sola función. |
+| R9 | `src/schemas/template.ts:180` | `EMPTY_TEMPLATE_OVERRIDES.qrStyle` es la misma referencia que `DEFAULT_QR_STYLE`. | Si algo muta ese objeto, cambia el valor por defecto de todos los proyectos. | `qrStyle` es una copia (`structuredClone`). |
+| R10 | `tests/e2e/*.spec.ts` | 12 pruebas e2e se omitieron sin revisar el motivo. | Podían esconder pruebas desactivadas sin razón. | Motivo de cada omisión documentado en `plan.md`. |
 
 ## Requirements *(mandatory)*
 
@@ -82,6 +86,9 @@ Los imports nuevos de `RecordDetail.tsx` van con su bloque de imports de `@/lib`
 - **FR-002**: `error.tsx` MUST mostrar un texto distinto cuando `persistence.status === "unavailable"`.
 - **FR-003**: la documentación MUST usar los textos vigentes de la interfaz.
 - **FR-004**: el commit `9d28551` MUST NOT formar parte del PR de UX.
+- **FR-006**: el esquema del logo MUST rechazar trazos (`stroke`, `strokeWidth`) (R7).
+- **FR-007**: `/api/export` MUST rechazar con 400 un estilo de QR con avisos «block» (R8).
+- **FR-008**: `EMPTY_TEMPLATE_OVERRIDES` MUST NOT compartir referencia con `DEFAULT_QR_STYLE` (R9).
 - **FR-005**: ninguna corrección de código MUST aplicarse antes de que su riesgo esté registrado en este archivo.
 
 ## Success Criteria *(mandatory)*

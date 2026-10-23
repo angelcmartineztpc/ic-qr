@@ -9,11 +9,11 @@ const isDev = process.env.NODE_ENV !== "production";
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval' http://localhost:* http://127.0.0.1:*" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+  `connect-src 'self'${isDev ? " ws: wss: http://localhost:* http://127.0.0.1:*" : ""}`,
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'none'",
@@ -37,6 +37,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   typedRoutes: true,
   poweredByHeader: false,
+  // Acceso al servidor de desarrollo desde otro equipo de la red local (solo afecta a `next dev`).
+  allowedDevOrigins: ["192.168.50.188"],
   // pdfkit y fontkit leen datos de fuentes desde disco en tiempo de ejecución.
   serverExternalPackages: ["pdfkit", "fontkit"],
   // Gotham no se versiona (licencia comercial): scripts/setup-fonts.ts la copia a

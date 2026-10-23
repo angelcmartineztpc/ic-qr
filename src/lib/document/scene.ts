@@ -7,6 +7,10 @@
  * y hacia abajo. El orden de los nodos es el orden de pintado.
  */
 import { matrixToPath } from "@/lib/qr/matrix-to-path";
+import { styledQrNodes } from "@/lib/qr-style/nodes";
+import { isDefaultQrStyle } from "@/lib/qr-style/style-qr";
+import { qrStyleWarnings } from "@/lib/qr-style/warnings";
+import { DEFAULT_QR_STYLE, type QrStyle } from "@/schemas/qr-style";
 import { PT_TO_MM, round } from "@/lib/units";
 import { qrModuleMm, qrModuleWarning } from "@/lib/layout/warnings";
 import type {
@@ -35,6 +39,8 @@ export interface BuildSceneInput {
   qr: QrGeometry;
   fonts: FontResolver;
   options?: SceneOptions;
+  /** Estilo visual del QR. Solo aplica a QR generados (matriz); un QR existente se dibuja tal cual. */
+  qrStyle?: QrStyle;
 }
 
 export interface SceneOptions {
@@ -219,7 +225,22 @@ export function buildScene(input: BuildSceneInput): TileScene {
   const qrBox = layout.qr;
   const dark = template.qr.invert ? template.qr.background : template.qr.foreground;
   const light = template.qr.invert ? template.qr.foreground : template.qr.background;
-  if (qr.kind === "matrix") {
+  const style = input.qrStyle ?? DEFAULT_QR_STYLE;
+  if (qr.kind === "matrix" && !isDefaultQrStyle(style)) {
+    const styled = styledQrNodes({
+      box: qrBox,
+      matrix: qr.matrix,
+      quietZoneModules: template.qr.quietZoneModules,
+      style,
+      base: { dark, light },
+      includeBackground: options.includeQrBackground !== false,
+    });
+    const warning = qrModuleWarning(styled.moduleMm, template.qr);
+    if (warning) warnings.push(warning);
+    if (options.includeQrBackground === false || (template.qr.invert && style.colors.background === null)) warnings.push({ code: "QR_NO_WHITE_BACKGROUND" });
+    warnings.push(...qrStyleWarnings(style, styled.colors, qr.modules));
+    nodes.push(...styled.nodes);
+  } else if (qr.kind === "matrix") {
     const modules = qr.modules;
     const moduleMm = qrModuleMm(qrBox.width, modules, template.qr.quietZoneModules);
     const warning = qrModuleWarning(moduleMm, template.qr);

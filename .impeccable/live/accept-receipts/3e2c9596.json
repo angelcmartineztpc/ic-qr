@@ -1,0 +1,11 @@
+{
+  "id": "3e2c9596",
+  "operation": "accept",
+  "variantId": "2",
+  "result": {
+    "handled": true,
+    "file": "src/components/qr-style/QrStyleScreen.tsx",
+    "carbonize": false
+  },
+  "completedAt": "2026-10-23T17:01:37.123Z"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "42ec520b",
+  "operation": "discard",
+  "variantId": null,
+  "result": {
+    "handled": true,
+    "file": "src/components/preview/TilePreview.tsx",
+    "carbonize": false
+  },
+  "completedAt": "2026-10-20T19:59:59.173Z"
+}

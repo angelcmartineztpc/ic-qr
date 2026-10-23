@@ -1,0 +1,15 @@
+{
+  "importMap": "./import_map.json",
+  "unstable": [
+    "sloppy-imports"
+  ],
+  "compilerOptions": {
+    "strict": true,
+    "lib": [
+      "deno.window",
+      "dom",
+      "esnext"
+    ],
+    "noUncheckedIndexedAccess": true
+  }
+}

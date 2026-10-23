@@ -1,0 +1,4 @@
+.strip { margin: 0; display: grid; list-style: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); padding: 0; }
+.handle { cursor: grab; touch-action: none; background: var(--bg-card); }
+@media (min-width: 600px) { .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .strip { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

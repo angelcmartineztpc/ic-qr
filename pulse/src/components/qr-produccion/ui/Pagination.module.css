@@ -1,0 +1,9 @@
+.nav { display: block; }
+.list { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.item { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; padding: 0 var(--space-2); border-radius: var(--radius-full); font-size: 0.875rem; color: var(--text-primary); cursor: pointer; }
+.item:hover:not(:disabled) { background: var(--bg-hover); }
+.item:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+.item:disabled { opacity: 0.4; cursor: default; }
+.on { background: var(--primary); color: var(--on-primary); font-weight: 600; }
+.on:hover:not(:disabled) { background: var(--primary-hover); }
+.gap { min-width: 24px; text-align: center; color: var(--text-secondary); }

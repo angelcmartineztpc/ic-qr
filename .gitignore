@@ -59,6 +59,7 @@ package-lock.json
 /assets/fonts/address-sans/*.ttf
 /assets/fonts/address-sans/*.woff2
 /assets/fonts/address-sans/*.woff
+/src/server/fonts/embedded-fonts.generated.ts
 
 # Libros reales para probar la importación (pueden traer datos del cliente)
 /tests/fixtures/real/*.xlsx

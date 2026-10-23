@@ -44,6 +44,26 @@ interface Job {
 
 const failed = (recordId: string, code: QrErrorCode, message: string): QrResolution => ({ recordId, outcome: "failed", error: { code, message } });
 
+const urlParseCache = new Map<string, { ok: true; menuUrl: string } | { ok: false; error: Failure }>();
+const jobCache = new Map<string, Job>();
+
+function parseMenuUrlCached(rawMenuUrl: string): { ok: true; menuUrl: string } | { ok: false; error: Failure } {
+  const hit = urlParseCache.get(rawMenuUrl);
+  if (hit) return hit;
+  const menu = MenuUrlSchema.safeParse(rawMenuUrl);
+  const res: { ok: true; menuUrl: string } | { ok: false; error: Failure } = !menu.success
+    ? { ok: false, error: { code: "encode-failed", message: "El Link del menú no es una URL válida" } }
+    : menu.data.length > MAX_PAYLOAD_LENGTH
+      ? { ok: false, error: { code: "encode-failed", message: "El Link del menú es demasiado largo para un QR" } }
+      : { ok: true, menuUrl: menu.data };
+  if (urlParseCache.size >= 1000) {
+    const oldest = urlParseCache.keys().next().value;
+    if (oldest !== undefined) urlParseCache.delete(oldest);
+  }
+  urlParseCache.set(rawMenuUrl, res);
+  return res;
+}
+
 /**
  * Parsea un ítem de generación. REGLA CRÍTICA (defensa en profundidad): un ítem
  * que traiga `qrUrl` o `qr` es un registro con Link del QR y NUNCA se genera
@@ -57,16 +77,24 @@ function parseItem(raw: unknown): { ok: true; recordId: string; menuUrl: string 
   }
   const parsed = QrResolveItemSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, recordId, error: { code: "encode-failed", message: "Petición de QR no válida" } };
-  const menu = MenuUrlSchema.safeParse(parsed.data.menuUrl);
-  if (!menu.success) return { ok: false, recordId, error: { code: "encode-failed", message: "El Link del menú no es una URL válida" } };
-  if (menu.data.length > MAX_PAYLOAD_LENGTH) return { ok: false, recordId, error: { code: "encode-failed", message: "El Link del menú es demasiado largo para un QR" } };
-  return { ok: true, recordId, menuUrl: menu.data };
+  const menuRes = parseMenuUrlCached(parsed.data.menuUrl);
+  if (!menuRes.ok) return { ok: false, recordId, error: menuRes.error };
+  return { ok: true, recordId, menuUrl: menuRes.menuUrl };
 }
 
-function buildJob(payload: string, keyPrefix: string): Job {
+function getOrBuildJob(payload: string, keyPrefix: string): Job {
+  const cacheKey = `${keyPrefix}::${payload}`;
+  const cached = jobCache.get(cacheKey);
+  if (cached) return cached;
   const contentHash = contentHashOf(payload);
   const svg = renderQrSvg(encodeMatrix(payload));
-  return { key: qrStorageKey(contentHash, keyPrefix), payload, contentHash, svg, svgSha256: sha256Hex(svg) };
+  const job: Job = { key: qrStorageKey(contentHash, keyPrefix), payload, contentHash, svg, svgSha256: sha256Hex(svg) };
+  if (jobCache.size >= 512) {
+    const oldest = jobCache.keys().next().value;
+    if (oldest !== undefined) jobCache.delete(oldest);
+  }
+  jobCache.set(cacheKey, job);
+  return job;
 }
 
 /** ¿Es el objeto que ya está en la clave EXACTAMENTE el que habríamos escrito? */
@@ -131,11 +159,15 @@ async function ensureAsset(job: Job, deps: ResolveDeps): Promise<AssetOutcome> {
 export async function resolveGenerate(rawItems: readonly unknown[], deps: ResolveDeps): Promise<ResolveSummary> {
   const parsed = rawItems.map(parseItem);
   const jobs = new Map<string, Job>();
+  const jobByMenuUrl = new Map<string, Job>();
   for (const item of parsed) {
     if (!item.ok) continue;
-    const contentHash = contentHashOf(item.menuUrl);
-    const key = qrStorageKey(contentHash, deps.keyPrefix);
-    if (!jobs.has(key)) jobs.set(key, buildJob(item.menuUrl, deps.keyPrefix));
+    let job = jobByMenuUrl.get(item.menuUrl);
+    if (!job) {
+      job = getOrBuildJob(item.menuUrl, deps.keyPrefix);
+      jobByMenuUrl.set(item.menuUrl, job);
+      jobs.set(job.key, job);
+    }
   }
 
   // Una sola subida por clave distinta del lote.
@@ -153,9 +185,8 @@ export async function resolveGenerate(rawItems: readonly unknown[], deps: Resolv
       failures++;
       return failed(item.recordId, item.error.code, item.error.message);
     }
-    const contentHash = contentHashOf(item.menuUrl);
-    const key = qrStorageKey(contentHash, deps.keyPrefix);
-    const job = jobs.get(key) as Job;
+    const job = jobByMenuUrl.get(item.menuUrl) as Job;
+    const key = job.key;
     const outcome = outcomes.get(key) as AssetOutcome;
     if (!outcome.ok) {
       failures++;

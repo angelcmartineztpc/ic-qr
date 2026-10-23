@@ -36,7 +36,14 @@ export function RecordQrActions({ record, actions }: { record: QRRecord; actions
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         {list.map((action) => (
-          <Button key={action} size="small" variant={action === "regenerate" || action === "generate" || action === "retry" ? "contained" : "outlined"} onClick={run[action]} disabled={inFlight}>
+          <Button
+            key={action}
+            size="small"
+            variant={action === "regenerate" || action === "generate" || action === "retry" ? "contained" : "outlined"}
+            onClick={run[action]}
+            disabled={inFlight}
+            className="!rounded-full"
+          >
             {LABELS[action]}
           </Button>
         ))}

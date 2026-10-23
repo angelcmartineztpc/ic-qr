@@ -1,0 +1,18 @@
+.root { display: flex; flex-direction: column; gap: var(--space-6); }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
+.column { display: flex; flex-direction: column; gap: var(--space-6); }
+.plainList { margin: 0; padding: 0; list-style: none; }
+.summary { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-6); margin: 0; font-size: 0.875rem; }
+.term { color: var(--text-secondary); }
+.value { margin: 0; font-weight: 500; color: var(--text-primary); }
+.valueWarning { composes: value; color: var(--status-warning); }
+.preview { align-self: start; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-3); }
+.empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-6) 0; text-align: center; }
+.emptyTitle { margin: 0; font-size: 1.125rem; font-weight: 600; color: var(--text-primary); }
+.emptyText { margin: 0; max-width: 28rem; color: var(--text-secondary); }
+
+@media (min-width: 1200px) {
+  .layout { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); }
+  .preview { position: sticky; top: 10rem; }
+}

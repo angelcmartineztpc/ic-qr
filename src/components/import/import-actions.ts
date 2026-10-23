@@ -4,6 +4,7 @@ import { buildErrorReport } from "@/lib/excel/error-report";
 import { resultNeedsMapping } from "@/lib/excel/import-pipeline";
 import { planImport, planSize, reviewImport, validRows, type ImportPlan, type ReviewModel } from "@/lib/excel/review";
 import { defaultReviewDecisions } from "@/lib/records/duplicates";
+import { shortenMany } from "@/lib/links/shorten-many";
 import { importRecords, isDirty, orderedRecords, setDuplicateKey, type ImportItem } from "@/lib/state/project";
 import type { Runtime } from "@/lib/state/StoreProvider";
 import { initialImport, patchSession, updateProject, type ImportSession } from "@/lib/state/stores";
@@ -13,7 +14,7 @@ import type { ConfirmOptions, ConfirmResult } from "@/components/ui/ConfirmDialo
 import type { NotifyOptions } from "@/components/ui/NotificationsProvider";
 
 export interface ImportDeps {
-  runtime: Pick<Runtime, "project" | "session" | "inflight" | "lastImport" | "importSource">;
+  runtime: Pick<Runtime, "project" | "session" | "inflight" | "lastImport" | "importSource" | "fetchShorten">;
   notify(options: NotifyOptions): void;
   confirm(options: ConfirmOptions): Promise<ConfirmResult>;
   now(): string;
@@ -21,6 +22,8 @@ export interface ImportDeps {
   /** Resolución de QR en lote (con progreso y cancelación) de las acciones del builder. */
   resolve(ids: readonly RecordId[]): Promise<unknown>;
   upload?: typeof uploadExcel;
+  /** «Descargar Excel actualizado» (el del builder). */
+  downloadExcel?: () => Promise<boolean>;
   /** Navega a la lista de piezas tras confirmar. */
   goToPieces?: () => void;
 }
@@ -172,9 +175,30 @@ export function createImportActions(deps: ImportDeps) {
         const ok = (await deps.confirm({ title: "Tienes cambios sin guardar.", message: `Se reemplazarán las ${existing} piezas actuales.`, confirmLabel: "Reemplazar sin guardar", destructive: true })).confirmed;
         if (!ok) return false;
       }
+      const planned: ImportItem[] = [...plan.toCreate.map(({ row, duplicateOf }) => itemOf(row, duplicateOf)), ...plan.fixes.map(fixItemOf)].sort((a, b) => a.row - b.row);
+
+      // Siempre se acortan los links del menú: el QR codifica el link corto (legible y estable). Si no se puede,
+      // no se crea ninguna pieza con el link largo: la revisión sigue abierta y se puede reintentar.
+      let shortened = 0;
+      let items = planned;
+      if (planned.some((item) => item.draft.menuUrl.trim() !== "")) {
+        notify({ message: "Acortando los links del menú…", severity: "info", group: "import" });
+        try {
+          const outcome = await shortenMany(planned.map((item) => item.draft.menuUrl), runtime.fetchShorten);
+          shortened = outcome.created + outcome.reused;
+          items = planned.map((item) => {
+            const short = outcome.map.get(item.draft.menuUrl.trim());
+            return short ? { ...item, draft: { ...item.draft, menuUrl: short } } : item;
+          });
+        } catch (error) {
+          const detail = error instanceof Error && error.message ? ` (${error.message})` : "";
+          notify({ message: `No se pudieron acortar los links del menú${detail}. No se creó ninguna pieza.`, severity: "error", group: "import", action: { label: "Reintentar", onClick: () => void actions.confirm() } });
+          return false;
+        }
+      }
+
       if (importState.mode === "replace") runtime.inflight.abortAll();
 
-      const items: ImportItem[] = [...plan.toCreate.map(({ row, duplicateOf }) => itemOf(row, duplicateOf)), ...plan.fixes.map(fixItemOf)].sort((a, b) => a.row - b.row);
       let createdIds: RecordId[] = [];
       updateProject(runtime.project, (p) => {
         const out = importRecords(p, items, { now: now(), fileName: result.fileName, mode: importState.mode });
@@ -193,10 +217,12 @@ export function createImportActions(deps: ImportDeps) {
         outcome.discarded > 0 ? plural(outcome.discarded, "duplicado no importado", "duplicados no importados") : "",
         plan.fixes.length > 0 ? plural(plan.fixes.length, "pieza a corregir", "piezas a corregir") : "",
       ].filter(Boolean);
+      const linkNote = shortened > 0 ? ` · ${plural(shortened, "link del menú acortado", "links del menú acortados")}` : "";
       notify({
-        message: extras.length === 0 ? `Excel importado: ${plural(outcome.created, "pieza válida", "piezas válidas")}` : `Excel importado: ${plural(outcome.created, "pieza", "piezas")} · ${extras.join(" · ")}`,
+        message: (extras.length === 0 ? `Excel importado: ${plural(outcome.created, "pieza válida", "piezas válidas")}` : `Excel importado: ${plural(outcome.created, "pieza", "piezas")} · ${extras.join(" · ")}`) + linkNote,
         severity: extras.length === 0 ? "success" : "warning",
         group: "import",
+        ...(shortened > 0 && deps.downloadExcel ? { action: { label: "Descargar Excel actualizado", onClick: () => void deps.downloadExcel?.() } } : {}),
       });
 
       // QR en lote: solo las piezas sin errores propios (las que tienen error se corrigen a mano).
@@ -208,6 +234,11 @@ export function createImportActions(deps: ImportDeps) {
       if (pending.length > 0) void deps.resolve(pending);
       deps.goToPieces?.();
       return true;
+    },
+
+    /** «Descargar Excel actualizado» tras importar: el mismo proyecto con el link corto en «Link del menú». */
+    async downloadExcel(): Promise<boolean> {
+      return deps.downloadExcel ? deps.downloadExcel() : false;
     },
 
     /** Quita el resultado guardado (las filas con error dejan de estar disponibles). */

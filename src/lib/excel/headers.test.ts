@@ -22,9 +22,13 @@ describe("matchHeader", () => {
     ["Estación", "estacion"],
     ["No. Mesa", "mesa"],
     ["# Mesa", "mesa"],
+    ["Camastro", "mesa"],
     ["Sub-grupo", "subgrupo"],
     ["Concepto", "concepto"],
     ["Link del menú (URL)", "menuUrl"],
+    ["Link", "menuUrl"],
+    ["URL", "menuUrl"],
+    ["Enlace", "menuUrl"],
     ["Link del QR", "qrUrl"],
     ["QR", "qrUrl"],
   ])("«%s» → %s (exacta)", (header, field) => {

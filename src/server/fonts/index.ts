@@ -2,6 +2,7 @@ import "server-only";
 
 import { getEnv } from "../env";
 import { cloudflareBucket } from "../storage/r2";
+import { EMBEDDED_SERVER_FONTS } from "./embedded-fonts.generated";
 import { NodeFontRegistry, resolveFontsDir } from "./node-font-registry";
 
 let registry: NodeFontRegistry | undefined;
@@ -18,7 +19,9 @@ async function fontsFromR2(): Promise<Array<[string, Uint8Array]>> {
       return object ? [entry.key.slice(R2_FONTS_PREFIX.length), new Uint8Array(await object.arrayBuffer())] : null;
     }),
   );
-  return files.filter((file): file is [string, Uint8Array] => file !== null);
+  const loaded = files.filter((file): file is [string, Uint8Array] => file !== null);
+  if (loaded.length > 0) return loaded;
+  return EMBEDDED_SERVER_FONTS.map(([rel, b64]) => [rel, new Uint8Array(Buffer.from(b64, "base64"))]);
 }
 
 /** Registro único del proceso (las fuentes se cargan una vez). En Workers vienen de R2; en Node, del disco. */

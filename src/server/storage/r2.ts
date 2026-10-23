@@ -115,10 +115,181 @@ export class R2StorageProvider implements StorageProvider {
   }
 }
 
-/** Obtiene el bucket del binding `QR_BUCKET` del Worker (solo existe al correr en Cloudflare o en `wrangler dev`). */
+interface KvStoredMeta {
+  etag: string;
+  contentType?: string;
+  customMetadata: Record<string, string>;
+}
+
+interface KVNamespaceLike {
+  getWithMetadata(key: string, options: { type: "arrayBuffer" }): Promise<{ value: ArrayBuffer | null; metadata: KvStoredMeta | null }>;
+  put(key: string, value: Uint8Array | ArrayBuffer, options?: { metadata?: KvStoredMeta }): Promise<void>;
+  delete(key: string): Promise<void>;
+  list(options?: { prefix?: string }): Promise<{ keys: Array<{ name: string }> }>;
+}
+
+const memoryObjects = new Map<string, { body: Uint8Array; etag: string; contentType?: string; customMetadata: Record<string, string> }>();
+const missingInKv = new Set<string>();
+let memoryCounter = 0;
+
+function createKvBackedBucket(kv: KVNamespaceLike): R2BucketLike {
+  const view = (s: KvStoredMeta): R2ObjectLike => ({
+    etag: s.etag,
+    httpMetadata: s.contentType ? { contentType: s.contentType } : {},
+    customMetadata: s.customMetadata ?? {},
+  });
+  return {
+    async put(key, value, options) {
+      if (options?.onlyIf?.etagDoesNotMatch === "*") {
+        if (memoryObjects.has(key)) return null;
+        if (!missingInKv.has(key)) {
+          try {
+            const existing = await kv.getWithMetadata(key, { type: "arrayBuffer" });
+            if (existing.value !== null) {
+              const existingMeta: KvStoredMeta = existing.metadata ?? { etag: "kv-etag", customMetadata: {} };
+              memoryObjects.set(key, { body: new Uint8Array(existing.value), ...existingMeta });
+              return null;
+            }
+            missingInKv.add(key);
+          } catch {
+            /* Si KV alcanza el límite de subrequests o cuota del plan gratuito, continuamos con la caché en memoria */
+          }
+        }
+      }
+      const meta: KvStoredMeta = {
+        etag: `etag-${Date.now()}-${++memoryCounter}`,
+        ...(options?.httpMetadata?.contentType ? { contentType: options.httpMetadata.contentType } : {}),
+        customMetadata: { ...(options?.customMetadata ?? {}) },
+      };
+      const copy = new Uint8Array(value);
+      memoryObjects.set(key, { body: copy, ...meta });
+      missingInKv.delete(key);
+      try {
+        await kv.put(key, copy, { metadata: meta });
+      } catch {
+        /* Resiliencia en plan gratuito de KV (1000 escrituras/día o límite de subrequests por invocación) */
+      }
+      return view(meta);
+    },
+    async get(key): Promise<R2ObjectBodyLike | null> {
+      const local = memoryObjects.get(key);
+      if (local) {
+        return {
+          ...view(local),
+          arrayBuffer: async () => local.body.buffer.slice(local.body.byteOffset, local.body.byteOffset + local.body.byteLength) as ArrayBuffer,
+        };
+      }
+      if (missingInKv.has(key)) return null;
+      try {
+        const res = await kv.getWithMetadata(key, { type: "arrayBuffer" });
+        if (!res.value) {
+          missingInKv.add(key);
+          return null;
+        }
+        const meta: KvStoredMeta = res.metadata ?? { etag: "kv-etag", customMetadata: {} };
+        const body = new Uint8Array(res.value);
+        memoryObjects.set(key, { body, ...meta });
+        return {
+          ...view(meta),
+          arrayBuffer: async () => res.value as ArrayBuffer,
+        };
+      } catch {
+        return null;
+      }
+    },
+    async head(key) {
+      const local = memoryObjects.get(key);
+      if (local) return view(local);
+      if (missingInKv.has(key)) return null;
+      try {
+        const res = await kv.getWithMetadata(key, { type: "arrayBuffer" });
+        if (!res.value) {
+          missingInKv.add(key);
+          return null;
+        }
+        const meta: KvStoredMeta = res.metadata ?? { etag: "kv-etag", customMetadata: {} };
+        memoryObjects.set(key, { body: new Uint8Array(res.value), ...meta });
+        return view(meta);
+      } catch {
+        return null;
+      }
+    },
+    async delete(key) {
+      memoryObjects.delete(key);
+      missingInKv.add(key);
+      try {
+        await kv.delete(key);
+      } catch {
+        /* ignorar fallo de KV */
+      }
+    },
+    async list(options) {
+      try {
+        const listed = await kv.list(options?.prefix ? { prefix: options.prefix } : undefined);
+        return {
+          objects: listed.keys.map((k) => ({ key: k.name })),
+        };
+      } catch {
+        return {
+          objects: [...memoryObjects.keys()].filter((k) => k.startsWith(options?.prefix ?? "")).map((key) => ({ key })),
+        };
+      }
+    },
+  };
+}
+
+let memoryFallbackBucket: R2BucketLike | undefined;
+
+function getMemoryFallbackBucket(): R2BucketLike {
+  if (memoryFallbackBucket) return memoryFallbackBucket;
+  const view = (s: { etag: string; contentType?: string; customMetadata: Record<string, string> }): R2ObjectLike => ({
+    etag: s.etag,
+    httpMetadata: s.contentType ? { contentType: s.contentType } : {},
+    customMetadata: s.customMetadata,
+  });
+  memoryFallbackBucket = {
+    async put(key, value, options) {
+      if (options?.onlyIf?.etagDoesNotMatch === "*" && memoryObjects.has(key)) return null;
+      const stored = {
+        body: new Uint8Array(value),
+        etag: `etag-${++memoryCounter}`,
+        ...(options?.httpMetadata?.contentType ? { contentType: options.httpMetadata.contentType } : {}),
+        customMetadata: { ...(options?.customMetadata ?? {}) },
+      };
+      memoryObjects.set(key, stored);
+      return view(stored);
+    },
+    async get(key): Promise<R2ObjectBodyLike | null> {
+      const s = memoryObjects.get(key);
+      if (!s) return null;
+      return {
+        ...view(s),
+        arrayBuffer: async () => s.body.buffer.slice(s.body.byteOffset, s.body.byteOffset + s.body.byteLength) as ArrayBuffer,
+      };
+    },
+    async head(key) {
+      const s = memoryObjects.get(key);
+      return s ? view(s) : null;
+    },
+    async delete(key) {
+      memoryObjects.delete(key);
+    },
+    async list(options) {
+      return {
+        objects: [...memoryObjects.keys()].filter((k) => k.startsWith(options?.prefix ?? "")).map((key) => ({ key })),
+      };
+    },
+  };
+  return memoryFallbackBucket;
+}
+
+/** Obtiene el bucket del binding `QR_BUCKET` (R2), o `QR_KV` (Cloudflare KV permanente y gratuito), o memoria en local. */
 export async function cloudflareBucket(binding = "QR_BUCKET"): Promise<R2BucketLike> {
   const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-  const bucket = (getCloudflareContext().env as unknown as Record<string, R2BucketLike | undefined>)[binding];
-  if (!bucket) throw new StorageError("unavailable", `Falta el binding R2 «${binding}» en wrangler.jsonc`);
-  return bucket;
+  const env = getCloudflareContext().env as unknown as Record<string, unknown>;
+  const bucket = env[binding] as R2BucketLike | undefined;
+  if (bucket) return bucket;
+  const kv = env["QR_KV"] as KVNamespaceLike | undefined;
+  if (kv) return createKvBackedBucket(kv);
+  return getMemoryFallbackBucket();
 }

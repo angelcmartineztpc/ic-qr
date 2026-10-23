@@ -34,6 +34,7 @@ export function pruneOverrides(template: Template, overrides: TemplateOverrides)
     items: Object.fromEntries(Object.entries(overrides.items).filter(([id]) => ids.has(id))),
     qr: overrides.qr,
     tile: overrides.tile,
+    qrStyle: overrides.qrStyle,
   };
 }
 

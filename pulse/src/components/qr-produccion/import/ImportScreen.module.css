@@ -1,0 +1,50 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.busy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.busy p {
+  margin: 0;
+}
+
+.actionsInline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.optionGroups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.optionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}

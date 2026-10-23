@@ -11,7 +11,7 @@ import { PIECE_FONT_DIR, PIECE_FONT_FILES, PIECE_INK, pieceFont } from "../addre
  *   │         TROPICAL           │   17 pt, tracking −50
  *   │       MESA – TABLE         │   11 pt, tracking −40
  *   │            M1              │   22 pt, tracking −50
- *   │ CONSULTA EL MENU Y ORDENA… │   13.2 pt, tracking −25
+ *   │ CONSULTA EL MENÚ Y ORDENA… │   13.2 pt, tracking −25
  *   │ LOOK AT THE MENU AN ORDER… │   (los textos son literales de la referencia)
  *   │           [ QR ]           │   24.79 mm, módulos de 0.751 mm, sin zona de silencio propia
  *   └────────────────────────────┘
@@ -38,8 +38,8 @@ export const tropicalTable = {
       { type: "text", id: "area", text: "{{area}}", ...text, sizePt: 17, trackingEm1000: -50, transform: "uppercase", fit: { mode: "shrink", minSizePt: 10 } },
       { type: "text", id: "label", text: "MESA – TABLE", ...text, sizePt: 11, trackingEm1000: -40, marginTopMm: 2.268 },
       { type: "text", id: "mesa", text: "{{mesa}}", ...text, sizePt: 22, trackingEm1000: -50, transform: "uppercase", marginTopMm: 1.695, fit: { mode: "shrink", minSizePt: 12 } },
-      { type: "text", id: "ctaEs", text: "CONSULTA EL MENU Y ORDENA EN LÍNEA", ...text, sizePt: 13.2, trackingEm1000: -25, marginTopMm: 5.036, fit: { mode: "shrink", minSizePt: 10 } },
-      { type: "text", id: "ctaEn", text: "LOOK AT THE MENU AN ORDER ON LINE", ...text, sizePt: 13.2, trackingEm1000: -25, marginTopMm: 1.54, fit: { mode: "shrink", minSizePt: 10 } },
+      { type: "text", id: "ctaEs", text: "CONSULTA EL MENÚ Y ORDENA EN LÍNEA", ...text, sizePt: 13.2, trackingEm1000: -25, marginTopMm: 5.036, fit: { mode: "shrink", minSizePt: 10 } },
+      { type: "text", id: "ctaEn", text: "LOOK AT THE MENU AND ORDER ON LINE", ...text, sizePt: 13.2, trackingEm1000: -25, marginTopMm: 1.54, fit: { mode: "shrink", minSizePt: 10 } },
     ],
   },
   qr: { quietZoneModules: 0, foreground: PIECE_INK },

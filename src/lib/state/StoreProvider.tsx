@@ -4,13 +4,15 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useStore } from "zustand";
 
 import { fetchResolve, postJson } from "@/lib/app/api-client";
+import { shortenFetcher } from "@/lib/app/links-client";
 import { QrInflight } from "@/lib/app/qr-inflight";
 import { TilePreviewClient } from "@/lib/app/tile-preview-client";
+import type { ShortenFetcher } from "@/lib/links/shorten-many";
 import type { PreviewResponse } from "@/schemas/preview";
 import type { ProjectState } from "@/types";
 
 import { EditorHistory } from "./history";
-import { createIdbStore } from "./idb";
+import { clearLegacyStore, noStore } from "./idb";
 import { clearLastImport, loadLastImport, saveLastImport, type LastImport } from "./last-import";
 import { createAutosaver, loadProject, type KeyValueStore } from "./persistence";
 import { createEmptyProject, isDirty, orderedRecords } from "./project";
@@ -23,6 +25,8 @@ export interface Runtime {
   inflight: QrInflight;
   tiles: TilePreviewClient;
   fetchResolve: typeof fetchResolve;
+  /** Acorta los links del menú (siempre, para que el QR sea legible y estable). */
+  fetchShorten: ShortenFetcher;
   /** Guarda ya (antes de salir) y devuelve cuando terminó. */
   flush(): Promise<void>;
   takeOver(): Promise<void>;
@@ -44,11 +48,12 @@ export interface StoreProviderProps {
   kv?: KeyValueStore;
   locks?: LockManagerLike | null;
   fetchResolve?: Runtime["fetchResolve"];
+  fetchShorten?: Runtime["fetchShorten"];
   fetchTiles?: (request: Parameters<ConstructorParameters<typeof TilePreviewClient>[0]>[0], signal?: AbortSignal) => Promise<PreviewResponse>;
   initialProject?: ProjectState;
 }
 
-export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fetchTiles, initialProject }: StoreProviderProps) {
+export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fetchShorten: shortener, fetchTiles, initialProject }: StoreProviderProps) {
   const flushRef = useRef<() => Promise<void>>(async () => undefined);
   const takeOverRef = useRef<() => Promise<void>>(async () => undefined);
   const readBackupRef = useRef<(key: string) => Promise<unknown>>(async () => undefined);
@@ -61,6 +66,7 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
     inflight: new QrInflight(),
     tiles: new TilePreviewClient(fetchTiles ?? ((request, signal) => postJson<PreviewResponse>("/api/preview/tiles", request, signal))),
     fetchResolve: resolver ?? fetchResolve,
+    fetchShorten: shortener ?? shortenFetcher,
     flush: () => flushRef.current(),
     takeOver: () => takeOverRef.current(),
     readBackup: (key) => readBackupRef.current(key),
@@ -70,8 +76,12 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
   }));
 
   useEffect(() => {
-    const store = kv ?? createIdbStore();
-    const writerLocks = locks === undefined ? (typeof navigator !== "undefined" && window.isSecureContext ? (navigator.locks as unknown as LockManagerLike | undefined) : undefined) : (locks ?? undefined);
+    // Sin `kv` (la app real) no se guarda nada en el navegador: cada visita empieza limpia y el archivo .qrproj es la forma de conservar un proyecto.
+    // Tampoco hace falta un único escritor entre pestañas. `kv` solo lo inyectan las pruebas de persistencia.
+    const persist = kv !== undefined;
+    if (!persist) void clearLegacyStore();
+    const store = kv ?? noStore;
+    const writerLocks = !persist ? undefined : locks === undefined ? (typeof navigator !== "undefined" && window.isSecureContext ? (navigator.locks as unknown as LockManagerLike | undefined) : undefined) : (locks ?? undefined);
     let disposed = false;
 
     const saver = createAutosaver(store, {
@@ -139,8 +149,10 @@ export function StoreProvider({ children, kv, locks, fetchResolve: resolver, fet
       });
       switch (outcome.kind) {
         case "loaded": {
-          rt.project.setState({ project: outcome.project });
           const count = orderedRecords(outcome.project).length;
+          if (count > 0 || outcome.project.quarantine.length > 0) {
+            rt.project.setState({ project: outcome.project });
+          }
           patchSession(rt.session, { hydrated: true, notices: { restored: count > 0 ? { records: count, modifiedAt: outcome.project.lastLocalSaveAt ?? now } : null, quarantined: outcome.project.quarantine.length, recoveredBackup: null } });
           break;
         }

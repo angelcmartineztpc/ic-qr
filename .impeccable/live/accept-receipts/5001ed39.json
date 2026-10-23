@@ -1,0 +1,11 @@
+{
+  "id": "5001ed39",
+  "operation": "discard",
+  "variantId": null,
+  "result": {
+    "handled": true,
+    "file": "src/components/import/ImportScreen.tsx",
+    "carbonize": false
+  },
+  "completedAt": "2026-10-20T17:03:53.958Z"
+}

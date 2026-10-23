@@ -10,6 +10,7 @@ import { readFrames, type DonePayload, type FileMetaPayload, type Frame, type Pr
 import type { ExportRequestInput } from "@/schemas/export";
 import { PDF_DEFAULTS } from "@/schemas/pdf";
 import { EMPTY_TEMPLATE_OVERRIDES } from "@/schemas/template";
+import { DEFAULT_QR_STYLE } from "@/schemas/qr-style";
 import { getTemplate } from "@/templates";
 import type { QrSourceInfo } from "@/types";
 
@@ -195,6 +196,61 @@ describe.skipIf(!HAS_PIECE_FONT)("POST /api/export (requiere la fuente de las pi
     expect(await storageFiles()).toEqual(before);
   });
 
+  it("estilo del QR: los QR generados se dibujan con estilo y logo; el QR existente se imprime tal cual; el storage no cambia", async () => {
+    const records = [...(await generated(["a", "b"])), await existing("c")];
+    const before = await storageFiles();
+    const input = request(records, { formats: ["pdf", "svgZip"] });
+    input.templateOverrides.qrStyle = {
+      outline: "square",
+      modules: "dots",
+      eyeFrame: "rounded",
+      eyeBall: "circle",
+      colors: { modules: "#274C69", eyeFrame: "#12324A", eyeBall: null, background: null },
+      logo: {
+        geometry: { viewBox: [0, 0, 100, 100], nodes: [{ type: "path", d: "M50 4L96 50L50 96L4 50Z", fill: "#274C69", fillRule: "nonzero" }] },
+        sizePct: 18,
+        marginModules: 1,
+        color: null,
+        fileName: "logo.svg",
+      },
+    };
+    const response = await run(input);
+    if (response.status !== 200) throw new Error(JSON.stringify(await response.json()));
+    const out = await collect(response);
+    expect(out.error).toBeUndefined();
+    expect(out.done).toMatchObject({ pieces: 3 });
+
+    const zip = unzipSync(out.files["zip"] as Uint8Array);
+    const svg = (name: string) => new TextDecoder().decode(zip[name]);
+    for (const styledPiece of ["001.svg", "002.svg"]) {
+      expect(svg(styledPiece)).toContain('id="qr-eye-frame"');
+      expect(svg(styledPiece)).toContain('id="qr-eye-ball"');
+      expect(svg(styledPiece)).toContain('id="qr-logo"');
+      expect(svg(styledPiece)).toContain('fill="#274C69"');
+      expect(svg(styledPiece)).not.toMatch(/<image|<script|<style/);
+    }
+    // La pieza con QR existente conserva su QR: nada de marcos, pupilas ni logo.
+    expect(svg("003.svg")).toContain('id="qr-code"');
+    expect(svg("003.svg")).not.toMatch(/qr-eye-frame|qr-eye-ball|qr-logo/);
+
+    const pdf = out.files["pdf"] as Uint8Array;
+    expect(await inspectPdf(pdf)).toMatchObject({ pageCount: 1, imageObjects: 0 });
+    expect(await storageFiles()).toEqual(before); // estilizar no crea ni cambia ningún QR guardado
+  });
+
+  it("pdfBySection: un PDF por Estación, en el orden del Excel, dentro de un ZIP", async () => {
+    const estaciones = ["Playa Norte", "Terraza Infinity", "Playa Norte", "Flamingos", "Terraza Infinity"];
+    const records = (await generated(["a", "b", "c", "d", "e"])).map((r, i) => ({ ...r, estacion: estaciones[i] as string }));
+    const out = await collect(await run(request(records, { pdfBySection: true })));
+    expect(out.error).toBeUndefined();
+    expect(out.files["pdf"]).toBeUndefined();
+    expect(out.done).toMatchObject({ pages: 3, pieces: 5 });
+    const zip = unzipSync(out.files["zip"] as Uint8Array);
+    expect(Object.keys(zip)).toEqual(["QR_SECCION A_Playa Norte.pdf", "QR_SECCION B_Terraza Infinity.pdf", "QR_SECCION C_Flamingos.pdf"]);
+    const counts = await Promise.all(Object.values(zip).map(async (pdf) => (await pageContents(pdf))[0]?.match(/^f\*$/gm)?.length));
+    expect(counts).toEqual([2, 2, 1]); // piezas por sección, sin mezclar
+  });
+
   it("la numeración del ZIP es 1…n sobre la lista exportada (las excluidas ni viajan); con nombre por área y mesa", async () => {
     const all = await generated(["a", "b", "c", "d"]);
     const included = all.filter((r) => r.id !== "b");
@@ -243,6 +299,22 @@ describe.skipIf(!HAS_PIECE_FONT)("POST /api/export — bloqueos (400 con detalle
     expect(ids).toEqual(new Set(["pending", "stale", "broken"]));
     expect(body.details?.find((d) => d.recordId === "stale")?.message).toMatch(/desactualizado/);
     expect(await storageFiles()).toEqual(await storageFiles()); // sigue sin escribir
+  });
+
+  it("un estilo que deja el QR ilegible (contraste casi nulo) se rechaza aunque la petición llegue directa", async () => {
+    const before = await storageFiles();
+    const input = request(await generated(["a"]));
+    input.templateOverrides.qrStyle = { ...DEFAULT_QR_STYLE, colors: { modules: "#F5F5F5", eyeFrame: null, eyeBall: null, background: null } };
+    const response = await run(input);
+    expect(response.status).toBe(400);
+    expect((await detail(response)).message).toMatch(/El estilo del QR no se puede fabricar/);
+    expect(await storageFiles()).toEqual(before);
+  });
+
+  it("un estilo con aviso pero sin bloqueo (contraste justo) sí se exporta", async () => {
+    const input = request(await generated(["a"]));
+    input.templateOverrides.qrStyle = { ...DEFAULT_QR_STYLE, colors: { modules: "#8A8A8A", eyeFrame: null, eyeBall: null, background: null } };
+    expect((await run(input)).status).toBe(200);
   });
 
   it("un QR desactualizado CON confirmación válida sí se exporta", async () => {

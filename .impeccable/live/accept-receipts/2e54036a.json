@@ -1,0 +1,11 @@
+{
+  "id": "2e54036a",
+  "operation": "discard",
+  "variantId": null,
+  "result": {
+    "handled": true,
+    "file": "src/components/qr-style/QrStyleScreen.tsx",
+    "carbonize": false
+  },
+  "completedAt": "2026-10-20T19:56:24.331Z"
+}

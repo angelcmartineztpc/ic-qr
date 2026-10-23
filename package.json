@@ -5,7 +5,7 @@
   "description": "QR Production Generator: piezas de 70 × 70 mm con QR vectorial, SVG y PDF compatibles con Illustrator",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/copy-standalone-assets.mjs",
+    "build": "node scripts/embed-server-fonts.mjs && next build --webpack && node scripts/copy-standalone-assets.mjs",
     "start": "node .next/standalone/server.js",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
@@ -15,10 +15,10 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "fonts:setup": "tsx scripts/setup-fonts.mts",
-    "cf:build": "opennextjs-cloudflare build",
+    "cf:build": "bun run build && opennextjs-cloudflare build --skipNextBuild",
     "cf:fonts": "tsx scripts/upload-fonts-r2.mts",
     "cf:preview": "wrangler dev",
-    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:deploy": "bun run cf:build && opennextjs-cloudflare deploy",
     "hash-password": "tsx scripts/hash-password.mts",
     "check:sheetjs": "tsx scripts/check-sheetjs.mts",
     "render:sample": "tsx --conditions=react-server scripts/render-sample.mts"
@@ -44,6 +44,7 @@
     "idb-keyval": "^6.3.0",
     "ipaddr.js": "^2.5.0",
     "next": "16.3.8",
+    "pdfjs-dist": "^6.4.299",
     "pdfkit": "0.20.2",
     "qr": "0.7.2",
     "react": "19.2.8",
@@ -53,7 +54,8 @@
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^4.6.5",
     "zundo": "^2.3.0",
-    "zustand": "^5.0.15"
+    "zustand": "^5.0.15",
+    "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.20.10",
@@ -74,7 +76,6 @@
     "jsdom": "^30.1.2",
     "jsqr": "^1.4.0",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.4.299",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",

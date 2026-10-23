@@ -20,7 +20,7 @@ export function useImportActions(): ImportActions {
   const builder = useBuilderActions();
   const router = useRouter();
   return useMemo(
-    () => createImportActions({ runtime, notify, confirm, now: () => new Date().toISOString(), download: saveBlob, resolve: builder.resolve, goToPieces: () => router.push("/editor") }),
+    () => createImportActions({ runtime, notify, confirm, now: () => new Date().toISOString(), download: saveBlob, resolve: builder.resolve, downloadExcel: builder.downloadExcel, goToPieces: () => router.push("/editor") }),
     [runtime, notify, confirm, builder, router],
   );
 }

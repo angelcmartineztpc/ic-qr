@@ -51,7 +51,7 @@ function planFor(state: ProjectState, id: RecordId): { kind: "generate" | "verif
 
 export async function resolveQrs(ids: readonly RecordId[], deps: ResolveQrDeps): Promise<ResolveQrSummary> {
   const summary: ResolveQrSummary = { ...EMPTY };
-  const chunkSize = deps.chunkSize ?? 50;
+  const chunkSize = deps.chunkSize ?? 25;
   const state = deps.getState();
 
   const jobs = ids.flatMap((id) => {

@@ -4,18 +4,23 @@
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-10-01",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-	// Una exportación de 5000 piezas puede pasar de los 30 s de CPU por defecto (plan de pago).
-	"limits": { "cpu_ms": 120000 },
+	// Una exportación de 5000 piezas puede pasar de los 30 s de CPU por defecto (plan de pago):
+	// "limits": { "cpu_ms": 120000 },
 	"assets": {
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
-	"r2_buckets": [
+	// Descomenta r2_buckets tras activar R2 en el panel de Cloudflare y crear el bucket:
+	// "r2_buckets": [
+	// 	{
+	// 		"binding": "QR_BUCKET",
+	// 		"bucket_name": "qr-production-generator-qr"
+	// 	}
+	// ],
+	"kv_namespaces": [
 		{
-			// Aquí se guardan los QR generados (qr/v1/{sha256}.svg). Créalo antes de desplegar:
-			//   bunx wrangler r2 bucket create qr-production-generator-qr
-			"binding": "QR_BUCKET",
-			"bucket_name": "qr-production-generator-qr"
+			"binding": "QR_KV",
+			"id": "a5cd66d8038b4c29b134f973ed4963df"
 		}
 	],
 	"services": [
@@ -24,5 +29,15 @@
 			"binding": "WORKER_SELF_REFERENCE",
 			"service": "qr-production-generator"
 		}
-	]
+	],
+	"vars": {
+		"ALLOW_UNAUTHENTICATED": "true",
+		"APP_ORIGINS": "https://qr-production-generator.angelcmartinez.workers.dev,http://localhost:8787",
+		"APP_ALLOWED_HOSTS": "qr-production-generator.angelcmartinez.workers.dev,localhost:8787",
+		"STORAGE_PROVIDER": "r2",
+		"STORAGE_PUBLIC_BASE_URL": "https://qr-production-generator.angelcmartinez.workers.dev/api/storage",
+		"RATE_LIMIT_RESOLVE_PER_MIN": "240",
+		"RATE_LIMIT_LINKS_PER_MIN": "240",
+		"LOG_FORMAT": "json"
+	}
 }
