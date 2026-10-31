@@ -10,6 +10,11 @@ import { outlineScene } from "./outline";
 import { buildScene, type SceneRecord } from "./scene";
 
 const tropical = (): Template => legacyTile();
+const tropicalTemplate = (): Template => {
+  const template = getTemplate("tropical-table");
+  if (!template) throw new Error("falta tropical-table");
+  return template;
+};
 const record = (o: Partial<SceneRecord> = {}): SceneRecord => ({ id: "r1", area: "Tropical", estacion: "Bar", mesa: "M1", subgrupo: "", concepto: "", menuUrl: "https://menu.example.com/tropical", ...o });
 const geometry = (payload: string): QrGeometry => {
   const matrix = encodeMatrix(payload);
@@ -28,6 +33,21 @@ describe("buildScene — TropicalTable", () => {
   it("imprime solo Área, la etiqueta, Mesa y los dos textos; Estación es metadato (§1.2-8)", () => {
     const texts = build().nodes.flatMap((n) => (n.type === "text" ? [n.text] : []));
     expect(texts).toEqual(["TROPICAL", "MESA – TABLE", "M1", "CONSULTA EL MENÚ Y ORDENA EN LÍNEA", "LOOK AT THE MENU AND ORDER ONLINE"]);
+  });
+
+  it.each([
+    ["Cabaña", "CABAÑA – CABIN"],
+    ["Camastro", "CAMASTRO – LOUNGER"],
+    ["Mesa", "MESA – TABLE"],
+    ["Estación nueva", "ESTACIÓN NUEVA – ESTACIÓN NUEVA"],
+  ])("traduce la estación %s en la etiqueta de la plantilla", (estacion, expected) => {
+    const label = build(record({ estacion }), tropicalTemplate()).nodes.find((node) => node.id === "text-label");
+    expect(label).toMatchObject({ type: "text", text: expected });
+  });
+
+  it("omite la etiqueta si el registro no tiene estación", () => {
+    const label = build(record({ estacion: "" }), tropicalTemplate()).nodes.find((node) => node.id === "text-label");
+    expect(label).toBeUndefined();
   });
 
   it("el QR queda dentro de su caja de 24 mm y ocupa un solo path con el fondo blanco aparte", () => {

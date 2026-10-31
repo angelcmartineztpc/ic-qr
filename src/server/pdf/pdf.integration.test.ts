@@ -16,7 +16,7 @@ const DATE = new Date("2026-10-06T12:00:00Z");
 
 async function build(pdf: PDFOptions, count = 1, outlined = true) {
   const scenes = Array.from({ length: count }, (_, i) => {
-    const scene = sampleScene({ id: `r${i}`, mesa: `M${i + 1}` }, { bleedMm: pdf.bleedMm, cutLine: pdf.cutLine, includeQrBackground: pdf.includeQrBackground });
+    const scene = sampleScene({ id: `r${i}`, estacion: "Mesa", mesa: `M${i + 1}` }, { bleedMm: pdf.bleedMm, cutLine: pdf.cutLine, includeQrBackground: pdf.includeQrBackground });
     return outlined ? outlineScene(scene, fonts) : scene;
   });
   return renderPdfToBuffer(scenes, { tile, pdf, fonts, creationDate: DATE, compress: false, title: "Test" });

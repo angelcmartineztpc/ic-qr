@@ -54,7 +54,7 @@ export function TemplatePanel({ template, overrides, disabled, onChange }: Templ
         return (
           <fieldset key={item.id} className="m-0 flex flex-col gap-2 rounded border border-divider p-3">
             <legend className="px-1 text-sm font-semibold">{item.id}</legend>
-            <TextField size="small" label="Texto" value={o.text ?? item.text} disabled={disabled} helperText="Admite {{area}}, {{mesa}}…" onChange={(e) => void patchItem(item.id, { text: e.target.value === "" || e.target.value === item.text ? undefined : e.target.value })} />
+            <TextField size="small" label="Texto" value={o.text ?? item.text} disabled={disabled} helperText="Admite {{area}}, {{estacion}}, {{estacionEn}}, {{mesa}}…" onChange={(e) => void patchItem(item.id, { text: e.target.value === "" || e.target.value === item.text ? undefined : e.target.value })} />
             <div className="grid grid-cols-2 gap-x-3">
               <NumberField label="Tamaño" unit="pt" step={0.5} value={o.sizePt ?? item.sizePt} disabled={disabled} onCommit={(v) => patchItem(item.id, { sizePt: v === item.sizePt ? undefined : v })} />
               <NumberField label="Margen superior" unit="mm" value={o.marginTopMm ?? item.marginTopMm} disabled={disabled} onCommit={(v) => patchItem(item.id, { marginTopMm: v === item.marginTopMm ? undefined : v })} />

@@ -54,9 +54,19 @@ export interface SceneOptions {
 
 const DIELINE: Paint = { rgb: "#FF00FF", pdf: { spot: "CutContour", cmyk: [0, 100, 0, 0] } };
 const PX = 1000; // las coordenadas del path se redondean a micras (3 decimales en mm)
+const ENGLISH_STATION_NAMES: Readonly<Record<string, string>> = {
+  cabana: "Cabin",
+  camastro: "Lounger",
+  mesa: "Table",
+};
 
 const paint = (rgb: Paint["rgb"], pdf?: TextElement["pdfColor"]): Paint => (pdf ? { rgb, pdf } : { rgb });
 const mm = (n: number): number => round(n, 1 / PX);
+
+function englishStationName(station: string): string {
+  const normalized = station.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
+  return ENGLISH_STATION_NAMES[normalized] ?? station;
+}
 
 interface PlacedLine {
   element: TextElement;
@@ -88,6 +98,7 @@ function layoutContent(
   const values: Record<string, string> = {
     area: record.area,
     estacion: record.estacion,
+    estacionEn: englishStationName(record.estacion),
     mesa: record.mesa,
     subgrupo: record.subgrupo,
     concepto: record.concepto,

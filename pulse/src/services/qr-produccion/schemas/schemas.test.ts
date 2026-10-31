@@ -58,15 +58,15 @@ describe("plantillas", () => {
     expect(DEFAULT_TEMPLATE_ID).toBe("tropical-table");
   });
 
-  it("TropicalTable reproduce la referencia QR_Tropical_1M_Alimentos.pdf: 70 mm, textos literales, marco y QR abajo", () => {
+  it("TropicalTable conserva la geometría de referencia y muestra la estación en dos idiomas", () => {
     const template = tropical();
     expect(template.tile).toMatchObject({ width: 70, height: 70 });
     expect(template.content.items.map((i) => i.text)).toEqual([
       "{{area}}",
-      "MESA – TABLE",
+      "{{estacion}} – {{estacionEn}}",
       "{{mesa}}",
       "CONSULTA EL MENÚ Y ORDENA EN LÍNEA",
-      "LOOK AT THE MENU AND ORDER ON LINE",
+      "LOOK AT THE MENU AND ORDER ONLINE",
     ]);
     expect(template.content.items.map((i) => i.sizePt)).toEqual([17, 11, 22, 13.2, 13.2]);
     expect(template.shapes.map((shape) => shape.id)).toEqual(["frame"]);

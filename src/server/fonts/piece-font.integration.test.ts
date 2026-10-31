@@ -33,7 +33,7 @@ describe.skipIf(!HAS_PIECE_FONT)("Address Sans Pro Cd real (requiere bun run fon
   it("la pieza coincide con la referencia: 70 × 70 mm, bases y centros de cada línea, QR de 33 módulos de 0.751 mm", () => {
     const template = tropical();
     expect(template.tile).toMatchObject({ width: 70, height: 70 });
-    const scene = sampleScene({ area: "Tropical", mesa: "M1", menuUrl: "https://menu.example.com/tropical/restaurant?m=1" });
+    const scene = sampleScene({ area: "Tropical", estacion: "Mesa", mesa: "M1", menuUrl: "https://menu.example.com/tropical/restaurant?m=1" });
     expect(scene.warnings).toEqual([]);
     const texts = scene.nodes.flatMap((n) => (n.type === "text" ? [n] : []));
     const reference = [
@@ -41,7 +41,7 @@ describe.skipIf(!HAS_PIECE_FONT)("Address Sans Pro Cd real (requiere bun run fon
       { text: "MESA – TABLE", baseline: 14.676, sizePt: 11 },
       { text: "M1", baseline: 21.804, sizePt: 22 },
       { text: "CONSULTA EL MENÚ Y ORDENA EN LÍNEA", baseline: 30.1, sizePt: 13.2 },
-      { text: "LOOK AT THE MENU AND ORDER ON LINE", baseline: 34.9, sizePt: 13.2 },
+      { text: "LOOK AT THE MENU AND ORDER ONLINE", baseline: 34.9, sizePt: 13.2 },
     ];
     expect(texts.map((t) => t.text)).toEqual(reference.map((r) => r.text));
     texts.forEach((t, i) => {

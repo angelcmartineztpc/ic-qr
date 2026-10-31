@@ -16,7 +16,7 @@ export const TextSourceSchema = z
   .max(500)
   .superRefine((source, ctx) => {
     for (const match of source.matchAll(PLACEHOLDER)) {
-      if (!BindableFieldSchema.safeParse(match[1]).success) {
+      if (match[1] !== "estacionEn" && !BindableFieldSchema.safeParse(match[1]).success) {
         ctx.addIssue({ code: "custom", message: `Campo desconocido {{${match[1] ?? ""}}}` });
       }
     }
